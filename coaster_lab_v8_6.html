@@ -960,6 +960,19 @@ body.editing #cap85,body.starting #cap85{display:none}
 .gt86 td,.gt86 th{white-space:nowrap}
 .gt86 td:first-child{white-space:normal;min-width:112px}
 .gv86{margin-top:6px}
+/* ---- 8.6 Disaster Mode: badge, report stamp, findings */
+#dzChip{font-style:normal;font-size:10px;font-weight:800;color:#fff;background:#e5484d;border-radius:99px;padding:1px 7px;margin-left:6px;white-space:nowrap}
+#dzChip[hidden]{display:none}
+.ok86{margin:6px 0 0;padding:9px 12px;border-radius:12px;background:rgba(61,255,122,.1);border:1px solid rgba(61,255,122,.4);color:#c9f7d8;font-size:13px;line-height:1.45}
+.dzT86{padding:8px 12px;border-radius:14px;background:rgba(229,72,77,.12);border:1px solid rgba(229,72,77,.45)}
+.inc86{display:grid;gap:8px}
+.stamp86{justify-self:center;margin:4px 0 2px;padding:8px 18px;border:3px solid #ff5a5f;border-radius:10px;color:#ff7a7e;font:900 26px var(--fUI);letter-spacing:.08em;transform:rotate(-4deg);background:rgba(255,90,95,.08)}
+.stamp86.roll{border-color:#ffc233;color:#ffd36b;background:rgba(255,194,51,.08)}
+.cause86{margin:0;font-size:16px;font-weight:800;line-height:1.4;color:#fff}
+.inc86g{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.inc86g span{display:grid;gap:2px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+.inc86g i{font-style:normal;font-size:11.5px;color:var(--ink2)}
+.inc86g b{font-size:16px}
 </style>
 </head>
 <body>
@@ -7117,6 +7130,149 @@ Object.assign(DBG86,{grav:()=>({...GL86,PH:{...PH},chip:$('#modChip').textConten
  check:async()=>{GCHK86.ver=-1;await gravCheckAll86();while(GCHK86.busy)await yield86();return GCHK86.res.map(r=>({n:rideName(r.i),stall:Math.round(r.stall),done:r.done}))},earth:i=>earthStats86(i==null?cur:i)});
 // start-up: put the saved planet back (before the first ride is built)
 if(GL86.k!=='earth')applyGrav86();
+
+// ---- [86_disaster.js]
+// ---- 8.6 DISASTER MODE (off by default). With it OFF every function below steps aside and the ride runs exactly as
+// before. With it ON (classic ride operations, not while building) the train loses its safety systems:
+//  • no safety drive tyres (the normal physics never lets the train drop below 1.5 m/s, so it can never stall),
+//  • no anti-rollback on the lift (the chain only pulls a train that is going forwards),
+//  • the wheels let go above 2.6 G sideways or below −2.0 G (averaged over about ⅓ s, like a real wheel and rider would feel).
+// The limits were measured against every park ride: with Earth gravity the modern rides stay on the track, three of the
+// four classic toy-scale rides fly off, and heavier gravity makes more rides fail. When the train derails, the cars
+// tumble with the current gravity, the cartoon riders pop out with parachutes and confetti, a crash camera follows,
+// and a 📋 Incident Report lists the (silly) facts. Everything is cartoon: every rider lands safely.
+const DZLIM86={lat:2.6,neg:-2.0,tau:.35};
+Object.assign(DZ86,{phase:'',rep:null,bodies:null,riders:null,camPrev:'',t:0,slow:0,rest:0,roll:null,ver:-1});
+const dzLive86=()=>DZ86.on&&!editing&&!!P&&cur!=null&&!opsActive72()&&!(typeof replay72!=='undefined'&&replay72&&replay72.on);
+// prediction from the simulated lap (the same trace the Lab uses): where the wheels would let go, or where it stalls
+const DZP86=new WeakMap();
+function dzPredict86(c,tr){let r=DZP86.get(tr);if(r&&r.ver===phVer)return r;const g=seatG(c,tr,0),n=tr.n;let lat=0,vt=g.v[0],pkL=0,pkN=9,hit=-1,why='';
+ for(let k=1;k<n;k++){const dt=tr.t[k]-tr.t[k-1],f=1-Math.exp(-dt/DZLIM86.tau);lat+=(g.l[k]-lat)*f;vt+=(g.v[k]-vt)*f;if(Math.abs(lat)>pkL)pkL=Math.abs(lat);if(vt<pkN)pkN=vt;
+  if(hit<0&&tr.s[k]>6&&tr.s[k]<c.L-3){if(Math.abs(lat)>DZLIM86.lat){hit=k;why='lat'}else if(vt<DZLIM86.neg){hit=k;why='neg'}}}
+ const stall=tr.stall>=0?tr.stall:(!tr.done?c.L*.5:-1);r={ver:phVer,kind:'ok',pkL,pkN,s:-1,g:0,v:0,el:''};
+ if(hit>=0&&(stall<0||tr.s[hit]<stall)){r.kind='derail';r.s=tr.s[hit];r.why=why;r.side=Math.sign(g.l[hit])||1;r.g=why==='lat'?Math.abs(g.l[hit]):g.v[hit];r.v=tr.v[hit];r.el=dzEl86(c,tr,r.s)}
+ else if(stall>=0){r.kind='roll';r.s=stall;r.el=dzEl86(c,tr,stall)}DZP86.set(tr,r);return r}
+// the name of the part of the track at distance q (section name for built coasters, detected element for park rides)
+function dzEl86(c,tr,q){try{const d=c.def;if(d.secF&&d.secNames){const f=((q/c.L)%1+1)%1,k=d.secF.findIndex(x=>f>=x[0]&&f<x[1]);if(k>=0&&d.secNames[k])return d.secNames[k]}const E=elementsOf(c,tr).E;let b=null;for(const e of E)if(e.s<=q+1)b=e;return b?b.name:'track'}catch(e){return'track'}}
+const dzPred86=()=>{const c=curCtx();if(!c)return null;try{return dzPredict86(c,traceOf(c))}catch(e){return null}};
+// Disaster physics: the same forces as physics(), minus the safety systems. Friction always works against the motion.
+function dzPhys86(dt){let n=4;const h=dt/n,roll=DZ86.phase==='roll';while(n--){const q=((s%L)+L)%L,i=Math.floor(q/L*N)%N,gs=-G*T[i].y;
+ if(v===0){if(Math.abs(gs)>PH.fric)v+=(gs-Math.sign(gs)*PH.fric)*h}
+ else{const dir=v>0?1:-1;v+=(gs-dir*(PH.fric+PH.drag*v*v))*h;if((v>0?1:v<0?-1:0)!==dir&&Math.abs(gs)<=PH.fric)v=0}
+ if(ZN){for(const z of ZN)if(q>=z.a&&q<z.b){if(z.k==='brake'){if(v>z.v&&!roll)v=Math.max(z.v,v-PH.brake*h);else if(v<0)v=Math.min(0,v+PH.brake*h);else if(roll&&v>0)v=Math.max(0,v-PH.brake*h)}
+   else if(z.k==='station'){if(v<0)v=Math.min(0,v+PH.brake*h);else if(roll)v=Math.max(0,v-PH.brake*h);else v=v>z.v?Math.max(z.v,v-PH.brake*h):Math.min(z.v,v+2*h)}
+   else if(roll)continue;else if(z.k==='lift'){if(v>=0&&v<LIFT)v=LIFT}else if(z.k==='launch'){if(v>=0){const zv=z.v*PH.launch;if(v<zv)v=Math.min(zv,v+z.acc*PH.launch*h)}}}}
+ else{if(q<sCrest-.5&&v>=0&&!roll)v=LIFT;if(q>L-BR){if(v>LIFT&&!roll)v=Math.max(LIFT,v-PH.brake*h);else if(v<0)v=Math.min(0,v+PH.brake*h)}if(q<5&&v<0)v=Math.min(0,v+PH.brake*h)}
+ s+=v*h;if(s>=L){s-=L;rideT=0;vMax=0}else if(s<0)s+=L}}
+const inStation86=()=>{const q=((s%L)+L)%L;if(ZN)return ZN.some(z=>z.k==='station'&&q>=z.a&&q<z.b);return q<5};
+// replaces advance() only while Disaster Mode is live; otherwise the older advance() runs untouched
+{const f0=advance;advance=function(raw){if(!DZ86.on)return f0(raw);if(DZ86.phase==='crash'||DZ86.phase==='report')return;if(!dzLive86())return f0(raw);if(!playing)return;
+ acc+=Math.min(raw,.25)*speed;let n=0;const pr=DZ86.phase?null:dzPred86();
+ while(acc>=H&&n<MAXSTEP){const s0=s;dzPhys86(H);rideT+=H;if(v>vMax)vMax=v;acc-=H;n++;OPST72.simT+=H;
+  if(!DZ86.phase){if(pr&&pr.kind==='derail'&&v>0&&s0<pr.s&&s>=pr.s&&s-s0<5){dzDerail86(pr);break}
+   if(v<0&&!inStation86()&&s>6){dzRollStart86();continue}if(v===0&&!inStation86()){DZ86.stuck=(DZ86.stuck||0)+H;if(DZ86.stuck>2.5){dzRollStart86();continue}}else DZ86.stuck=0}
+  else if(DZ86.phase==='roll'){const R=DZ86.roll;R.t+=H;R.vmin=Math.min(R.vmin,v);const q=((s%L)+L)%L;let back=R.s0-q;if(back<-L/2)back+=L;R.back=Math.max(R.back,back);
+   if(Math.abs(v)<.05){R.still+=H;if(R.still>1.2){dzRollEnd86();break}}else R.still=0;if(R.t>14){dzRollEnd86();break}}}
+ if(acc>=H)acc%=H}}
+function dzRollStart86(){const c=curCtx();DZ86.phase='roll';DZ86.stuck=0;const q=((s%L)+L)%L;DZ86.roll={s0:q,t:0,vmin:0,back:0,still:0,el:c?dzEl86(c,traceOf(c),q):'track'};try{v7Seek()}catch(e){}
+ got86('dzroll86');say('↩️ Out of speed! No anti-rollback… here we go backwards!');try{sfx('woo',.8)}catch(e){}}
+function dzRollEnd86(){const R=DZ86.roll;DZ86.phase='report';dzReport86({kind:'roll',el:R.el,back:R.back,vmin:-R.vmin,t:R.t,s0:R.s0})}
+// ---- the crash: four cars become simple tumbling bodies (allocated once and reused: no garbage while it plays)
+const _dq86=new THREE.Quaternion(),_dv86=V(),_dv86b=V(),_dax86=V();
+function dzBodies86(){if(DZ86.bodies)return DZ86.bodies;DZ86.bodies=[0,1,2,3].map(()=>({p:V(),v:V(),w:V(),q:new THREE.Quaternion(),rest:false,land:-1,landP:V(),hop:0,upside:false}));return DZ86.bodies}
+function dzDerail86(pr){const R=rng86(hash86(rideName(cur)+'|'+pr.s.toFixed(1)+'|'+PH.g)),B=dzBodies86(),vv=v;DZ86.phase='crash';DZ86.crashed=true;DZ86.t=0;DZ86.acc=0;DZ86.slow=1;DZ86.rest=0;DZ86.firstHit=false;DZ86.maxH=0;DZ86.hang=0;
+ try{v7Seek()}catch(e){}if(cine)setCine(false);DZ86.camPrev=camMode;
+ pose(s,pP,pT,pU);pS.crossVectors(pU,pT);DZ86.p0=pP.clone();DZ86.rep={kind:'derail',why:pr.why,g:pr.g,v:vv,el:pr.el,s:pr.s,ride:rideName(cur),planet:gravTxt86(),earth:gEarth86(),seed:hash86(rideName(cur)+pr.s.toFixed(1))};
+ const cx=curCtx();for(let k=0;k<4&&k<cars.length;k++){const b=B[k];pose(s-k*1.15,pP,pT,pU);pS.crossVectors(pU,pT);try{placeCar7(cars[k],k,0,cx,0)}catch(e){}b.p.copy(cars[k].position);b.q.copy(cars[k].quaternion);
+  // the car keeps its speed along the track, gets flung to the outside of the curve (or up, for too much airtime) and starts to tumble
+  b.v.copy(pT).multiplyScalar(vv);if(pr.why==='lat')b.v.addScaledVector(pS,-pr.side*(2+R()*1.5));b.v.addScaledVector(pU,pr.why==='neg'?4+R()*2:1.5+R()*1.5);b.v.y+=1.5+R()*1.5;
+  b.w.copy(pT).multiplyScalar((pr.why==='lat'?pr.side:R()<.5?1:-1)*(2.5+R()*3)).addScaledVector(pS,(R()-.5)*3).addScaledVector(pU,(R()-.5)*2);b.rest=false;b.land=-1;b.hop=0;b.upside=false}
+ v=0;acc=0;camMode='crash';snap=false;blendCam72();document.querySelectorAll('[data-cam]').forEach(x=>x.classList.remove('active'));
+ got86('dz86');try{sfx('woo')}catch(e){}if(fxOn)try{const p=DZ86.p0;emit(p.x,p.y+1,p.z,90,{force:1,cols:['#ffd23f','#ff8a3d','#ffffff'],sp:6,up:1.4,g:-6,drag:1.5,life:1.1,flicker:12,r:2.2})}catch(e){}
+ say('💥 DERAILED! The wheels said “nope”.');setTimeout(()=>{if(DZ86.phase==='crash')dzPop86()},350)}
+// per frame while crashed: move the bodies (slow motion for the first second) and put the cars there
+function dzStep86(dt){const B=DZ86.bodies;if(!B)return;const ts=DZ86.slow>0?.4+.6*(1-DZ86.slow):1;DZ86.slow=Math.max(0,DZ86.slow-dt*.8);DZ86.acc=(DZ86.acc||0)+dt*ts;let n=0;while(DZ86.acc>=1/120&&n<30){DZ86.acc-=1/120;n++;dzSub86(1/120)}if(DZ86.acc>=1/120)DZ86.acc=0}
+function dzSub86(h){const B=DZ86.bodies;DZ86.t+=h;let resting=0;
+ for(let k=0;k<4&&k<cars.length;k++){const b=B[k];if(!b.rest){b.v.y-=PH.g*h;b.v.multiplyScalar(Math.max(0,1-PH.drag*b.v.length()*h));b.p.addScaledVector(b.v,h);
+   const wl=b.w.length();if(wl>1e-4){_dax86.copy(b.w).multiplyScalar(1/wl);_dq86.setFromAxisAngle(_dax86,wl*h);b.q.premultiply(_dq86)}
+   const gy=hAt(b.p.x,b.p.z)+.45;if(b.p.y-gy>DZ86.maxH)DZ86.maxH=b.p.y-gy;
+   if(b.p.y<gy){b.p.y=gy;const imp=-b.v.y;if(b.land<0){b.land=DZ86.t;b.landP.copy(b.p);if(!DZ86.firstHit){DZ86.firstHit=true;DZ86.hang=DZ86.t;try{sfx('thunder',.35)}catch(e){}}}
+    if(imp>2.5&&fxOn)try{emit(b.p.x,b.p.y,b.p.z,14,{cols:['#c8b89a','#a89a80','#e8dcc0'],sp:2.4,up:.8,g:-4,drag:2,life:.9,r:2.6})}catch(e){}
+    b.v.y=imp>0?imp*.3:0;b.v.x*=.7;b.v.z*=.7;b.w.multiplyScalar(.55);if(b.v.lengthSq()<.5&&imp<1.2){b.rest=true;_dv86.set(0,1,0).applyQuaternion(b.q);b.upside=_dv86.y<-.2}}}
+  if(b.rest)resting++;cars[k].position.copy(b.p);cars[k].quaternion.copy(b.q);if(cars[k].userData.riders&&DZ86.popped)for(const r of cars[k].userData.riders)r.visible=false}
+ dzRiders86(h);if(DZ86.phase==='crash'){if(resting>=Math.min(4,cars.length))DZ86.rest+=h;if(DZ86.rest>1.4||DZ86.t>14){DZ86.phase='report';dzReport86(DZ86.rep)}}}
+// cars follow the bodies (the normal track placement is skipped only while crashed)
+{const f0=updateCars;updateCars=function(dt=.016){if(!DZ86.crashed)return f0(dt);if(playing)try{dzStep86(Math.min(dt,.05))}catch(e){fault81('disaster',e)}}}
+// ---- cartoon riders: they pop out with confetti, open striped parachutes and float down (one set, built once, reused)
+function dzRiderSet86(){if(DZ86.riders)return DZ86.riders;const body=new THREE.CapsuleGeometry(.13,.22,4,8),head=new THREE.SphereGeometry(.12,14,10),eye=new THREE.SphereGeometry(.022,6,5),chute=new THREE.SphereGeometry(.62,16,6,0,Math.PI*2,0,Math.PI/2),
+ lines=new THREE.BufferGeometry().setFromPoints([V(0,.28,0),V(.6,.95,0),V(0,.28,0),V(-.6,.95,0),V(0,.28,0),V(0,.95,.6),V(0,.28,0),V(0,.95,-.6)]),skinM=mat(0xf1c27d,.6),eyeM=mat(0x161616,.3),lineM=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.7}),
+ cols=[0xff3d6b,0xffd23f,0x22e0ff,0x9dff4a,0xc48bff,0xff8a3d,0x36a7ff,0xff6fa8];DZ86.riders=cols.map((col,i)=>{const g=new THREE.Group(),bm=new THREE.Mesh(body,mat(TOPS[i%TOPS.length],.7)),hm=new THREE.Mesh(head,skinM);bm.position.y=.0;hm.position.y=.3;g.add(bm,hm);
+  for(const ex of[-.045,.045]){const e=new THREE.Mesh(eye,eyeM);e.position.set(ex,.33,.105);g.add(e)}const cg=new THREE.Group(),cm=new THREE.Mesh(chute,mat(col,.55));cm.position.y=.95;cg.add(cm,new THREE.LineSegments(lines,lineM));cg.scale.setScalar(.01);g.add(cg);g.visible=false;scene.add(g);
+  return{g,cg,p:V(),v:V(),t:0,on:false,land:false,open:0}});return DZ86.riders}
+function dzPop86(){const RS=dzRiderSet86(),R=rng86((DZ86.rep&&DZ86.rep.seed)||7),up=Math.sqrt(2*Math.max(1,PH.g)*4.5);DZ86.popped=true;let j=0;
+ for(let k=0;k<4&&k<cars.length;k++){const car=cars[k],b=DZ86.bodies[k];for(const sx of[-.24,.24]){const r=RS[j++];if(!r)continue;_dv86.set(sx,.95,-.12);car.localToWorld(r.p.copy(_dv86));r.v.copy(b.v).multiplyScalar(.45);r.v.y=up*(.85+R()*.3);r.v.x+=(R()-.5)*3;r.v.z+=(R()-.5)*3;r.t=0;r.on=true;r.land=false;r.open=0;r.g.visible=true;r.g.rotation.set(0,R()*6.28,0);r.cg.scale.setScalar(.01)
+   if(fxOn)try{emit(r.p.x,r.p.y,r.p.z,26,{force:1,cols:['#ff3d6b','#ffd23f','#22e0ff','#9dff4a','#c48bff'],sp:4,up:1.3,g:-3,drag:1.3,life:1.8,flicker:10,r:2.2})}catch(e){}}}
+ try{sfx('pop')}catch(e){}}
+function dzRiders86(h){const RS=DZ86.riders;if(!RS)return;for(const r of RS){if(!r.on)continue;r.t+=h;if(!r.land){if(r.t>.55)r.open=Math.min(1,r.open+h*2.5);const o=r.open;
+   r.v.y-=PH.g*h;if(o>0){const vt=-1.6,k=3.2*o;r.v.y+=(vt-r.v.y)*Math.min(1,k*h);r.v.x-=r.v.x*Math.min(1,1.4*o*h);r.v.z-=r.v.z*Math.min(1,1.4*o*h)}r.p.addScaledVector(r.v,h);
+   r.cg.scale.setScalar(Math.max(.01,o));r.g.rotation.z=Math.sin(r.t*2.3)*.22*o;r.g.rotation.x=o<1?(1-o)*r.t*6:Math.cos(r.t*1.9)*.12;const gy=hAt(r.p.x,r.p.z)+.25;
+   if(r.p.y<gy&&r.v.y<0){r.p.y=gy;r.land=true;r.t=0;r.g.rotation.set(0,r.g.rotation.y,0);if(fxOn)try{emit(r.p.x,r.p.y+.4,r.p.z,18,{cols:['#ffd23f','#ff3d6b','#22e0ff','#9dff4a'],sp:2.5,up:1.5,g:-3,drag:1.4,life:1.3,flicker:10,r:2})}catch(e){}}}
+  else{r.cg.scale.setScalar(Math.max(.01,r.cg.scale.x-h*2));const hop=Math.abs(Math.sin(r.t*5))*.18*Math.max(0,1-r.t/6);r.g.position.set(r.p.x,r.p.y+hop,r.p.z);continue}
+  r.g.position.copy(r.p)}}
+function dzEnd86(){if(!DZ86.phase&&!DZ86.popped&&!DZ86.crashed)return;const was=DZ86.phase,cr=DZ86.crashed;DZ86.phase='';DZ86.crashed=false;DZ86.popped=false;DZ86.roll=null;DZ86.stuck=0;if(DZ86.riders)for(const r of DZ86.riders){r.on=false;r.g.visible=false}
+ if(cr||was){if(camMode==='crash')setCam(DZ86.camPrev&&DZ86.camPrev!=='crash'&&DZ86.camPrev!=='build'?DZ86.camPrev:'chase');snap=true}if(isOpen86('inc86'))closeOv7()}
+// crash camera: circles the wreck from a safe distance (drag to turn it, pinch to zoom)
+CAM72.crash={drag:true,stiff:.02,fn(dt,first){const B=DZ86.bodies;_dv86b.set(0,0,0);let n=0,far=0;if(B)for(let k=0;k<4&&k<cars.length;k++){_dv86b.add(B[k].p);n++}if(n)_dv86b.multiplyScalar(1/n);else _dv86b.copy(cars[0].position);
+ if(B)for(let k=0;k<n;k++)far=Math.max(far,B[k].p.distanceTo(_dv86b));if(first){orbitYaw=Math.atan2(camera.position.z-_dv86b.z,camera.position.x-_dv86b.x);orbitPitch=.32}if(!ptrDown72)orbitYaw+=dt*.12;
+ const r=(8.5+far*1.1)*zoom;des.set(_dv86b.x+Math.cos(orbitYaw)*r,_dv86b.y+2+Math.sin(clamp(orbitPitch,.05,1.1))*r,_dv86b.z+Math.sin(orbitYaw)*r);look.copy(_dv86b)},fov:()=>baseFov};
+// the HUD status says what is going on
+{const f0=hud;hud=function(dt){f0(dt);if(!DZ86.phase)return;try{setT(eR,DZ86.crashed?'💥 Derailed!':'↩ Rolled back!')}catch(e){}}}
+// reset, another ride, building or switching the mode off all put the train back on the track
+{const f0=reset;reset=function(){dzEnd86();return f0.apply(this,arguments)}}
+{const f0=selectRide;selectRide=function(i){dzEnd86();return f0.apply(this,arguments)}}
+{const f0=setEditing;setEditing=function(on){if(on)dzEnd86();return f0.apply(this,arguments)}}
+{const f0=replayStart72;replayStart72=function(){if(DZ86.phase)return say('Reset the ride first');return f0.apply(this,arguments)}}
+function setDz86(on){DZ86.on=!!on;SS86('disaster',DZ86.on);if(!DZ86.on){if(DZ86.phase){dzEnd86();reset()}}dzChip86();say(DZ86.on?'💥 Disaster Mode ON — safety systems off!':'🛟 Disaster Mode off — safety systems back on');if(DZ86.on&&opsActive72())notify80('Disaster Mode works with Classic ride operations. Realistic operations keep their own block safety system, so switch 🎢 Ride Ops back to Classic to see it.',{ic:'💥',title:'Disaster Mode',pri:'med',key:'dzops',cool:120});
+ if(DZ86.on&&!gEarth86())stallNote86();if(isOpen86('dz86')||isOpen86('set')||isOpen86('grav86'))renderOv7()}
+// a red badge next to the brand while Disaster Mode is on
+{const mc=$('#modChip');if(mc&&!$('#dzChip')){const e=document.createElement('em');e.id='dzChip';e.textContent='💥 Disaster';e.hidden=true;mc.after(e)}}
+function dzChip86(){const e=$('#dzChip');if(e)e.hidden=!DZ86.on}dzChip86();
+// ---- 📋 Incident Report (in the shared #ov7 window)
+const DZFUN86={lat:['The train took the {el} at {v} and decided to go straight on instead.','The {el} asked the train to slow down. The train did not listen.','Someone forgot that the {el} is not a suggestion.','{g} sideways in the {el}: the wheels filed a complaint and left.'],
+ neg:['So much airtime on the {el} that the train forgot to come back down.','The up-stop wheels went on their lunch break halfway over the {el}.','{g} on the {el}: the train briefly achieved low orbit.'],
+ roll:['Ran out of oomph on the {el} and went home backwards.','{planet} wanted the train back on the {el}. {planet} won.','The lift chain is not a magnet. Lesson learned on the {el}.','The train looked at the {el}, said “nah”, and reversed.']};
+const DZODD86=[['🐿','Squirrels startled',3,9],['🍿','Popcorn buckets spilled',1,6],['🎈','Balloons let go in surprise',2,12],['📝','Pages in the insurance form',9,40],['🧢','Hats found in the bushes',1,5],['🦆','Ducks unimpressed',1,4]];
+function dzReport86(rep){if(!rep)return;DZ86.rep=rep;if(rep.kind==='derail'){const B=DZ86.bodies;let fl=0,end=0,up=0;for(let k=0;k<4&&k<cars.length;k++){const b=B[k];if(b.land>=0)fl=Math.max(fl,Math.hypot(b.landP.x-DZ86.p0.x,b.landP.z-DZ86.p0.z));end=Math.max(end,Math.hypot(b.p.x-DZ86.p0.x,b.p.z-DZ86.p0.z));if(b.upside)up++}
+  Object.assign(rep,{fly:fl,end,up,hang:DZ86.hang||DZ86.t,maxH:DZ86.maxH,cars:Math.min(4,cars.length)});if(fl>=60||end>=60)got86('dzfar86')}
+ setTimeout(()=>{if(DZ86.phase==='report'||DZ86.phase==='crash'){openOv7('inc86')}},rep.kind==='derail'?300:600)}
+PAGES86.inc86={t:()=>'📋 Incident Report',html(){const r=DZ86.rep;if(!r)return'<p class="n7">No incidents. Suspiciously safe.</p>';const R=rng86((r.seed||hash86(String(r.el)))+7),pick=a=>a[Math.floor(R()*a.length)],
+  fill=t=>esc(t.replace(/\{el\}/g,String(r.el||'track').toLowerCase()).replace(/\{v\}/g,fV(r.v||0)).replace(/\{g\}/g,(r.g||0).toFixed(1)+' G').replace(/\{planet\}/g,gEarth86()?'Earth gravity':gravTxt86())),
+  stat=(ic,n,val)=>`<span><i>${ic} ${n}</i><b>${val}</b></span>`,odd=[...DZODD86].sort(()=>R()-.5).slice(0,2);
+ const head=r.kind==='derail'?`<div class="stamp86">💥 DERAILED</div>`:`<div class="stamp86 roll">↩️ ROLLED BACK</div>`,cause=r.kind==='derail'?fill(pick(DZFUN86[r.why==='neg'?'neg':'lat'])):fill(pick(DZFUN86.roll));
+ const grid=r.kind==='derail'?stat('⚡','Speed when it failed',fV(r.v))+stat('🛫','Distance flown',fL(r.fly||0))+stat('📍','Ended up',fL(r.end||0)+' away')+stat('⏱','Hang time',(r.hang||0).toFixed(1)+' s')+stat('🏔','Highest point',fL(r.maxH||0)+' up')+stat('🙃','Cars upside down',(r.up||0)+' of '+(r.cars||4))+stat('🪂','Riders who parachuted',((r.cars||4)*2)+' (all safe!)')
+  :stat('🐌','Speed at the top','0 (that was the problem)')+stat('↩️','Rolled back',fL(r.back||0))+stat('⚡','Fastest backwards',fV(r.vmin||0))+stat('⏱','Time spent reversing',(r.t||0).toFixed(1)+' s');
+ return`<div class="inc86">${head}<p class="n7">Case #${String((r.seed||0)%100000).padStart(5,'0')} · <b>${esc(r.ride||rideName(cur))}</b> · ${esc(r.planet||gravTxt86())}</p>
+ <h4 class="h7">Cause of failure</h4><p class="cause86">“${cause}”</p><div class="sGrid inc86g">${grid}</div>
+ <h4 class="h7">Official findings</h4><ul class="ul86">${r.kind==='derail'?(r.why==='neg'?`<li>Lift-off force: <b>${fG2(r.g)}</b> (the wheels let go below ${fG2(DZLIM86.neg)})</li>`:`<li>Sideways force: <b>${(r.g||0).toFixed(2)} G</b> (the wheels let go above ${DZLIM86.lat} G)</li>`)+`<li>Where: the ${esc(String(r.el).toLowerCase())}, ${fL(r.s||0)} into the ride</li>`:`<li>The train stalled on the ${esc(String(r.el).toLowerCase())} with the safety drive tyres switched off.</li><li>No anti-rollback dogs on the lift, so nothing stopped it going backwards.</li>`}
+ ${odd.map(([ic,n,a,b])=>`<li>${ic} ${n}: ${a+Math.floor(R()*(b-a+1))}</li>`).join('')}<li>🧯 Real coasters have all the safety systems this mode turns off. That is why they don’t do this!</li></ul>
+ <div class="row7"><button class="btn primary" data-dz86="again">↻ Reset &amp; ride again</button><button class="btn" data-dz86="off">🛟 Safety back on</button></div></div>`}};
+// ---- 💥 Disaster Mode page: the switch, the limits, and what will happen on this ride
+PAGES86.dz86={t:()=>'💥 Disaster Mode',html(){const pr=dzPred86(),ops=opsActive72();let what='';
+ if(pr){const nm=esc(rideName(cur));what=pr.kind==='derail'?`<p class="warn86">💥 <b>${nm}</b> will fly off the track at the <b>${esc(String(pr.el).toLowerCase())}</b>, ${fL(pr.s)} in (${pr.why==='neg'?fG2(pr.g)+' lift-off':pr.g.toFixed(2)+' G sideways'} at ${fV(pr.v)}).</p>`
+  :pr.kind==='roll'?`<p class="warn86">↩️ <b>${nm}</b> runs out of speed on the <b>${esc(String(pr.el).toLowerCase())}</b> and rolls back.</p>`:`<p class="ok86">✅ <b>${nm}</b> stays on the track: strongest sideways push ${pr.pkL.toFixed(2)} G (limit ${DZLIM86.lat} G), lowest ${fG2(pr.pkN)} (limit ${fG2(DZLIM86.neg)}). Try another ride, or heavier gravity in the 🪐 Gravity Lab.</p>`}
+ return`<p class="n7">Real coasters are packed with safety systems. Disaster Mode switches them off in this cartoon world, so you can see why they matter. Nobody gets hurt: the riders pop out with parachutes. 🪂</p>
+ <label class="tg7 dzT86"><input type="checkbox" data-dz86="on" ${DZ86.on?'checked':''}> <span>💥 Disaster Mode ${DZ86.on?'<b>ON</b>':'off'}</span></label>
+ ${ops&&DZ86.on?'<p class="warn86">🎢 Ride Ops is set to Realistic operations, which keep their own block safety system. Switch Ride Ops back to Classic to see Disaster Mode.</p>':''}
+ <h4 class="h7">What gets switched off</h4><ul class="ul86"><li>🛞 The safety drive tyres: normally the train never goes slower than ${fV(1.5)}, so it can never stall.</li><li>⛓ Anti-rollback on the lift hill: a stalled train rolls backwards.</li><li>🔩 Strong wheel grip: the wheels let go above <b>${DZLIM86.lat} G sideways</b> or below <b>${fG2(DZLIM86.neg)}</b> (averaged over about ⅓ s).</li></ul>
+ <h4 class="h7">This ride${gEarth86()?'':' with '+esc(gravTxt86())}</h4>${what||'<p class="n7">Pick a ride first.</p>'}
+ <p class="n7">When Disaster Mode is off, every ride runs exactly as normal.</p><div class="row7"><button class="btn" data-x86="grav86">🪐 Gravity Lab</button>${DZ86.phase?'<button class="btn primary" data-dz86="again">↻ Reset the ride</button>':''}</div>`}};
+$('#ov7').addEventListener('click',e=>{const t=e.target.closest('[data-dz86]');if(!t||t.tagName==='INPUT')return;const a=t.dataset.dz86;if(a==='again'){closeOv7();reset()}else if(a==='off'){closeOv7();setDz86(false)}});
+$('#ov7').addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.dz86==='on'){e.stopPropagation();setDz86(t.checked)}},true);
+hubItem72('dz86','💥','Disaster Mode',()=>DZ86.on?'ON · safety systems off':'Off · what if the safety failed?',()=>openOv7('dz86'),87);
+function expMore86(){return`<div class="x86"><div><b>💥 Disaster Mode</b><small>${DZ86.on?'ON: no safety drive, no anti-rollback, wheels can let go':'Off: every ride runs normally'}</small></div><button class="btn" data-x86="dz86">Open</button><label class="tg7"><input type="checkbox" data-dz86="on" ${DZ86.on?'checked':''}> On</label></div>`+(typeof expMore86b==='function'?expMore86b():'')}
+Object.assign(DBG86,{bodies:()=>DZ86.bodies&&DZ86.bodies.map(b=>({land:+b.land.toFixed(2),landD:+Math.hypot(b.landP.x-DZ86.p0.x,b.landP.z-DZ86.p0.z).toFixed(1),endD:+Math.hypot(b.p.x-DZ86.p0.x,b.p.z-DZ86.p0.z).toFixed(1),landY:+b.landP.y.toFixed(1),y:+b.p.y.toFixed(1),rest:b.rest})),dz:()=>({on:DZ86.on,phase:DZ86.phase,live:dzLive86(),cam:camMode,rep:DZ86.rep?{...DZ86.rep}:null,riders:DZ86.riders?DZ86.riders.filter(r=>r.on).length:0,landed:DZ86.riders?DZ86.riders.filter(r=>r.land).length:0,s:+s.toFixed(2),v:+v.toFixed(2),cars:cars.map(c=>c.position.toArray().map(x=>+x.toFixed(1)))}),
+ setDz:on=>setDz86(on),pred:()=>{const p=dzPred86();return p&&{kind:p.kind,s:Math.round(p.s),why:p.why,g:+(p.g||0).toFixed(2),el:p.el,pkL:+p.pkL.toFixed(2),pkN:+p.pkN.toFixed(2)}},
+ jump:q=>{s=q;v=Math.max(v,LIFT);acc=0},predAll:()=>visRides86().map(i=>{const c=ctxOf(ride(i)),p=dzPredict86(c,traceOf(c));return[rideName(i),p.kind,Math.round(p.s),p.el]})});
 
 CI=RIDES.length;addEventListener('blur',()=>{hands7Want=false});
 snapOrig();{let mv=false;ORIG.forEach((b,i)=>{const n=(OWN.rides[i]||{}).name;if(n&&n!==b.name&&OWN.edits[n]){OWN.edits[b.name]=(OWN.edits[b.name]||[]).concat(OWN.edits[n]);delete OWN.edits[n];mv=true}});if(mv)saveOwn()}applyRideOverrides();applyQuality(false);
