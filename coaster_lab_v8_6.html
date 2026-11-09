@@ -7197,7 +7197,7 @@ const dzPred86=()=>{const c=curCtx();if(!c)return null;try{return dzPredict86(c,
 function dzPhys86(dt){let n=4;const h=dt/n,roll=DZ86.phase==='roll';while(n--){const q=((s%L)+L)%L,i=Math.floor(q/L*N)%N,gs=-G*T[i].y;
  if(v===0){if(Math.abs(gs)>PH.fric)v+=(gs-Math.sign(gs)*PH.fric)*h}
  else{const dir=v>0?1:-1;v+=(gs-dir*(PH.fric+PH.drag*v*v))*h;if((v>0?1:v<0?-1:0)!==dir&&Math.abs(gs)<=PH.fric)v=0}
- if(ZN){for(const z of ZN)if(q>=z.a&&q<z.b){if(z.k==='brake'){if(v>z.v&&!roll)v=Math.max(z.v,v-PH.brake*h);else if(v<0)v=Math.min(0,v+PH.brake*h);else if(roll&&v>0)v=Math.max(0,v-PH.brake*h)}
+ if(ZN){for(let zi=0;zi<ZN.length;zi++){const z=ZN[zi];if(!(q>=z.a&&q<z.b))continue;if(z.k==='brake'){if(v>z.v&&!roll)v=Math.max(z.v,v-PH.brake*h);else if(v<0)v=Math.min(0,v+PH.brake*h);else if(roll&&v>0)v=Math.max(0,v-PH.brake*h)}
    else if(z.k==='station'){if(v<0)v=Math.min(0,v+PH.brake*h);else if(roll)v=Math.max(0,v-PH.brake*h);else v=v>z.v?Math.max(z.v,v-PH.brake*h):Math.min(z.v,v+2*h)}
    else if(roll)continue;else if(z.k==='lift'){if(v>=0&&v<LIFT)v=LIFT}else if(z.k==='launch'){if(v>=0){const zv=z.v*PH.launch;if(v<zv)v=Math.min(zv,v+z.acc*PH.launch*h)}}}}
  else{if(q<sCrest-.5&&v>=0&&!roll)v=LIFT;if(q>L-BR){if(v>LIFT&&!roll)v=Math.max(LIFT,v-PH.brake*h);else if(v<0)v=Math.min(0,v+PH.brake*h)}if(q<5&&v<0)v=Math.min(0,v+PH.brake*h)}
@@ -7237,7 +7237,7 @@ function dzSub86(h){const B=DZ86.bodies;DZ86.t+=h;let resting=0;
    if(b.p.y<gy){b.p.y=gy;const imp=-b.v.y;if(b.land<0){b.land=DZ86.t;b.landP.copy(b.p);if(!DZ86.firstHit){DZ86.firstHit=true;DZ86.hang=DZ86.t;try{sfx('thunder',.35)}catch(e){}}}
     if(imp>2.5&&fxOn)try{emit(b.p.x,b.p.y,b.p.z,14,{cols:['#c8b89a','#a89a80','#e8dcc0'],sp:2.4,up:.8,g:-4,drag:2,life:.9,r:2.6})}catch(e){}
     b.v.y=imp>0?imp*.3:0;b.v.x*=.7;b.v.z*=.7;b.w.multiplyScalar(.55);if(b.v.lengthSq()<.5&&imp<1.2){b.rest=true;_dv86.set(0,1,0).applyQuaternion(b.q);b.upside=_dv86.y<-.2}}}
-  if(b.rest)resting++;cars[k].position.copy(b.p);cars[k].quaternion.copy(b.q);if(cars[k].userData.riders&&DZ86.popped)for(const r of cars[k].userData.riders)r.visible=false}
+  if(b.rest)resting++;cars[k].position.copy(b.p);cars[k].quaternion.copy(b.q)}
  dzRiders86(h);if(DZ86.phase==='crash'){if(resting>=Math.min(4,cars.length))DZ86.rest+=h;if(DZ86.rest>1.4||DZ86.t>14){DZ86.phase='report';dzReport86(DZ86.rep)}}}
 // cars follow the bodies (the normal track placement is skipped only while crashed)
 {const f0=updateCars;updateCars=function(dt=.016){if(!DZ86.crashed)return f0(dt);if(playing)try{dzStep86(Math.min(dt,.05))}catch(e){fault81('disaster',e)}}}
@@ -7247,11 +7247,11 @@ function dzRiderSet86(){if(DZ86.riders)return DZ86.riders;const body=new THREE.C
  cols=[0xff3d6b,0xffd23f,0x22e0ff,0x9dff4a,0xc48bff,0xff8a3d,0x36a7ff,0xff6fa8];DZ86.riders=cols.map((col,i)=>{const g=new THREE.Group(),bm=new THREE.Mesh(body,mat(TOPS[i%TOPS.length],.7)),hm=new THREE.Mesh(head,skinM);bm.position.y=.0;hm.position.y=.3;g.add(bm,hm);
   for(const ex of[-.045,.045]){const e=new THREE.Mesh(eye,eyeM);e.position.set(ex,.33,.105);g.add(e)}const cg=new THREE.Group(),cm=new THREE.Mesh(chute,mat(col,.55));cm.position.y=.95;cg.add(cm,new THREE.LineSegments(lines,lineM));cg.scale.setScalar(.01);g.add(cg);g.visible=false;scene.add(g);
   return{g,cg,p:V(),v:V(),t:0,on:false,land:false,open:0}});return DZ86.riders}
-function dzPop86(){const RS=dzRiderSet86(),R=rng86((DZ86.rep&&DZ86.rep.seed)||7),up=Math.sqrt(2*Math.max(1,PH.g)*4.5);DZ86.popped=true;let j=0;
+function dzPop86(){const RS=dzRiderSet86(),R=rng86((DZ86.rep&&DZ86.rep.seed)||7),up=Math.sqrt(2*Math.max(1,PH.g)*4.5);DZ86.popped=true;let j=0;for(let k=0;k<cars.length;k++){const rd=cars[k].userData.riders;if(rd)for(let q=0;q<rd.length;q++)rd[q].visible=false}
  for(let k=0;k<4&&k<cars.length;k++){const car=cars[k],b=DZ86.bodies[k];for(const sx of[-.24,.24]){const r=RS[j++];if(!r)continue;_dv86.set(sx,.95,-.12);car.localToWorld(r.p.copy(_dv86));r.v.copy(b.v).multiplyScalar(.45);r.v.y=up*(.85+R()*.3);r.v.x+=(R()-.5)*3;r.v.z+=(R()-.5)*3;r.t=0;r.on=true;r.land=false;r.open=0;r.g.visible=true;r.g.rotation.set(0,R()*6.28,0);r.cg.scale.setScalar(.01)
    if(fxOn)try{emit(r.p.x,r.p.y,r.p.z,26,{force:1,cols:['#ff3d6b','#ffd23f','#22e0ff','#9dff4a','#c48bff'],sp:4,up:1.3,g:-3,drag:1.3,life:1.8,flicker:10,r:2.2})}catch(e){}}}
  try{sfx('pop')}catch(e){}}
-function dzRiders86(h){const RS=DZ86.riders;if(!RS)return;for(const r of RS){if(!r.on)continue;r.t+=h;if(!r.land){if(r.t>.55)r.open=Math.min(1,r.open+h*2.5);const o=r.open;
+function dzRiders86(h){const RS=DZ86.riders;if(!RS)return;for(let ri=0;ri<RS.length;ri++){const r=RS[ri];if(!r.on)continue;r.t+=h;if(!r.land){if(r.t>.55)r.open=Math.min(1,r.open+h*2.5);const o=r.open;
    r.v.y-=PH.g*h;if(o>0){const vt=-1.6,k=3.2*o;r.v.y+=(vt-r.v.y)*Math.min(1,k*h);r.v.x-=r.v.x*Math.min(1,1.4*o*h);r.v.z-=r.v.z*Math.min(1,1.4*o*h)}r.p.addScaledVector(r.v,h);
    r.cg.scale.setScalar(Math.max(.01,o));r.g.rotation.z=Math.sin(r.t*2.3)*.22*o;r.g.rotation.x=o<1?(1-o)*r.t*6:Math.cos(r.t*1.9)*.12;const gy=hAt(r.p.x,r.p.z)+.25;
    if(r.p.y<gy&&r.v.y<0){r.p.y=gy;r.land=true;r.t=0;r.g.rotation.set(0,r.g.rotation.y,0);if(fxOn)try{emit(r.p.x,r.p.y+.4,r.p.z,18,{cols:['#ffd23f','#ff3d6b','#22e0ff','#9dff4a'],sp:2.5,up:1.5,g:-3,drag:1.4,life:1.3,flicker:10,r:2})}catch(e){}}}
