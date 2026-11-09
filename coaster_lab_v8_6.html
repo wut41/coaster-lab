@@ -973,6 +973,27 @@ body.editing #cap85,body.starting #cap85{display:none}
 .inc86g span{display:grid;gap:2px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
 .inc86g i{font-style:normal;font-size:11.5px;color:var(--ink2)}
 .inc86g b{font-size:16px}
+/* ---- 8.6 Evolve (builder library tab): same chips, buttons and preview cards as the 8.0 library */
+.x86lib{display:grid;gap:8px;align-content:start}
+.evoG86 button{min-height:46px}
+.evoS86{display:flex;gap:6px;align-items:center}
+.evoS86 input{flex:1 1 90px;min-width:0;min-height:42px;border-radius:11px;border:1px solid var(--b8ln);background:var(--b8bg2);color:#fff;font:800 15px var(--fUI);padding:0 10px}
+.evoGo86{min-height:50px;font-size:15px}
+.evoP86{display:flex;gap:8px;align-items:center;padding:10px;border-radius:14px;border:1px solid var(--b8ln);background:var(--b8bg2)}
+.pb86.evo{display:block;width:100%;min-width:120px;margin:5px 0 0}
+#b8Pv .pb86.evo{width:min(260px,52vw)}
+.evoR86{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;padding:10px;border-radius:14px;border:1px solid var(--b8ln);background:var(--b8bg2)}
+.evoR86.base{grid-template-columns:1fr;gap:4px;border-style:dashed}
+.evoR86 .pv8{height:70px;display:block}
+.evoR86 .pv8 svg{width:100%;height:100%}
+.evoR86>div{display:grid;gap:4px;min-width:0}
+.evoR86 small{color:var(--b8mu);font-size:12px}
+.evoR86 em{font-style:normal;font-size:12px;padding:1px 6px;border-radius:99px;margin-left:4px}
+.evoR86 em.up{background:rgba(61,255,122,.15);color:#9dffbb}
+.evoR86 em.dn{background:rgba(255,107,107,.15);color:#ffb3b3}
+.evoSt86{display:flex;flex-wrap:wrap;gap:4px}
+.evoSt86 span{font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.07);white-space:nowrap}
+.evoR86 .b8b.sm{min-height:38px;justify-self:start}
 </style>
 </head>
 <body>
@@ -7273,6 +7294,82 @@ function expMore86(){return`<div class="x86"><div><b>💥 Disaster Mode</b><smal
 Object.assign(DBG86,{bodies:()=>DZ86.bodies&&DZ86.bodies.map(b=>({land:+b.land.toFixed(2),landD:+Math.hypot(b.landP.x-DZ86.p0.x,b.landP.z-DZ86.p0.z).toFixed(1),endD:+Math.hypot(b.p.x-DZ86.p0.x,b.p.z-DZ86.p0.z).toFixed(1),landY:+b.landP.y.toFixed(1),y:+b.p.y.toFixed(1),rest:b.rest})),dz:()=>({on:DZ86.on,phase:DZ86.phase,live:dzLive86(),cam:camMode,rep:DZ86.rep?{...DZ86.rep}:null,riders:DZ86.riders?DZ86.riders.filter(r=>r.on).length:0,landed:DZ86.riders?DZ86.riders.filter(r=>r.land).length:0,s:+s.toFixed(2),v:+v.toFixed(2),cars:cars.map(c=>c.position.toArray().map(x=>+x.toFixed(1)))}),
  setDz:on=>setDz86(on),pred:()=>{const p=dzPred86();return p&&{kind:p.kind,s:Math.round(p.s),why:p.why,g:+(p.g||0).toFixed(2),el:p.el,pkL:+p.pkL.toFixed(2),pkN:+p.pkN.toFixed(2)}},
  jump:q=>{s=q;v=Math.max(v,LIFT);acc=0},predAll:()=>visRides86().map(i=>{const c=ctxOf(ride(i)),p=dzPredict86(c,traceOf(c));return[rideName(i),p.kind,Math.round(p.s),p.el]})});
+
+// ---- [86_evolve.js]
+// ---- 8.6 🧬 EVOLVE (a tab in the Track Builder library). It makes small random changes ("mutations") to the coaster
+// you are building — heights, angles, lengths, radii — always inside each setting's own builder limits (the same
+// min / max / step the sliders use), scores every version with the ride stats the game already has (thrill, comfort,
+// smoothness, G-forces, airtime from the simulated lap), keeps the best few and repeats for several generations.
+// Only versions with NO must-fix problems (sanDesign + the full inspect/validate check) are ever kept.
+// The random numbers come from a seed, so the same seed, goal and starting coaster give the same results.
+// It works one design at a time between frames, with a time cap, so the screen never freezes. Results open in the
+// builder's normal preview (your old track as a dashed line → ✓ Place it / ✕ Cancel), and Undo works as usual.
+const EVOG86=[['thrill','🎢','Max thrill','Highest thrill rating'],['air','🪂','Max airtime','Most time floating out of your seat'],['family','🧸','Smooth & family','Comfortable, smooth, gentle and still fun'],['g','💥','Max G','Strongest push into the seat (scored up to 6.5 G)']];
+const EVO86={goal:'thrill',gens:10,seed:(Date.now()%90000)+10000,run:null,res:[],last:null,cap:25000};
+// which settings may change: every number of every piece (not the station's position), plus left/right on turns
+function evoKeys86(D_){const o=[];D_.els.forEach((e,k)=>{if(!ET[e.t])return;if(e.t==='station'){o.push([k,'brake'],[k,'ret']);return}
+ for(const q of ET[e.t].ps){if(q.bool)continue;if(q.ch){if(q.k==='dir'&&e.t!=='loop')o.push([k,q.k]);continue}if(q.when&&!q.when(e.p))continue;o.push([k,q.k])}});return o}
+function gauss86(R){let u=0,w=0;while(u===0)u=R();while(w===0)w=R();return Math.sqrt(-2*Math.log(u))*Math.cos(6.283185307*w)}
+function mutate86(D_,R,sig){const C=clone(D_),K=evoKeys86(C),n=1+Math.floor(R()*3);for(let j=0;j<n&&K.length;j++){const[k,key]=K[Math.floor(R()*K.length)],e=C.els[k],q=specOf(e.t,key);if(!q)continue;
+  if(q.ch){if(R()<.35)e.p[key]=e.p[key]==='L'?'R':'L';continue}const v0=isFinite(+e.p[key])?+e.p[key]:q.d;let nv=clampP(q,v0+gauss86(R)*sig*(q.mx-q.mn));if(nv===v0)nv=clampP(q,v0+(R()<.5?-1:1)*q.st*Math.max(1,Math.round(sig*10)));e.p[key]=nv}return C}
+// score one design with the game's own numbers; null when it fails any must-fix check
+function evoEval86(D_,goal){const sd=sanDesign(clone(D_));if(!sd.ok)return null;const r=inspect(sd.D);if(r.g.bad||!r.c||!r.tr||!r.tr.done||r.tr.stall>=0)return null;if(r.issues.some(i=>i.sev==='crit'))return null;
+ const c=r.c,tr=r.tr,st=statsOf(c,tr,0),ra=ratings80(c,tr),w=r.issues.filter(i=>i.sev==='warn').length;let sc=0;
+ switch(goal){case'thrill':sc=ra.thrill-2*w;break;case'air':sc=st.air*12+st.flo*2+ra.thrill*.05-2*w;break;
+  case'family':sc=ra.comfort*.5+ra.smooth*.35+ra.thrill*.25-ra.inv*12-Math.max(0,ra.intensity-45)*.8-Math.max(0,st.gMax-3.5)*25-6*w;break;
+  case'g':sc=Math.min(st.gMax,6.5)*10+ra.thrill*.02-1*w;break}
+ return{D:sd.D,sc,w,st:{thrill:ra.thrill,intensity:ra.intensity,comfort:ra.comfort,smooth:ra.smooth,gMax:st.gMax,air:st.air,flo:st.flo,inv:ra.inv,vmax:tr.vmax,T:tr.T,len:c.L}}}
+const evoKey86=D_=>JSON.stringify(D_.els.map(e=>[e.t,e.p]));
+async function evoGo86(){if(EVO86.run)return;if(!editing||!B8.on)return;if(B8.pv)b8Apply(true);if(bPv)return say('Finish the repair preview first');if(D.els.length<3)return say('Add a few pieces first — Evolve needs something to work with');
+ const goal=EVO86.goal,seed=EVO86.seed>>>0,G_=EVO86.gens,R=rng86(seed^hash86('evo|'+goal)),base=clone(D),baseKey=evoKey86(base),mu=4,lam=8,t0=performance.now(),run={goal,seed,G:G_,gen:0,tried:0,ok:0,stop:false,capped:false,best:null,base0:null,baseKey};EVO86.run=run;EVO86.res=[];
+ const arch=new Map(),add=ev=>{const k=evoKey86(ev.D);if(!arch.has(k))arch.set(k,ev);return ev};let tS=performance.now();
+ const tick=async()=>{if(performance.now()-tS>9){evoUI86();await yield86();tS=performance.now()}if(performance.now()-t0>EVO86.cap){run.capped=true;run.stop=true}};
+ b8Render();evoUI86();await yield86();
+ try{const b0=evoEval86(base,goal);run.base0=b0;let pop=b0?[b0]:[];
+  // a starting coaster with must-fix problems: look for valid neighbours first (bigger changes)
+  for(let j=0;j<24&&!pop.length&&!run.stop;j++){const ev=evoEval86(mutate86(base,R,.2),goal);run.tried++;if(ev){run.ok++;pop.push(add(ev))}await tick()}
+  for(let gen=1;gen<=G_&&!run.stop&&pop.length;gen++){run.gen=gen;const sig=.15*(1-(gen-1)/G_)+.03,kids=[];
+   for(let j=0;j<lam&&!run.stop;j++){const par=pop[Math.floor(R()*pop.length)],ev=evoEval86(mutate86(par.D,R,sig),goal);run.tried++;if(ev){run.ok++;kids.push(add(ev))}await tick()}
+   const seen=new Set();pop=pop.concat(kids).sort((a,b)=>b.sc-a.sc).filter(e=>{const k=evoKey86(e.D);if(seen.has(k))return false;seen.add(k);return true}).slice(0,mu);run.best=pop[0]||null;evoUI86()}
+  EVO86.res=[...arch.values()].filter(e=>evoKey86(e.D)!==baseKey).sort((a,b)=>b.sc-a.sc).slice(0,3);
+ }catch(e){console.warn('8.6 evolve',e);say('Evolve hit a problem and stopped')}
+ run.ms=performance.now()-t0;run.done=true;EVO86.last=run;EVO86.run=null;const chg=evoKey86(D)!==baseKey;
+ say(EVO86.res.length?'🧬 Evolve finished: '+EVO86.res.length+' design'+(EVO86.res.length>1?'s':'')+' to preview':'🧬 No valid improvements found — try another seed or goal');if(chg)run.note='Your coaster changed while Evolve was running. The results are based on the version from when you started.';
+ if(B8.lib!=='evo'){B8.lib='evo'}if(narrow80())B8.sheet='lib';else B8.libOpen=true;b8Render(true);setTimeout(()=>{const el=$('#b8Lib .evoR86');if(el)try{el.scrollIntoView({block:'start',behavior:'smooth'})}catch(e){}},60)}
+function evoPreview86(i){const e=EVO86.res[i];if(!e||!editing)return;const g=EVOG86.find(x=>x[0]===e.goal||x[0]===EVO86.last.goal)||EVOG86[0],keep=D.name;
+ if(narrow80())B8.sheet='';b8Begin('🧬 Evolved · '+g[2]+' #'+(i+1),()=>{const n=clone(e.D);n.name=keep;if(D.style)n.style=clone(D.style);D=n},null,1,{kind:'evo',nofocus:1,note:'',onApply:()=>got86('evo86')});fitAll();b8Render()}
+// progress, shown in the builder's preview bar (like the repair preview's "busy" line) and in the Evolve tab
+function evoUI86(){const r=EVO86.run;if(!r)return;const pct=Math.round(r.tried/(r.G*8+1)*100),bar=$('#b8Pv');
+ const txt=`<span class="spin8"></span><span class="pvT8"><b>🧬 Evolving · generation ${Math.max(1,r.gen)}/${r.G}</b><small>${r.tried} tried · ${r.ok} passed the check${r.best?' · best score '+Math.round(r.best.sc):''}</small><span class="pb86 evo"><i style="width:${clamp(pct,2,100)}%"></i></span></span><button class="b8b" data-evo86="stop">■ Stop</button>`;
+ if(bar){bar.innerHTML=txt;bar.hidden=B8.mode!=='build'}const p=$('#evoP86');if(p)p.innerHTML=txt}
+{const f0=b8PvR;b8PvR=function(){if(EVO86.run&&!bPv&&!B8.pv){evoUI86();return}return f0.apply(this,arguments)}}
+const evoStat86=s_=>`<span>🎢 ${Math.round(s_.thrill)}</span><span>😵 ${Math.round(s_.intensity)}</span><span>🛋 ${Math.round(s_.comfort)}</span><span>${fG(s_.gMax)}</span><span>🪂 ${s_.air.toFixed(1)} s</span><span>🌀 ${s_.inv}</span><span>⚡ ${fV(s_.vmax)}</span>`;
+function evoHTML86(){const r=EVO86.run,L_=EVO86.last,g=EVOG86.find(x=>x[0]===EVO86.goal);
+ return`<p class="n8">Evolve makes small random changes to <b>your</b> coaster — heights, angles, lengths, sizes — scores each version with the ride stats, keeps the best and repeats. Every result passes the same ✓ Check as your own building${gEarth86()?'':', using your '+esc(gravTxt86())}.</p>
+ <h4 class="h80">Goal</h4><div class="sg8 wide evoG86">${EVOG86.map(([k,ic,n,d])=>`<button class="${EVO86.goal===k?'on':''}" data-evo86="goal" data-v="${k}" title="${esc(d)}" ${r?'disabled':''}>${ic} ${n}</button>`).join('')}</div><p class="n8">${esc(g[3])}.</p>
+ <h4 class="h80">How long</h4><div class="sg8">${[[6,'Quick'],[10,'Normal'],[16,'Long']].map(([n,l])=>`<button class="${EVO86.gens===n?'on':''}" data-evo86="gens" data-v="${n}" ${r?'disabled':''}>${l} · ${n} gen</button>`).join('')}</div>
+ <h4 class="h80">Seed <small>same seed = same results</small></h4><div class="evoS86"><input type="number" inputmode="numeric" min="1" max="99999" value="${EVO86.seed}" data-evo86="seed" aria-label="Random seed" ${r?'disabled':''}><button class="b8b" data-evo86="dice" ${r?'disabled':''}>🎲 New seed</button></div>
+ ${r?`<div id="evoP86" class="evoP86"></div>`:`<button class="b8b pri evoGo86" data-evo86="go">🧬 Evolve my coaster</button>`}
+ ${L_&&!r?`<h4 class="h80">Best results <small>${EVOG86.find(x=>x[0]===L_.goal)[1]} ${esc(EVOG86.find(x=>x[0]===L_.goal)[2])} · seed ${L_.seed}</small></h4>
+  <p class="n8">${L_.tried} designs tried, ${L_.ok} passed the check, ${(L_.ms/1000).toFixed(1)} s${L_.capped?' · ⏱ stopped at the time limit':''}${L_.stop&&!L_.capped?' · stopped early':''}.${L_.note?' ⚠ '+esc(L_.note):''}</p>
+  ${L_.base0?`<div class="evoR86 base"><b>Your coaster now</b><small>score ${Math.round(L_.base0.sc)}</small><div class="evoSt86">${evoStat86(L_.base0.st)}</div></div>`:'<p class="n8">⚠ Your coaster had must-fix problems, so Evolve started from fixed-up versions of it.</p>'}
+  ${EVO86.res.length?EVO86.res.map((e,i)=>`<div class="evoR86"><span class="pv8">${geoSvg80(e.D.els.map(x=>[x.t,x.p]),{full:1})}</span><div><b>#${i+1} · score ${Math.round(e.sc)}${L_.base0?` <em class="${e.sc>=L_.base0.sc?'up':'dn'}">${e.sc>=L_.base0.sc?'+':''}${Math.round(e.sc-L_.base0.sc)}</em>`:''}</b>${e.w?`<small>⚠ ${plural80(e.w,'warning')} in ✓ Check</small>`:'<small>✓ No warnings</small>'}<div class="evoSt86">${evoStat86(e.st)}</div><button class="b8b pri sm" data-evo86="pv" data-v="${i}">👁 Preview</button></div></div>`).join(''):'<p class="n8">No better valid designs this time. Try a new seed, another goal, or a longer run.</p>'}`:''}
+ <p class="n8">Key: 🎢 thrill · 😵 intensity · 🛋 comfort · peak G · 🪂 airtime (below 0 G) · 🌀 inversions · ⚡ top speed.</p>`}
+// ---- the two new library tabs (🧬 Evolve here, 📅 Daily in 86_daily.js) share the library's own header and tab bar
+LIB80.push(['evo','🧬','Evolve',null]);LIBK80.evo=LIB80[LIB80.length-1];
+const LIBX86={evo:()=>evoHTML86()};
+{const f0=b8LibR;b8LibR=function(){const f=LIBX86[B8.lib];if(!f)return f0.apply(this,arguments);const L_=$('#b8Lib');let body='';try{body=f()}catch(e){console.warn('8.6 library',e);body='<p class="n8">This panel could not be shown.</p>'}
+ L_.innerHTML=`<div class="lbH8"><b>Track pieces</b><button class="b8x" data-b8="libClose" aria-label="Close the library">${narrow80()?'✕':'«'}</button></div><nav class="lbC8" aria-label="Piece categories">${LIB80.map(([k,ic,n])=>`<button class="${k===B8.lib?'on':''}" data-b8lib="${k}"><i>${ic}</i><span>${n}</span></button>`).join('')}</nav><div class="lbB8 x86lib">${body}</div>`;if(EVO86.run)evoUI86()}}
+b8.addEventListener('click',e=>{const t=e.target.closest('[data-evo86]');if(!t||t.disabled||t.tagName==='INPUT')return;const a=t.dataset.evo86,v_=t.dataset.v;
+ if(a==='goal'){EVO86.goal=v_;b8LibR()}else if(a==='gens'){EVO86.gens=+v_;b8LibR()}else if(a==='dice'){EVO86.seed=10000+Math.floor(Math.random()*90000);b8LibR()}else if(a==='go')evoGo86();else if(a==='stop'){if(EVO86.run)EVO86.run.stop=true}else if(a==='pv')evoPreview86(+v_)});
+b8.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.evo86==='seed'){const n=Math.round(+t.value);EVO86.seed=isFinite(n)&&n>0?Math.min(99999,n):EVO86.seed;t.value=EVO86.seed}});
+// leaving the builder stops a run (nothing is changed: results only ever reach your coaster through Place it)
+{const f0=exitEditor;exitEditor=function(){if(EVO86.run)EVO86.run.stop=true;return f0.apply(this,arguments)}}
+Object.assign(DBG86,{evo:()=>({run:EVO86.run?{gen:EVO86.run.gen,tried:EVO86.run.tried,ok:EVO86.run.ok}:null,last:EVO86.last?{goal:EVO86.last.goal,seed:EVO86.last.seed,tried:EVO86.last.tried,ok:EVO86.last.ok,ms:Math.round(EVO86.last.ms),capped:EVO86.last.capped,base:EVO86.last.base0&&+EVO86.last.base0.sc.toFixed(3)}:null,
+  res:EVO86.res.map(e=>({sc:+e.sc.toFixed(3),w:e.w,key:hash86(evoKey86(e.D)),st:{thrill:Math.round(e.st.thrill),comfort:Math.round(e.st.comfort),g:+e.st.gMax.toFixed(2),air:+e.st.air.toFixed(2),inv:e.st.inv}}))}),
+ evoSet:o=>Object.assign(EVO86,o),evoGo:async()=>{await evoGo86();return true},evoPv:i=>evoPreview86(i),
+ evoCheck:()=>EVO86.res.map(e=>{const r=inspect(clone(e.D));return{crit:r.issues.filter(i=>i.sev==='crit').length,san:sanDesign(clone(e.D)).ok}}),
+ openBuilder:()=>{if(!editing)openEditor();return editing},time:n=>{const t=performance.now();for(let i=0;i<(n||5);i++)inspect(clone(D));return(performance.now()-t)/(n||5)},key:()=>hash86(evoKey86(D))});
 
 CI=RIDES.length;addEventListener('blur',()=>{hands7Want=false});
 snapOrig();{let mv=false;ORIG.forEach((b,i)=>{const n=(OWN.rides[i]||{}).name;if(n&&n!==b.name&&OWN.edits[n]){OWN.edits[b.name]=(OWN.edits[b.name]||[]).concat(OWN.edits[n]);delete OWN.edits[n];mv=true}});if(mv)saveOwn()}applyRideOverrides();applyQuality(false);
