@@ -994,6 +994,23 @@ body.editing #cap85,body.starting #cap85{display:none}
 .evoSt86{display:flex;flex-wrap:wrap;gap:4px}
 .evoSt86 span{font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.07);white-space:nowrap}
 .evoR86 .b8b.sm{min-height:38px;justify-self:start}
+/* ---- 8.6 Daily Challenge (builder tab + 🎡 page) */
+.dly86{display:grid;gap:8px}
+.dly86>small{color:var(--ink2);font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.dly86 h3{margin:0;font:900 22px var(--fUI);color:#fff}
+.rl86{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.rl86 li{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-weight:800;font-size:13.5px;line-height:1.35}
+.rl86 li i{font-style:normal;font-size:17px;line-height:1.1}
+.rl86 li span{display:grid;gap:2px}
+.rl86 li small{font-weight:700;font-size:12px;color:var(--ink2)}
+.rl86 li.ok{border-color:rgba(61,255,122,.45);background:rgba(61,255,122,.08)}
+.rl86 li.no{border-color:rgba(255,255,255,.12)}
+.dSub86{min-height:50px;font-size:15px}
+.dRes86{display:grid;gap:6px;justify-items:start;padding:12px;border-radius:14px;background:linear-gradient(135deg,rgba(255,194,51,.12),rgba(54,167,255,.1));border:1px solid rgba(255,194,51,.4)}
+.dRes86 .sq86{font-size:24px;letter-spacing:3px}
+.dRes86 small{color:var(--ink2);font-weight:700}
+.shareBox86{width:100%}
+.shareBox86 textarea{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid #3d5680;background:#0b1730;color:#dbe7f7;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:8px}
 </style>
 </head>
 <body>
@@ -7370,6 +7387,98 @@ Object.assign(DBG86,{evo:()=>({run:EVO86.run?{gen:EVO86.run.gen,tried:EVO86.run.
  evoSet:o=>Object.assign(EVO86,o),evoGo:async()=>{await evoGo86();return true},evoPv:i=>evoPreview86(i),
  evoCheck:()=>EVO86.res.map(e=>{const r=inspect(clone(e.D));return{crit:r.issues.filter(i=>i.sev==='crit').length,san:sanDesign(clone(e.D)).ok}}),
  openBuilder:()=>{if(!editing)openEditor();return editing},time:n=>{const t=performance.now();for(let i=0;i<(n||5);i++)inspect(clone(D));return(performance.now()-t)/(n||5)},key:()=>hash86(evoKey86(D))});
+
+// ---- [86_daily.js]
+// ---- 8.6 📅 DAILY CHALLENGE. Everyone gets the same challenge on the same date: it is made from the date alone
+// (a seeded random generator picks a theme and 3 rules with their numbers). The Track Builder has no money budget,
+// so challenges are rules only. Build in the builder, tap Submit: the coaster must pass the normal ✓ Check, and the
+// rules are scored with STANDARD EARTH PHYSICS (whatever gravity you play with), using the stats the game already has.
+// Streak and history are kept in this browser; the share text is Wordle-style emojis (no backend, works offline).
+const RULES86={
+ inv0:{ic:'🌀',t:()=>'No inversions',m:m=>m.inv,ok:(v)=>v===0,f:v=>String(v),mg:()=>1},
+ inv_eq:{ic:'🌀',t:r=>'Exactly '+r.x+' inversion'+(r.x>1?'s':''),m:m=>m.inv,ok:(v,r)=>v===r.x,f:v=>String(v),mg:()=>1},
+ inv_ge:{ic:'🌀',t:r=>'At least '+r.x+' inversions',m:m=>m.inv,ok:(v,r)=>v>=r.x,f:v=>String(v),mg:(v,r)=>(v-r.x)/r.x},
+ g_le:{ic:'💥',t:r=>'Peak G no more than '+r.x.toFixed(1)+' G',m:m=>m.gMax,ok:(v,r)=>v<=r.x,f:v=>v.toFixed(2)+' G',mg:(v,r)=>(r.x-v)/r.x},
+ air_ge:{ic:'🪂',t:r=>'At least '+r.x+' s of airtime (below 0 G)',m:m=>m.air,ok:(v,r)=>v>=r.x,f:v=>v.toFixed(1)+' s',mg:(v,r)=>(v-r.x)/r.x},
+ flo_ge:{ic:'🎈',t:r=>'At least '+r.x+' s of floating (under 0.5 G)',m:m=>m.flo,ok:(v,r)=>v>=r.x,f:v=>v.toFixed(1)+' s',mg:(v,r)=>(v-r.x)/r.x},
+ v_ge:{ic:'⚡',t:r=>'Top speed at least '+fV(r.x),m:m=>m.vmax,ok:(v,r)=>v>=r.x,f:v=>fV(v),mg:(v,r)=>(v-r.x)/r.x},
+ h_le:{ic:'📐',t:r=>'No taller than '+fL(r.x),m:m=>m.h,ok:(v,r)=>v<=r.x,f:v=>fL(v),mg:(v,r)=>(r.x-v)/r.x},
+ h_ge:{ic:'🏔',t:r=>'At least '+fL(r.x)+' tall',m:m=>m.h,ok:(v,r)=>v>=r.x,f:v=>fL(v),mg:(v,r)=>(v-r.x)/r.x},
+ len_le:{ic:'📏',t:r=>'Track no longer than '+fL(r.x),m:m=>m.len,ok:(v,r)=>v<=r.x,f:v=>fL(v),mg:(v,r)=>(r.x-v)/r.x},
+ T_ge:{ic:'⏱',t:r=>'The ride lasts at least '+r.x+' s',m:m=>m.T,ok:(v,r)=>v>=r.x,f:v=>Math.round(v)+' s',mg:(v,r)=>(v-r.x)/r.x},
+ thrill_ge:{ic:'🎢',t:r=>'Thrill rating at least '+r.x,m:m=>m.thrill,ok:(v,r)=>v>=r.x,f:v=>String(Math.round(v)),mg:(v,r)=>(v-r.x)/r.x},
+ comfort_ge:{ic:'🛋',t:r=>'Comfort rating at least '+r.x,m:m=>m.comfort,ok:(v,r)=>v>=r.x,f:v=>String(Math.round(v)),mg:(v,r)=>(v-r.x)/r.x},
+ pieces_le:{ic:'🧩',t:r=>r.x+' pieces or fewer (not counting the station)',m:m=>m.pieces,ok:(v,r)=>v<=r.x,f:v=>String(v),mg:(v,r)=>(r.x-v)/r.x},
+ nolaunch:{ic:'⛓',t:()=>'No launches: lift hills only',m:m=>m.launch?1:0,ok:v=>v===0,f:v=>v?'has a launch':'none',mg:()=>1}};
+// themes: each makes 3 rules. The number ranges were checked against real coasters in this game (built-in layouts and
+// park rides, measured with Earth physics), so every challenge has been shown to be passable (see CHANGES-8.6.md)
+const THEMES86=[
+ {k:'family',ic:'🧸',n:'Family day',b:'comfort',mk:(ri,rs)=>[{k:'inv0'},{k:'g_le',x:rs(3.1,3.6,.1)},{k:'flo_ge',x:rs(2,4,.5)}]},
+ {k:'loops',ic:'🌀',n:'Loop-de-loop',b:'thrill',mk:(ri,rs)=>[{k:'inv_eq',x:ri(2,4)},{k:'g_le',x:rs(4.6,4.9,.1)},{k:'flo_ge',x:2}]},
+ {k:'air',ic:'🪂',n:'Airtime party',b:'air',mk:(ri,rs)=>[{k:'air_ge',x:rs(1,2.5,.5)},{k:'g_le',x:rs(4,4.6,.1)},{k:'nolaunch'}]},
+ {k:'speed',ic:'⚡',n:'Speed run',b:'thrill',mk:(ri,rs)=>[{k:'v_ge',x:rs(26,33,.5)},{k:'h_le',x:ri(32,45)},{k:'comfort_ge',x:ri(30,50)}]},
+ {k:'pocket',ic:'📏',n:'Pocket rocket',b:'thrill',mk:(ri,rs)=>[{k:'len_le',x:ri(360,480)},{k:'thrill_ge',x:ri(36,50)},{k:'pieces_le',x:ri(7,10)}]},
+ {k:'sky',ic:'🏔',n:'Sky high',b:'thrill',mk:(ri,rs)=>[{k:'h_ge',x:ri(36,48)},{k:'g_le',x:rs(4.4,4.8,.1)},{k:'T_ge',x:ri(40,58)}]},
+ {k:'combo',ic:'🎲',n:'Mystery mix',b:'thrill',mk:(ri,rs)=>[{k:'inv_ge',x:ri(1,2)},{k:'air_ge',x:rs(.5,1.5,.5)},{k:'g_le',x:4.8}]}];
+const dayKey86=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dayNum86=k=>{const[y,m,d]=k.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(2026,0,1))/864e5)+1};
+const prevDay86=k=>{const[y,m,d]=k.split('-').map(Number);return dayKey86(new Date(y,m-1,d-1))};
+// the challenge for a date: only the date goes into the seed, so it is the same on every device
+function challenge86(k=dayKey86()){const R=rng86(hash86('coasterlab-daily|'+k)),ri=(a,b)=>a+Math.floor(R()*(b-a+1)),rs=(a,b,st)=>+(a+Math.floor(R()*(Math.round((b-a)/st)+1))*st).toFixed(2),th=THEMES86[Math.floor(R()*THEMES86.length)];return{k,n:dayNum86(k),th,rules:th.mk(ri,rs)}}
+// saved results (validated on load: damaged data falls back to an empty history)
+const DLY86=(()=>{const o=LS86('daily',null),r={days:{}};if(obj72(o)&&obj72(o.days))for(const k in o.days){const x=o.days[k];if(/^\d{4}-\d\d-\d\d$/.test(k)&&obj72(x)&&isN7(x.best)&&Array.isArray(x.res))r.days[k]={best:clamp(Math.round(x.best),0,1000),pass:!!x.pass,tries:Math.max(1,Math.round(isN7(x.tries)?x.tries:1)),res:x.res.slice(0,3).map(Boolean),vals:Array.isArray(x.vals)?x.vals.slice(0,3).map(String).map(s_=>s_.slice(0,24)):[]}}return r})();
+function saveDly86(){const ks=Object.keys(DLY86.days).sort();while(ks.length>90)delete DLY86.days[ks.shift()];SS86('daily',{days:DLY86.days})}
+function streak86(){let k=dayKey86(),n=0;if(!(DLY86.days[k]&&DLY86.days[k].pass))k=prevDay86(k);while(DLY86.days[k]&&DLY86.days[k].pass){n++;k=prevDay86(k)}return n}
+function bestStreak86(){const ks=Object.keys(DLY86.days).filter(k=>DLY86.days[k].pass).sort();let b=0,c=0,last='';for(const k of ks){c=last&&prevDay86(k)===last?c+1:1;b=Math.max(b,c);last=k}return b}
+// the numbers a coaster really has, measured with standard Earth physics on a temporary copy (the live ride is untouched)
+function dlyMetrics86(D_){return withPH86({...PH0},()=>{const sd=sanDesign(clone(D_));if(!sd.ok)return{err:'This coaster could not be read ('+sd.why+').'};const r=inspect(sd.D);
+ if(r.g.bad||!r.c||!r.tr)return{err:'The track could not be built. Open ✓ Check to see why.'};const cr=r.issues.filter(i=>i.sev==='crit');if(cr.length)return{err:'Fix the must-fix problem'+(cr.length>1?'s':'')+' first ('+cr.length+'): '+(typeof plain80==='function'?plain80(cr[0]).head:cr[0].title)};
+ const c=r.c,tr=r.tr,st=statsOf(c,tr,0),ra=ratings80(c,tr),E=elementsOf(c,tr);return{inv:E.inv,gMax:st.gMax,air:st.air,flo:st.flo,vmax:tr.vmax,h:st.maxH,len:c.L,T:tr.T,thrill:ra.thrill,comfort:ra.comfort,pieces:sd.D.els.length-1,launch:sd.D.els.some(e=>e.t==='launch')}})}
+function dlyScore86(ch,m){const res=ch.rules.map(r=>{const R=RULES86[r.k],v=R.m(m);return{ok:!!R.ok(v,r),val:R.f(v),mg:clamp(R.mg(v,r)||0,0,1)}}),np=res.filter(x=>x.ok).length,pass=np===res.length,
+ bon=ch.th.b==='comfort'?m.comfort*3:ch.th.b==='air'?Math.min(1,m.air/4)*300:m.thrill*3,mar=res.reduce((a,x)=>a+x.mg,0)/res.length*100;return{res,pass,score:Math.round(pass?600+clamp(bon,0,300)+clamp(mar,0,100):np*100+Math.min(99,bon/3))}}
+function dlySubmit86(){const ch=challenge86();if(!editing||!B8.on)return say('Open the Track Builder to submit a coaster');if(B8.pv)b8Apply(true);const m=dlyMetrics86(D);if(m.err){DLY86.err=m.err;say('📅 '+m.err);b8LibR();return}
+ const sc=dlyScore86(ch,m),day=DLY86.days[ch.k]||{best:0,pass:false,tries:0,res:[],vals:[]};day.tries++;if(sc.score>=day.best||!day.res.length){day.best=sc.score;day.res=sc.res.map(x=>x.ok);day.vals=sc.res.map(x=>x.val)}day.pass=day.pass||sc.pass;DLY86.days[ch.k]=day;DLY86.last={k:ch.k,...sc,name:D.name};DLY86.err='';saveDly86();
+ if(sc.pass){got86('day86');if(streak86()>=3)got86('streak86');try{sfx('chime')}catch(e){}if(fxOn)try{confettiSmall()}catch(e){}}say(sc.pass?'📅 Challenge passed! '+sc.score+' points':'📅 '+sc.res.filter(x=>x.ok).length+' of '+sc.res.length+' rules · '+sc.score+' points');b8LibR();setTimeout(()=>{const el=$('#b8Lib .dRes86');if(el)try{el.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},60)}
+// Wordle-style share text: today's number, the theme, one square per rule, the score and the streak
+function shareText86(k=dayKey86()){const ch=challenge86(k),d=DLY86.days[k];if(!d)return'';return`🎢 Coaster Lab Daily #${ch.n} ${ch.th.ic} ${ch.th.n}\n${d.res.map(x=>x?'🟩':'🟥').join('')} ${d.best} pts${d.tries>1?' · '+d.tries+' tries':''}\n${ch.rules.map((r,i)=>(d.res[i]?'✅ ':'❌ ')+RULES86[r.k].t(r)+(d.vals[i]?' ('+d.vals[i]+')':'')).join('\n')}\n🔥 Streak ${streak86()}`}
+async function share86(host){const txt=shareText86();if(!txt)return'none';try{if(navigator.share){await navigator.share({text:txt});return'shared'}}catch(e){if(e&&e.name==='AbortError')return'cancelled'}
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(txt);say('📋 Copied! Paste it in a message');return'copied'}}catch(e){}
+ const box=host&&host.querySelector('.shareBox86');if(box){box.hidden=false;const ta=box.querySelector('textarea');ta.value=txt;try{ta.focus();ta.select()}catch(e){}}say('Copy the text below to share it');return'box'}
+// the live rule check while you build (only with Earth physics, so the ticks always match what Submit will say)
+function dlyLive86(){if(phMod()||!BR_||BR_.g.bad||!BR_.c||!BR_.tr)return null;try{const c=BR_.c,tr=BR_.tr,st=statsOf(c,tr,0),ra=ratings80(c,tr),E=elementsOf(c,tr);return{inv:E.inv,gMax:st.gMax,air:st.air,flo:st.flo,vmax:tr.vmax,h:st.maxH,len:c.L,T:tr.T,thrill:ra.thrill,comfort:ra.comfort,pieces:D.els.length-1,launch:D.els.some(e=>e.t==='launch')}}catch(e){return null}}
+function dlyCard86(ch,inB){const d=DLY86.days[ch.k],m=inB?dlyLive86():null,crit=inB&&BR_?BR_.issues.filter(i=>i.sev==='crit').length:0,st=streak86(),dt=new Date(ch.k+'T12:00:00');
+ return`<div class="dly86"><small>Daily Challenge #${ch.n} · ${dt.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}</small><h3>${ch.th.ic} ${esc(ch.th.n)}</h3>
+ <ul class="rl86">${ch.rules.map((r,i)=>{const R=RULES86[r.k],live=m?R.ok(R.m(m),r):null;return`<li class="${live==null?'':live?'ok':'no'}"><i>${live==null?R.ic:live?'✅':'⬜'}</i><span>${esc(R.t(r))}${m?`<small>yours: ${esc(R.f(R.m(m)))}</small>`:''}</span></li>`}).join('')}</ul>
+ <p class="n8">Everyone gets this same challenge today. Scored with standard 🌍 Earth physics${inB&&phMod()?' (live ticks are hidden while you use '+esc(gEarth86()?'🧪 Lab physics':gravTxt86())+')':''}.</p>
+ ${inB?`<button class="b8b pri dSub86" data-dc86="submit" ${crit?'disabled':''}>📤 Submit my coaster</button>${crit?`<p class="n8">⚠ Fix the must-fix problem${crit>1?'s':''} in ✓ Check first.</p>`:''}${DLY86.err?`<p class="warn86">${esc(DLY86.err)}</p>`:''}`:`<div class="row7"><button class="btn primary" data-dc86="build">🏗 Build it now</button></div>`}
+ ${d?`<div class="dRes86"><b>${d.pass?'✅ Passed':'Not passed yet'} · best ${d.best} pts</b><span class="sq86">${d.res.map(x=>x?'🟩':'🟥').join('')}</span><small>${plural80(d.tries,'try','tries')} today · 🔥 streak ${st}</small><button class="${inB?'b8b':'btn'}" data-dc86="share">📤 Share</button><div class="shareBox86" hidden><textarea readonly rows="7" aria-label="Your result to copy"></textarea></div></div>`:inB?`<p class="n8">🔥 Streak ${st} · best ${bestStreak86()}</p>`:''}</div>`}
+function dlyHist86(){const ks=Object.keys(DLY86.days).sort().reverse().slice(0,14);if(!ks.length)return'<p class="n7">No challenges played yet. Your first one is waiting!</p>';
+ return`<div class="hist7">${ks.map(k=>{const d=DLY86.days[k],ch=challenge86(k);return`<div><b>#${ch.n} ${ch.th.ic} ${esc(ch.th.n)} · ${d.pass?'✅':'❌'} ${d.best} pts</b><small>${new Date(k+'T12:00:00').toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})} · ${d.res.map(x=>x?'🟩':'🟥').join('')} · ${plural80(d.tries,'try','tries')}</small></div>`}).join('')}</div>`}
+PAGES86.daily86={t:()=>'📅 Daily Challenge',html:()=>`${dlyCard86(challenge86(),false)}<h4 class="h7">Your streak</h4><p class="n7">🔥 <b>${streak86()}</b> day${streak86()===1?'':'s'} in a row · best ever ${bestStreak86()} · passed ${Object.values(DLY86.days).filter(d=>d.pass).length} in total</p>
+ <h4 class="h7">History</h4>${dlyHist86()}<h4 class="h7">How it works</h4><p class="n7">A new challenge appears every day at midnight (your phone’s clock). Build a coaster in the 🏗 Track Builder, open the 📅 Daily tab and tap Submit. You can submit as often as you like; your best score counts. Passing on days in a row builds your 🔥 streak. Scores stay on this device, there is no online leaderboard yet.</p>`};
+function dlyOpenBuilder86(){closeOv7();if(!editing)openEditor();B8.lib='daily';if(narrow80())B8.sheet='lib';else B8.libOpen=true;b8Render()}
+$('#ov7').addEventListener('click',e=>{const t=e.target.closest('[data-dc86]');if(!t)return;const a=t.dataset.dc86;if(a==='build')dlyOpenBuilder86();else if(a==='share')share86(t.closest('.dRes86'))});
+b8.addEventListener('click',e=>{const t=e.target.closest('[data-dc86]');if(!t||t.disabled)return;const a=t.dataset.dc86;if(a==='submit')dlySubmit86();else if(a==='share')share86(t.closest('.dRes86'))});
+LIB80.push(['daily','📅','Daily',null]);LIBK80.daily=LIB80[LIB80.length-1];LIBX86.daily=()=>dlyCard86(challenge86(),true);
+hubItem72('daily86','📅','Daily Challenge',()=>{const ch=challenge86(),d=DLY86.days[ch.k];return ch.th.ic+' '+ch.th.n+' · '+(d?(d.pass?'✅ '+d.best+' pts':'❌ '+d.best+' pts'):'not tried yet')+' · 🔥 '+streak86()},()=>openOv7('daily86'),88);
+function expMore86b(){const ch=challenge86(),d=DLY86.days[ch.k];return`<div class="x86"><div><b>📅 Daily Challenge</b><small>Today: ${ch.th.ic} ${esc(ch.th.n)} · ${d?(d.pass?'✅ passed':'❌ not passed yet'):'not tried yet'} · 🔥 ${streak86()}</small></div><button class="btn" data-x86="daily86">Open</button></div>`}
+// test-only: look for a coaster built in this builder that passes a challenge (layouts, park rides, the 4-inversion
+// layouts minus one inversion, then small tweaks with Evolve's own mutations). Used to check the challenge ranges.
+async function feasCh86(ch,tries){const fit=m=>{const sc=dlyScore86(ch,m);return sc.res.filter(x=>x.ok).length*10+sc.res.reduce((a,x,i)=>{const r=ch.rules[i],R=RULES86[r.k],v=R.m(m);return a+(x.ok?1:-Math.min(5,Math.abs(v-(r.x||0))/((r.x||1))))},0)};
+ const R=rng86(hash86('feas'+JSON.stringify(ch.rules))),pool=[],INV=['loop','corkscrew','zerog','immelmann','diveloop','barrel'],T_=TEMPLATES.filter(t=>t.id!=='blank'),starts=T_.map(t=>mkD(t.name,t.els)).concat(RIDES7.map(x=>mkD(x[1].name,x[0])),SIG84.map(x=>mkD(x[1].name,x[0])));
+ for(const t of T_)t.els.forEach((e,i)=>{if(INV.includes(e[0]))starts.push(mkD(t.name+' minus a '+e[0],t.els.filter((_,j)=>j!==i)))});
+ for(const s0 of starts){const m=dlyMetrics86(s0);if(m.err)continue;if(dlyScore86(ch,m).pass)return{pass:true,by:s0.name,D:s0};pool.push({D:s0,f:fit(m),m})}
+ pool.sort((a,b)=>b.f-a.f);for(const st0 of pool.slice(0,3)){let best=st0;for(let i=0;i<tries/3;i++){const C=mutate86(best.D,R,.12),m=dlyMetrics86(C);if(m.err)continue;const f=fit(m);if(f>=best.f)best={D:C,f,m};if(dlyScore86(ch,best.m).pass)return{pass:true,by:'tuned '+st0.D.name,D:best.D};if(i%4===3)await yield86()}}
+ const b=pool[0];return{pass:false,res:dlyScore86(ch,b.m).res.map(x=>x.ok?'✓':'✗'+x.val)}}
+Object.assign(DBG86,{daily:k=>{const ch=challenge86(k);return{k:ch.k,n:ch.n,theme:ch.th.k,rules:ch.rules.map(r=>({...r,t:RULES86[r.k].t(r)}))}},dailyState:()=>JSON.parse(JSON.stringify(DLY86)),streak:()=>streak86(),
+ shareText:()=>shareText86(),submit:()=>{dlySubmit86();return DLY86.last?{score:DLY86.last.score,pass:DLY86.last.pass,res:DLY86.last.res.map(x=>[x.ok,x.val])}:{err:DLY86.err}},
+ metrics:()=>dlyMetrics86(D),score:(k,m)=>dlyScore86(challenge86(k),m),setDays:o=>{DLY86.days=o;saveDly86()},openDailyBuilder:()=>dlyOpenBuilder86(),
+ findToday:async()=>{const r=await feasCh86(challenge86(),450);return r.pass?{by:r.by,els:r.D.els.map(e=>({t:e.t,p:e.p}))}:null},corners:async(tries=450,only)=>{const out=[];for(const th of THEMES86){if(only&&!only.includes(th.k))continue;const seen=new Set();for(let mask=0;mask<8;mask++){let bit=0;const pickE=(a,b)=>((mask>>(bit++))&1)?b:a,rules=th.mk((a,b)=>pickE(a,b),(a,b)=>pickE(a,b)),key=JSON.stringify(rules);if(seen.has(key))continue;seen.add(key);
+ const ch={k:'corner',n:0,th,rules},r=await feasCh86(ch,tries);out.push(th.k+' | '+rules.map(x=>RULES86[x.k].t(x)).join(' | ')+' → '+(r.pass?'PASSABLE ← '+r.by:'not found '+r.res.join(' ')))}}return out},feas:async(k,tries=260)=>{const ch=challenge86(k),fit=m=>{const sc=dlyScore86(ch,m);return sc.res.filter(x=>x.ok).length*10+sc.res.reduce((a,x,i)=>{const r=ch.rules[i],R=RULES86[r.k],v=R.m(m);return a+(x.ok?1:-Math.min(5,Math.abs(v-(r.x||0))/((r.x||1))))},0)};
+ const R=rng86(hash86('feas'+k)),pool=[];const starts=TEMPLATES.filter(t=>t.id!=='blank').map(t=>mkD(t.name,t.els)).concat(RIDES7.map(x=>mkD(x[1].name,x[0])),SIG84.map(x=>mkD(x[1].name,x[0])));
+ for(const s0 of starts){const m=dlyMetrics86(s0);if(m.err)continue;const sc=dlyScore86(ch,m);if(sc.pass)return{theme:ch.th.k,rules:ch.rules.map(r=>RULES86[r.k].t(r)),pass:true,by:s0.name,res:[]};pool.push({D:s0,f:fit(m),m})}
+ pool.sort((a,b)=>b.f-a.f);for(const st0 of pool.slice(0,3)){let best=st0;for(let i=0;i<tries/3;i++){const C=mutate86(best.D,R,.12),m=dlyMetrics86(C);if(m.err)continue;const f=fit(m);if(f>=best.f)best={D:C,f,m};if(dlyScore86(ch,best.m).pass)return{theme:ch.th.k,rules:ch.rules.map(r=>RULES86[r.k].t(r)),pass:true,by:'tuned '+st0.D.name,res:[]};if(i%4===3)await yield86()}}
+ const b=pool[0],sc=dlyScore86(ch,b.m);return{theme:ch.th.k,rules:ch.rules.map(r=>RULES86[r.k].t(r)),pass:false,res:sc.res.map(x=>x.ok?'✓':'✗'+x.val)}},corpus:()=>RIDES7.map(x=>mkD(x[1].name,x[0])).concat(SIG84.map(x=>mkD(x[1].name,x[0]))).map(d=>{const m=dlyMetrics86(d);return d.name+' → '+(m.err?m.err:'inv '+m.inv+' G '+m.gMax.toFixed(2)+' flo '+m.flo.toFixed(1)+' air '+m.air.toFixed(1)+' h '+m.h.toFixed(0)+' T '+m.T.toFixed(0))}),drop1:()=>{const o=[],INV=['loop','corkscrew','zerog','immelmann','diveloop','barrel'];for(const t of TEMPLATES.filter(t=>t.id!=='blank')){t.els.forEach((e,i)=>{if(!INV.includes(e[0]))return;const els=t.els.filter((_,j)=>j!==i),m=dlyMetrics86(mkD(t.name,els));if(!m.err&&m.inv===3)o.push(t.name+' minus piece '+i+' ('+e[0]+') → inv 3, G '+m.gMax.toFixed(2)+', floating '+m.flo.toFixed(1)+' s')})}return o},tpl:()=>TEMPLATES.filter(t=>t.id!=='blank').map(t=>{const m=dlyMetrics86(mkD(t.name,t.els));return t.name+' → '+(m.err?m.err:'inv '+m.inv+' G '+m.gMax.toFixed(2)+' flo '+m.flo.toFixed(1)+' air '+m.air.toFixed(1)+' h '+m.h.toFixed(0)+' v '+m.vmax.toFixed(1)+' len '+Math.round(m.len)+' pcs '+m.pieces+' thrill '+Math.round(m.thrill)+' comfort '+Math.round(m.comfort))}),setD:els=>{const c_=sanDesign({v:2,name:'Test',els});if(c_.ok){D=c_.D;rebuild(true);commit('Test design')}return c_.ok}});
 
 CI=RIDES.length;addEventListener('blur',()=>{hands7Want=false});
 snapOrig();{let mv=false;ORIG.forEach((b,i)=>{const n=(OWN.rides[i]||{}).name;if(n&&n!==b.name&&OWN.edits[n]){OWN.edits[b.name]=(OWN.edits[b.name]||[]).concat(OWN.edits[n]);delete OWN.edits[n];mv=true}});if(mv)saveOwn()}applyRideOverrides();applyQuality(false);
