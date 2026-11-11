@@ -1,7 +1,7 @@
 # Coaster Lab tests
 
-Automated checks for `coaster_lab_v8_6.html`. They run the real game in headless Chromium at a 390×844 phone
-size and an 844×390 landscape size. three.js comes from the npm package instead of the CDN; it is byte-identical,
+Automated checks for `coaster_lab_v9_0.html`. They run the real game in headless Chromium at a 390×844 phone
+size and an 844×390 landscape size (`t6_v90` also at 320×568 and 1200×800). three.js comes from the npm package instead of the CDN; it is byte-identical,
 so the page's integrity check still passes.
 
 ```bash
@@ -21,6 +21,7 @@ node t4_corners.js                # optional, slow (~15 min): proves every Daily
 | `t3_evolve` | Evolve: valid results only, repeatable seeds, preview → Place it → Undo, Cancel, time cap |
 | `t4_daily` | Daily Challenge: same challenge for everyone, Submit, Earth physics, streak, share fallbacks, saving |
 | `t5_regress` | Older features next to 8.5: start screen, Lab, Goals, Settings, Park & tools, builder, sketch studio, owner prompt |
+| `t6_v90` | 9.0: three builder levels, one card per cause, repair + Undo, starter blueprints, closed-circuit sketches, ride fares (next to 8.6), speech bubbles, 8.6 saves, four screen sizes |
 
 Screenshots land in `tests/shots/`. The suites use the game's built-in test hooks, which only switch on inside a
 test harness. These checks cannot measure real iPhone frame rates: the browser draws with a software graphics card.

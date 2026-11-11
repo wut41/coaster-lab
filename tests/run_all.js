@@ -1,6 +1,6 @@
-// Runs every Coaster Lab 8.6 test suite in order and prints a PASS / FAIL summary.
+// Runs every Coaster Lab test suite in order and prints a PASS / FAIL summary.
 const { execFileSync } = require('child_process');
-const suites = ['t0_baseline', 't1_gravity', 't2a_same', 't2b_disaster', 't3_evolve', 't4_daily', 't5_regress'];
+const suites = ['t0_baseline', 't1_gravity', 't2a_same', 't2b_disaster', 't3_evolve', 't4_daily', 't5_regress', 't6_v90'];
 let pass = 0, fail = 0;
 for (const s of suites) {
   console.log('=== ' + s);
