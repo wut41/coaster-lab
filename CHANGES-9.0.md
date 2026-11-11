@@ -139,4 +139,9 @@ Lab 8.0 has a switch for them.
 
 ## Tests
 
-`tests/t6_v90.js` is new (59 checks). All suites are listed in `tests/README.md`; run them with `cd tests && npm test`.
+`tests/t6_v90.js` is new (70 checks). All suites are listed in `tests/README.md`; run them with `cd tests && npm test`.
+
+Last full run on the released file, in headless Chromium with a software graphics card: **227 passed, 0 failed**
+(Gravity Lab 32, rides identical to 8.5 with Disaster Mode off 1, Disaster Mode 30, Evolve 36, Daily Challenge 31,
+older features next to 8.5 27, 9.0 70), and the baseline start-up shows 0 console errors at 390×844 and 844×390.
+`t4_corners` (optional, about 15 minutes) was not run.
