@@ -136,6 +136,23 @@ const until = async (page, f, ms = 60000) => { const t = Date.now(); while (Date
     const back = await open(OLD, { w: 390, h: 844, storage: { 'coasterlab.v80.settings': JSON.stringify({ bLevel: 'intermediate', bubbles: false }) } });
     ok(back.errors.length === 0 && await back.page.evaluate(() => window.__booted === true), 'going back: 8.6 starts cleanly with settings written by 9.0'); await back.browser.close();
   }
+  // ---------- F. Replay (9.0.1): the bar with pause / seek / speeds / Exit is there, chapter markers too, and Exit returns to the ride
+  for (const [w, h] of [[820, 1180], [390, 844]]) {
+    const { browser, page, errors } = await open(F, { w, h });
+    const got = await until(page, () => !!window.__coasterDebug.v72.rec().last, 150000);   // a real lap has to finish first
+    await page.evaluate(() => { const s = document.querySelector('#sum7'); if (s) s.hidden = true; window.__coasterDebug.v72.useCam('chase'); window.__coasterDebug.v72.cineOn(true); window.__coasterDebug.v72.replayStart() }); await page.waitForTimeout(1500);
+    const r = await page.evaluate(() => { const q = s => document.querySelector('#rep72 ' + s), b = document.querySelector('#rep72').getBoundingClientRect(); return { on: window.__coasterDebug.v72.replay().on, name: (q('.rpN') || {}).textContent, pp: !!q('[data-rp="pp"]'), seek: !!q('[data-rp="seek"]'), exit: !!q('[data-rp="stop"]'), x2: !!q('.rpS [data-v="2"]'), ch: document.querySelectorAll('#rep72 .rpC85 button').length, fits: b.left >= -1 && b.right <= innerWidth + 1 && b.bottom <= innerHeight + 1 && b.width > 100 } });
+    ok(got && r.on && r.name === 'Looping Adventure' && r.pp && r.seek && r.exit && r.x2, `${w}×${h}: replay shows its bar (name, pause, seek, speeds with 2×, Exit)`);
+    ok(r.ch > 0 && r.fits, `${w}×${h}: ${r.ch} chapter markers, bar fully on screen`);
+    await page.evaluate(() => document.querySelector('#rep72 .rpC85 button:last-child').click()); await page.waitForTimeout(500); const t1 = await page.evaluate(() => window.__coasterDebug.v72.replay().t);
+    ok(t1 > 3, `${w}×${h}: tapping a chapter jumps there (${t1.toFixed(1)} s)`);
+    await page.screenshot({ path: SH + `t6_replay_${w}x${h}.png` });
+    await page.evaluate(() => document.querySelector('#rep72 [data-rp="stop"]').click()); await page.waitForTimeout(600);
+    ok(await page.evaluate(() => { const p = window.__coasterDebug.v72.replay(); return !p.on && document.querySelector('#rep72').hidden }), `${w}×${h}: Exit returns to the live ride`);
+    await page.evaluate(() => window.__coasterDebug.v72.replayStart()); await page.waitForTimeout(900);
+    ok(await page.evaluate(() => document.querySelectorAll('#rep72 .rpN').length === 1 && document.querySelectorAll('#rep72 .rpC85').length === 1), `${w}×${h}: a second replay reuses the same bar`);
+    ok(errors.length === 0, `${w}×${h}: replay console errors and caught task failures: ${errors.length}`); errors.slice(0, 3).forEach(e => console.log('   ', e.slice(0, 300))); await browser.close();
+  }
   // ---------- E. Four screen sizes: start, ride, builder top bar and level menu stay on screen
   for (const [w, h] of [[320, 568], [390, 844], [844, 390], [1200, 800]]) {
     const { browser, page, errors } = await open(F, { w, h, mobile: w < 1000, storage: { 'coasterlab.v80.bWelcome': '1' } });

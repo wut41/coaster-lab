@@ -99,6 +99,23 @@ thoughts the Guests panel counts ("The rides cost too much", "The queue for … 
 each guest's own thought. It is a fixed pool of 2 to 4 sprites that redraw only when their text changes. Settings → Coaster
 Lab 8.0 has a switch for them.
 
+## 9.0.1: Replay fix
+
+Reported from an iPad right after 9.0: starting a replay showed "Part of the game ("background task 6") keeps hitting an
+error", and the replay had no pause, seek or Exit controls.
+
+* **Cause.** The replay bar built its controls only "when the bar is empty". The chapter markers added in 8.5 are put into
+  the same bar first, so it was never empty and the controls were never built; the code that updates them then failed on
+  every frame. It is the same in 8.5 and 8.6 (reproduced in 8.6), so it is not from the 9.0 changes.
+* **Fix.** The controls are built when a replay starts, and again whenever they are missing. The chapter markers and the 2×
+  speed button now land on a complete bar.
+* **Why the tests missed it.** The game catches a failing background task and only prints a warning so the ride keeps
+  running. The tests counted console errors, not those warnings. The test harness now counts every caught failure as an
+  error, in all suites, and `t6_v90` has a replay section (bar, chapters, jump, Exit, second replay) at tablet and phone
+  size.
+
+The file is still `coaster_lab_v9_0.html`; the badge next to the title reads 9.0.1.
+
 ## What was checked and left alone
 
 * **Ride physics and timing.** Lap time and top speed are the same at 60, 20 and 7 frames per second and at ¼× to 4×
