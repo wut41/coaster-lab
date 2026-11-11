@@ -9,7 +9,8 @@ game first. The numbers below come from those runs.
 
 ## 1. Track Builder 5.0
 
-**Three levels.** The level button in the top bar opens a menu (on a phone it is in the ⋯ menu). Each level adds to the one
+**Three levels.** The level button in the top bar opens a menu (on a phone it is in the ⋯ menu; Settings has the same
+three choices). Each level adds to the one
 before it; switching never changes the coaster.
 
 | | Beginner | Intermediate | Advanced |
