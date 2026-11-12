@@ -8053,6 +8053,789 @@ rework10('Nova Giant', 'Nova2', { type: 'Hyper coaster · flagship', trainStyle:
 DBG10.rides = () => RIDES.map((r, i) => r.v10 ? { i, name: r.name, key: r.v10, style: r.trainStyle, tag: TAG[i] } : null).filter(Boolean);
 DBG10.rideStats = i => { const d = RIDES[i]; if (!d) return null; const c = ctxOf(d), tr = traceOf(c), st = statsOf(c, tr, 0), E = elementsOf(c, tr); return { name: d.name, T: +tr.T.toFixed(1), v: +tr.vmax.toFixed(1), g: +st.gMax.toFixed(2), gmin: +st.gMin.toFixed(2), lat: +st.lat.toFixed(2), air: +st.air.toFixed(1), inv: E.inv, h: +st.maxH.toFixed(1), len: Math.round(c.L), stall: tr.stall >= 0, done: tr.done } };
 
+// ---- [20_ty_core.js]
+// ---- 10.0 MY PARK — core: the park's data, the catalogue of things you can build, the grid, the ledger and saving.
+// My Park is a park you build yourself on a grid of 4 m tiles: paths, coasters (park-size replicas of the game's rides
+// and of your own designs, running on their real simulated lap), flat rides, shops, facilities and scenery. Every
+// visitor is simulated individually (22_ty_sim.js). Career and Sandbox are two separate saves.
+const TS10 = 4, GW10 = 48, GH10 = 48, PLOT10 = 8, NPL10 = 6;// tile size (m), grid, land plot size (tiles), plots per side
+const GATE_I10 = 24, GATE_J10 = 47;// the entrance tile (middle of the south edge)
+const TY = {
+  on: false, park: null, slot: null, visit: null,// visit: {name, by, code} while looking at someone else's park (read only)
+  root: null, built: false, t: 0, simT: 0,
+  occ: new Int32Array(GW10 * GH10),// object id standing on each tile (0 = free)
+  air: new Int32Array(GW10 * GH10),// coaster id whose track passes low over the tile (paths and small scenery may still go there)
+  path: new Uint8Array(GW10 * GH10),// 0 = no path, 1.. = path style + 1
+  own: new Uint8Array(GW10 * GH10),// 1 = the park owns this tile
+  beauty: new Float32Array(GW10 * GH10), pathVer: 1, objById: new Map(),
+  guests: [], staff: [], litter: [], sel: null, tool: null, ghost: null, cam: { x: 0, z: 70, yaw: 0, pitch: .95, dist: 78 }, ui: {}, perf: { ms: 0, n: 0 }
+};
+const tI10 = (i, j) => j * GW10 + i, tX10 = i => (i - GW10 / 2 + .5) * TS10, tZ10 = j => (j - GH10 / 2 + .5) * TS10;
+const xT10 = x => Math.floor(x / TS10 + GW10 / 2), zT10 = z => Math.floor(z / TS10 + GH10 / 2), inG10 = (i, j) => i >= 0 && j >= 0 && i < GW10 && j < GH10;
+const NB10 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+// ---- catalogue. Costs are park dollars. exc / int / nau = excitement, intensity, nausea (0-100) for rides.
+// Flat rides, shops and scenery reuse the 3D models of the 8.0 park lands (att3d80 / shop3d80 / the scenery builders).
+const CAT10 = {
+  // flat rides: w × d tiles, seats per cycle, cycle seconds, running cost per park hour
+  carousel: { t: 'flat', n: 'Carousel', ic: '🎠', w: 3, d: 3, cost: 2200, exc: 26, int: 8, nau: 5, cap: 12, dur: 22, run: 9, lv: 1, model: 'carousel', col: 0xff5a6e, fare: 2 },
+  teacups: { t: 'flat', n: 'Spinning Teacups', ic: '☕', w: 3, d: 3, cost: 2800, exc: 34, int: 24, nau: 32, cap: 10, dur: 20, run: 10, lv: 1, model: 'teacups', col: 0xff6fb5, fare: 2 },
+  bumper: { t: 'flat', n: 'Bumper Cars', ic: '🚗', w: 3, d: 3, cost: 3600, exc: 40, int: 30, nau: 10, cap: 12, dur: 24, run: 12, lv: 2, model: 'bumper', col: 0x36a7ff, fare: 3 },
+  ferris: { t: 'flat', n: 'Ferris Wheel', ic: '🎡', w: 4, d: 3, cost: 4800, exc: 42, int: 6, nau: 4, cap: 20, dur: 34, run: 14, lv: 2, model: 'ferris', col: 0xffc233, fare: 3 },
+  swing: { t: 'flat', n: 'Wave Swinger', ic: '🌀', w: 3, d: 3, cost: 4200, exc: 46, int: 36, nau: 26, cap: 10, dur: 22, run: 12, lv: 3, model: 'swing', col: 0x36a7ff, fare: 3 },
+  pirate: { t: 'flat', n: 'Pirate Ship', ic: '🏴‍☠️', w: 3, d: 3, cost: 5600, exc: 54, int: 50, nau: 44, cap: 16, dur: 24, run: 15, lv: 4, model: 'pirate', col: 0x8a5a33, fare: 4 },
+  drop: { t: 'flat', n: 'Drop Tower', ic: '🗼', w: 2, d: 2, cost: 8200, exc: 70, int: 80, nau: 34, cap: 8, dur: 16, run: 18, lv: 6, model: 'drop', col: 0xff3d6b, fare: 5 },
+  // shops: what they sell, default price, what a sale costs the park
+  burger: { t: 'shop', n: 'Burger Bar', ic: '🍔', w: 1, d: 1, cost: 900, sells: 'food', price: 6, unit: 2.2, run: 6, lv: 1, model: 'food', col: 0xff8a3d },
+  drinks: { t: 'shop', n: 'Drinks Stand', ic: '🥤', w: 1, d: 1, cost: 650, sells: 'drink', price: 3, unit: .8, run: 4, lv: 1, model: 'drink', col: 0x36a7ff },
+  icecream: { t: 'shop', n: 'Ice Cream Cart', ic: '🍦', w: 1, d: 1, cost: 750, sells: 'treat', price: 4, unit: 1.1, run: 4, lv: 2, model: 'icecream', col: 0xff6fb5 },
+  gifts: { t: 'shop', n: 'Souvenir Shop', ic: '🎁', w: 1, d: 1, cost: 1400, sells: 'gift', price: 12, unit: 4.5, run: 6, lv: 3, model: 'gifts', col: 0x9b6bff },
+  // facilities
+  toilet: { t: 'fac', n: 'Restrooms', ic: '🚻', w: 1, d: 1, cost: 600, sells: 'wc', price: 0, unit: 0, run: 3, lv: 1, model: 'toilets', col: 0x2fd18b },
+  info: { t: 'fac', n: 'Info & First Aid', ic: 'ℹ️', w: 1, d: 1, cost: 800, sells: 'info', price: 8, unit: 2, run: 5, lv: 2, model: 'info', col: 0x22e0ff },
+  // scenery: beauty points spread to the tiles around it. bench / bin / lamp also do a job.
+  tree: { t: 'deco', n: 'Tree', ic: '🌳', w: 1, d: 1, cost: 45, beauty: 3, lv: 1, model: 'tree' },
+  pine: { t: 'deco', n: 'Pine', ic: '🌲', w: 1, d: 1, cost: 45, beauty: 3, lv: 1, model: 'pine' },
+  palm: { t: 'deco', n: 'Palm', ic: '🌴', w: 1, d: 1, cost: 70, beauty: 4, lv: 3, model: 'palm' },
+  bush: { t: 'deco', n: 'Bush', ic: '🌿', w: 1, d: 1, cost: 25, beauty: 2, lv: 1, model: 'bush' },
+  flowers: { t: 'deco', n: 'Flower Bed', ic: '🌷', w: 1, d: 1, cost: 60, beauty: 5, lv: 1, model: 'flowers' },
+  rock: { t: 'deco', n: 'Rock', ic: '🪨', w: 1, d: 1, cost: 30, beauty: 1.5, lv: 1, model: 'rock' },
+  bench: { t: 'deco', n: 'Bench', ic: '🪑', w: 1, d: 1, cost: 70, beauty: 1, lv: 1, model: 'bench', job: 'bench' },
+  bin: { t: 'deco', n: 'Litter Bin', ic: '🗑', w: 1, d: 1, cost: 50, beauty: 0, lv: 1, model: 'bin', job: 'bin' },
+  lamp: { t: 'deco', n: 'Lamp Post', ic: '💡', w: 1, d: 1, cost: 90, beauty: 2, lv: 1, model: 'lamp', job: 'lamp' },
+  fountain: { t: 'deco', n: 'Fountain', ic: '⛲', w: 1, d: 1, cost: 420, beauty: 12, lv: 2, model: 'fountain' },
+  statue: { t: 'deco', n: 'Statue', ic: '🗿', w: 1, d: 1, cost: 360, beauty: 9, lv: 4, model: 'statue' },
+  flag: { t: 'deco', n: 'Flag', ic: '🚩', w: 1, d: 1, cost: 40, beauty: 2, lv: 2, model: 'flag' },
+  mushroom: { t: 'deco', n: 'Giant Mushroom', ic: '🍄', w: 1, d: 1, cost: 120, beauty: 6, lv: 5, model: 'mushroom' },
+  lolly: { t: 'deco', n: 'Lollipop', ic: '🍭', w: 1, d: 1, cost: 110, beauty: 6, lv: 5, model: 'lolly' },
+  torch: { t: 'deco', n: 'Tiki Torch', ic: '🔥', w: 1, d: 1, cost: 80, beauty: 4, lv: 6, model: 'torch' },
+  castle: { t: 'deco', n: 'Castle Folly', ic: '🏰', w: 2, d: 2, cost: 2400, beauty: 40, lv: 8, model: 'castle' }
+};
+const PATHS10 = [{ n: 'Tarmac', c: 0x8a9099, cost: 12 }, { n: 'Sandstone', c: 0xd8c59c, cost: 16 }, { n: 'Red brick', c: 0xb5654a, cost: 20 }, { n: 'Slate', c: 0x5f7186, cost: 20 }, { n: 'Boardwalk', c: 0x9a7248, cost: 24 }];
+const GT10 = [// visitor types: share of arrivals, intensity they like, minutes of queue they accept, cash, how much nausea bothers them
+  { k: 'thrill', n: 'Thrill seeker', ic: '🤘', share: .22, lo: 50, hi: 100, pat: 9, cash: [60, 110], nau: .5, coaster: 1.25 },
+  { k: 'family', n: 'Family', ic: '👨‍👩‍👧', share: .26, lo: 0, hi: 46, pat: 6, cash: [80, 140], nau: 1.2, coaster: .9 },
+  { k: 'casual', n: 'Casual visitor', ic: '🙂', share: .28, lo: 12, hi: 72, pat: 7, cash: [50, 95], nau: 1, coaster: 1 },
+  { k: 'fan', n: 'Coaster enthusiast', ic: '🎢', share: .12, lo: 35, hi: 100, pat: 12, cash: [70, 130], nau: .6, coaster: 1.7 },
+  { k: 'gentle', n: 'Gentle rider', ic: '🌷', share: .12, lo: 0, hi: 30, pat: 7, cash: [50, 90], nau: 1.5, coaster: .7 }
+];
+const INC10 = [['gate', '🎟 Entrance tickets'], ['rides', '🎢 Ride tickets'], ['food', '🍔 Food & drink'], ['shops', '🎁 Shops & services'], ['prize', '🏆 Goal prizes'], ['sale', '♻️ Sold attractions'], ['loan', '🏦 Loan taken']];
+const EXP10 = [['build', '🏗 Building & upgrades'], ['land', '🏞 Land'], ['run', '⚙ Running the rides & shops'], ['wages', '👷 Wages'], ['repair', '🔧 Repairs & inspections'], ['stock', '📦 Stock for the shops'], ['loan', '🏦 Loan interest & repayments'], ['promo', '📣 Marketing']];
+const newLed10 = () => { const o = { inc: {}, exp: {} }; INC10.forEach(k => o.inc[k[0]] = 0); EXP10.forEach(k => o.exp[k[0]] = 0); return o };
+const ledSum10 = l => { let a = 0, b = 0; for (const k in l.inc) a += l.inc[k]; for (const k in l.exp) b += l.exp[k]; return { inc: a, exp: b, profit: a - b } };
+// ---- money. Every dollar goes through these two functions, so the balance and the books always agree.
+// (Sandbox: nothing is charged and the balance never changes, but income and costs are still written to the books.)
+function earn10(cat, amt) { const P_ = TY.park; if (!P_ || !(amt > 0)) return; P_.led.inc[cat] = (P_.led.inc[cat] || 0) + amt; P_.tot.inc += amt; if (P_.mode !== 'sandbox') P_.money += amt }
+function pay10(cat, amt) { const P_ = TY.park; if (!P_ || !(amt > 0)) return; P_.led.exp[cat] = (P_.led.exp[cat] || 0) + amt; P_.tot.exp += amt; if (P_.mode !== 'sandbox') P_.money -= amt }
+const canPay10 = amt => !!TY.park && (TY.park.mode === 'sandbox' || TY.park.money >= amt);
+// ---- a new park
+function startLand10() { let s = ''; for (let pz = 0; pz < NPL10; pz++) for (let px = 0; px < NPL10; px++) s += (pz >= 4 && px >= 1 && px <= 4) ? '1' : '0'; return s }
+function newPark10(mode) {
+  const sb = mode === 'sandbox', paths = {}; for (let j = GATE_J10; j >= GATE_J10 - 5; j--) paths[tI10(GATE_I10, j)] = 0;
+  return {
+    v: 1, id: 'P' + Date.now().toString(36) + Math.floor(Math.random() * 1e9).toString(36), name: sb ? 'Sandbox Park' : 'My Park', mode: sb ? 'sandbox' : 'career', made: Date.now(),
+    money: sb ? 0 : 25000, loan: 0, day: 1, min: 540, speed: 1, open: true, fee: 10,
+    land: sb ? '1'.repeat(NPL10 * NPL10) : startLand10(), paths, objs: [], nextId: 1, staff: { jan: 1, mech: 1 },
+    rep: 18, rating: 0, xp: 0, perks: {}, goals: {}, seen: {}, led: newLed10(), tot: { inc: 0, exp: 0, guests: 0, rides: 0, turned: 0, sales: 0 }, hist: [],
+    wx: { k: 'sunny', until: 0, auto: true }, clock: { auto: true }, look: { path: 0, gate: '#ff7a2f', sign: '#ffc233' }, custom: {}, promo: 0, tut: sb ? 9 : 0
+  };
+}
+const landOwned10 = (P_, px, pz) => px >= 0 && pz >= 0 && px < NPL10 && pz < NPL10 && P_.land[pz * NPL10 + px] === '1';
+const landCount10 = P_ => { let n = 0; for (const c of P_.land) if (c === '1') n++; return n };
+const landPrice10 = P_ => Math.round((1800 + 650 * Math.max(0, landCount10(P_) - 8)) / 50) * 50;
+// ---- coasters in the catalogue: every ride of the game the player can use, plus designs saved in the Track Builder
+const coasterKey10 = d => 'c:' + (d.baseName || d.name);
+function coasterDef10(key, P_) {
+  if (key.startsWith('c:')) { const n = key.slice(2); return RIDES.find(r => (r.baseName || r.name) === n) || null }
+  if (key.startsWith('u:')) { const P2 = P_ || TY.park, c = P2 && P2.custom[key.slice(2)]; return c ? customDef10(key.slice(2), c) : null }
+  return null;
+}
+// a player's own design becomes a ride definition through the same generate → fillDef path the builder uses
+const CUSTDEF10 = new Map();
+function customDef10(id, c) {
+  const sig = id + '|' + JSON.stringify(c.els).length + '|' + (c.name || ''); let d = CUSTDEF10.get(sig); if (d) return d;
+  try { const r = sanDesign({ v: 2, name: c.name || 'My Coaster', els: c.els, style: c.style }); if (!r.ok) return null; const g = generate(r.D); if (g.bad) return null; d = { ...CUSTOM, pts: [], rollFn: null, zonesF: null, secF: null }; fillDef(d, r.D, g); const st = r.D.style || {};
+    d.rail = st.rail ? parseInt(st.rail.slice(1), 16) : 0xe8503a; d.tie = st.tie ? parseInt(st.tie.slice(1), 16) : 0xe8e0c8; d.body = st.body ? parseInt(st.body.slice(1), 16) : 0xd94b3b; d.accent = st.accent ? parseInt(st.accent.slice(1), 16) : 0xffc233; d.dark = 0x2b3441; d.trainStyle = st.train || 'sit'; d.color = st.rail || '#ffc233'; d.name = cleanName(c.name) || 'My Coaster'; d.type = 'Your own design'; d.custom10 = id; CUSTDEF10.set(sig, d); return d }
+  catch (e) { console.warn('10.0 custom coaster', e); return null }
+}
+// which coasters can be built right now (secret rides only once their secret is found)
+function coasterList10(P_) {
+  const a = []; RIDES.forEach((r, i) => { if (r.secret && !secOpen7(r.secret)) return; a.push({ key: coasterKey10(r), def: r, i }) });
+  for (const id in (P_ || TY.park || { custom: {} }).custom) { const d = customDef10(id, (P_ || TY.park).custom[id]); if (d) a.push({ key: 'u:' + id, def: d, i: -1 }) }
+  return a;
+}
+// ---- saving. Career and Sandbox are separate slots; everything read back is checked (never trust stored data).
+const numP10 = (x, d, a, b) => typeof x === 'number' && isFinite(x) ? clamp(x, a, b) : d;
+function cleanPark10(o, mode) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+  const P_ = newPark10(mode || (o.mode === 'sandbox' ? 'sandbox' : 'career')), sb = P_.mode === 'sandbox';
+  if (typeof o.id === 'string' && /^[A-Za-z0-9]{4,40}$/.test(o.id)) P_.id = o.id; P_.name = cleanName(o.name) || P_.name; P_.made = numP10(o.made, P_.made, 0, 4e12);
+  P_.money = sb ? 0 : numP10(o.money, 25000, -1e9, 1e12); P_.loan = numP10(o.loan, 0, 0, 1e7); P_.day = Math.round(numP10(o.day, 1, 1, 1e6)); P_.min = numP10(o.min, 540, 0, 1439.99); P_.speed = [0, 1, 2, 4].includes(o.speed) ? o.speed : 1; P_.open = o.open !== false; P_.fee = Math.round(numP10(o.fee, 10, 0, 80));
+  if (typeof o.land === 'string' && /^[01]{36}$/.test(o.land)) P_.land = sb ? '1'.repeat(36) : o.land; if (P_.land[5 * NPL10 + 3] !== '1') P_.land = P_.land.slice(0, 33) + '1' + P_.land.slice(34);// the gate plot is always owned
+  P_.paths = {}; if (o.paths && typeof o.paths === 'object') for (const k in o.paths) { const i = +k; if (Number.isInteger(i) && i >= 0 && i < GW10 * GH10) P_.paths[i] = Math.round(numP10(o.paths[k], 0, 0, PATHS10.length - 1)) }
+  for (let j = GATE_J10; j >= GATE_J10 - 1; j--) if (P_.paths[tI10(GATE_I10, j)] == null) P_.paths[tI10(GATE_I10, j)] = 0;
+  P_.custom = {}; if (o.custom && typeof o.custom === 'object') Object.keys(o.custom).slice(0, 24).forEach(id => { const c = o.custom[id]; if (!/^[a-z0-9]{2,24}$/i.test(id) || !c || !Array.isArray(c.els) || c.els.length > 60) return; try { const r = sanDesign({ v: 2, name: c.name, els: c.els, style: c.style }); if (r.ok) P_.custom[id] = { name: cleanName(c.name) || 'My Coaster', els: r.D.els.map(e => ({ t: e.t, p: e.p })), style: r.D.style } } catch (e) {} });
+  P_.objs = []; let maxId = 0;
+  if (Array.isArray(o.objs)) o.objs.slice(0, 900).forEach(q => {
+    if (!q || typeof q !== 'object' || typeof q.k !== 'string') return; const isC = /^[cu]:/.test(q.k); if (!isC && !CAT10[q.k]) return; if (isC && !coasterDef10(q.k, P_)) return;
+    const b = { id: Math.round(numP10(q.id, 0, 1, 1e7)), k: q.k, x: Math.round(numP10(q.x, 0, -40, GW10 + 40)), z: Math.round(numP10(q.z, 0, -40, GH10 + 40)), r: Math.round(numP10(q.r, 0, 0, 3)) };
+    if (!b.id || P_.objs.some(x => x.id === b.id)) b.id = ++maxId + 100000; maxId = Math.max(maxId, b.id < 100000 ? b.id : 0);
+    const C = CAT10[q.k]; if (isC || (C && (C.t === 'flat' || C.t === 'shop' || C.t === 'fac'))) {
+      if (typeof q.name === 'string') b.name = cleanName(q.name); b.price = +numP10(q.price, -1, -1, 99).toFixed(2); b.open = q.open !== false; b.rel = numP10(q.rel, 100, 0, 100); b.age = numP10(q.age, 0, 0, 1e7);
+      b.up = { cap: Math.round(numP10(q.up && q.up.cap, 0, 0, 3)), rel: Math.round(numP10(q.up && q.up.rel, 0, 0, 3)), fx: Math.round(numP10(q.up && q.up.fx, 0, 0, 3)) };
+      b.st = { n: numP10(q.st && q.st.n, 0, 0, 1e9), inc: numP10(q.st && q.st.inc, 0, 0, 1e12), run: numP10(q.st && q.st.run, 0, 0, 1e12), like: numP10(q.st && q.st.like, 0, 0, 1e9), rated: numP10(q.st && q.st.rated, 0, 0, 1e9), down: numP10(q.st && q.st.down, 0, 0, 1e6) };
+      if (q.col && typeof q.col === 'object') { b.col = {}; ['rail', 'tie', 'body', 'accent', 'roof'].forEach(k => { if (typeof q.col[k] === 'string' && /^#[0-9a-f]{6}$/i.test(q.col[k])) b.col[k] = q.col[k].toLowerCase() }); if (typeof q.col.train === 'string' && (STY10[q.col.train] || ['sit', 'inverted', 'flying', 'spinning'].includes(q.col.train))) b.col.train = q.col.train; if (Number.isInteger(q.col.stn) && q.col.stn >= 0 && q.col.stn < 4) b.col.stn = q.col.stn }
+    }
+    P_.objs.push(b);
+  });
+  P_.nextId = Math.max(maxId + 1, Math.round(numP10(o.nextId, 1, 1, 1e7)));
+  P_.staff = { jan: Math.round(numP10(o.staff && o.staff.jan, 1, 0, 30)), mech: Math.round(numP10(o.staff && o.staff.mech, 1, 0, 20)) };
+  P_.rep = numP10(o.rep, 18, 0, 100); P_.rating = numP10(o.rating, 0, 0, 100); P_.xp = Math.round(numP10(o.xp, 0, 0, 1e9)); P_.promo = numP10(o.promo, 0, 0, 1e5); P_.tut = Math.round(numP10(o.tut, sb ? 9 : 0, 0, 9));
+  ['perks', 'goals', 'seen'].forEach(k => { if (o[k] && typeof o[k] === 'object') for (const q in o[k]) if (q.length < 40 && (typeof o[k][q] === 'number' || typeof o[k][q] === 'boolean')) P_[k][q] = o[k][q] });
+  if (o.led && typeof o.led === 'object') { for (const k in P_.led.inc) P_.led.inc[k] = numP10(o.led.inc && o.led.inc[k], 0, 0, 1e12); for (const k in P_.led.exp) P_.led.exp[k] = numP10(o.led.exp && o.led.exp[k], 0, 0, 1e12) }
+  if (o.tot && typeof o.tot === 'object') for (const k in P_.tot) P_.tot[k] = numP10(o.tot[k], 0, 0, 1e13);
+  if (Array.isArray(o.hist)) P_.hist = o.hist.filter(h => h && typeof h === 'object').slice(-40).map(h => ({ day: Math.round(numP10(h.day, 1, 1, 1e6)), inc: numP10(h.inc, 0, 0, 1e12), exp: numP10(h.exp, 0, 0, 1e12), guests: numP10(h.guests, 0, 0, 1e7), peak: numP10(h.peak, 0, 0, 1e6), rating: numP10(h.rating, 0, 0, 100), happy: numP10(h.happy, 0, 0, 100), money: numP10(h.money, 0, -1e12, 1e12), wx: typeof h.wx === 'string' ? h.wx.slice(0, 10) : 'sunny' }));
+  if (o.wx && typeof o.wx === 'object') { if (WX10[o.wx.k]) P_.wx.k = o.wx.k; P_.wx.until = numP10(o.wx.until, 0, 0, 1e9); P_.wx.auto = o.wx.auto !== false }
+  if (o.clock && typeof o.clock === 'object') P_.clock.auto = o.clock.auto !== false;
+  if (o.look && typeof o.look === 'object') { P_.look.path = Math.round(numP10(o.look.path, 0, 0, PATHS10.length - 1));['gate', 'sign'].forEach(k => { if (typeof o.look[k] === 'string' && /^#[0-9a-f]{6}$/i.test(o.look[k])) P_.look[k] = o.look[k] }) }
+  return P_;
+}
+const WX10 = {// weather: how many visitors still come, the sky tint, how wet it is
+  sunny: { n: 'Sunny', ic: '☀️', come: 1, cover: .15, dim: 1 }, cloudy: { n: 'Cloudy', ic: '☁️', come: .88, cover: .8, dim: .78 }, rain: { n: 'Rain', ic: '🌧', come: .5, cover: .95, dim: .6, rain: 1 },
+  storm: { n: 'Thunderstorm', ic: '⛈', come: .28, cover: 1, dim: .42, rain: 1, storm: 1 }, fog: { n: 'Fog', ic: '🌫', come: .8, cover: .6, dim: .8, fog: 1 }
+};
+function parkJSON10(P_) { return JSON.stringify(P_) }
+let saveT10 = 0;
+function savePark10() { const P_ = TY.park; if (!P_ || TY.visit || !TY.slot) return false; return SS10('park.' + TY.slot, P_) }
+function loadPark10(slot) { const raw = LS10('park.' + slot, null); return raw ? cleanPark10(raw, slot === 'sandbox' ? 'sandbox' : 'career') : null }
+// rebuild the fast grids (ownership, paths, what stands where) from the park data
+function gridSync10() {
+  const P_ = TY.park; TY.occ.fill(0); TY.air.fill(0); TY.path.fill(0); TY.own.fill(0); TY.objById.clear();
+  for (let pz = 0; pz < NPL10; pz++) for (let px = 0; px < NPL10; px++) if (landOwned10(P_, px, pz)) for (let j = 0; j < PLOT10; j++) for (let i = 0; i < PLOT10; i++) TY.own[tI10(px * PLOT10 + i, pz * PLOT10 + j)] = 1;
+  for (const k in P_.paths) TY.path[+k] = P_.paths[k] + 1;
+  const bad = []; for (const o of P_.objs) { const fp = footprint10(o); if (!fp || !fits10(fp, o, true)) { bad.push(o); continue } stamp10(o, fp, o.id); TY.objById.set(o.id, o) }
+  if (bad.length) P_.objs = P_.objs.filter(o => !bad.includes(o));// anything that no longer fits (damaged save) is dropped, never drawn half inside something else
+  TY.pathVer++;
+}
+function stamp10(o, fp, id) { for (const [i, j] of fp.solid) TY.occ[tI10(i, j)] = id; if (fp.air) for (const [i, j] of fp.air) if (id || TY.air[tI10(i, j)] === o.id) TY.air[tI10(i, j)] = id }
+
+// ---- [21_ty_rides.js]
+// ---- 10.0 MY PARK — rides: how a coaster of the game becomes a park attraction, footprints, and the 3D models.
+// A park coaster is a replica of the real ride: the same centre line (scaled so it fits a park plot), the same banking,
+// and a train that follows the ride's own simulated lap (standard Earth physics, the same equations as the ride).
+const RP10 = new Map();
+// the classic four are already "park scale"; rides built from track pieces are in real metres and are scaled down
+const SEATS10 = { sit: 2, spinning: 2, inverted: 2, flying: 2, swing: 2, woodie: 2, hyper: 2, bullet: 2, bike: 2, wing: 4, floorless: 4, dive: 6 };
+const HANG10 = { inverted: 1, flying: 1, swing: 1 };
+// run fn with standard Earth physics, whatever the Lab or Gravity Lab is set to (park attractions are rated once, fairly)
+function earth10(fn) { if (!phMod()) return fn(); const sv = { ...PH }; Object.assign(PH, PH0); physChanged(); try { return fn() } finally { Object.assign(PH, sv); physChanged() } }
+// one lap with the ride's equations and standard settings: time → distance, sampled every 0.1 s
+function parkLap10(c) {
+  const g = PH0.g, fr = PH0.fric, dr = PH0.drag, LV = PH0.lift, BK = PH0.brake, h = 1 / 240, L_ = c.L, Z = c.ZN, ts = [0], ss = [0]; let s_ = 0, v_ = LV, t = 0, n = 0;
+  while (t < 600) {
+    const i = Math.floor(s_ / L_ * N) % N;
+    if (Z) { v_ += (-g * c.T[i].y - fr - dr * v_ * v_) * h; for (const z of Z) if (s_ >= z.a && s_ < z.b) { if (z.k === 'lift') { if (v_ < LV) v_ = LV } else if (z.k === 'launch') { if (v_ < z.v) v_ = Math.min(z.v, v_ + z.acc * h) } else if (z.k === 'brake') { if (v_ > z.v) v_ = Math.max(z.v, v_ - BK * h) } else if (z.k === 'station') { v_ = v_ > z.v ? Math.max(z.v, v_ - BK * h) : Math.min(z.v, v_ + 2 * h) } } v_ = Math.max(v_, 1.5) }
+    else if (s_ < c.sCrest - .5) v_ = LV; else { v_ += (-g * c.T[i].y - fr - dr * v_ * v_) * h; if (s_ > L_ - c.BR && v_ > LV) v_ = Math.max(LV, v_ - BK * h); v_ = Math.max(v_, 1.5) }
+    s_ += v_ * h; t += h; n++; if (s_ >= L_) { ts.push(t); ss.push(L_); break } if (n % 24 === 0) { ts.push(t); ss.push(s_) }
+  }
+  return { t: Float32Array.from(ts), s: Float32Array.from(ss), T: t };
+}
+function rideProf10(def) {
+  let p = RP10.get(def); if (p) return p;
+  const c = ctxOf(def), m = earth10(() => { const tr = traceOf(c), st = statsOf(c, tr, 0), E = elementsOf(c, tr); return { thrill: st.thrill, intensity: st.intensity, comfort: st.comfort, air: st.air, inv: E.inv, h: st.maxH, vmax: tr.vmax } });
+  const P0 = c.P[0], t0 = c.T[0], psi = Math.atan2(t0.z, t0.x), cs = Math.cos(psi), sn = Math.sin(psi), classic = !def.zonesF;
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; const raw = new Float32Array(N * 3), up = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { const q = c.P[i], dx = q.x - P0.x, dz = q.z - P0.z, X = dx * cs + dz * sn, Z = -dx * sn + dz * cs, u = c.U[i]; raw[i * 3] = X; raw[i * 3 + 1] = q.y + .7; raw[i * 3 + 2] = Z; up[i * 3] = u.x * cs + u.z * sn; up[i * 3 + 1] = u.y; up[i * 3 + 2] = -u.x * sn + u.z * cs; x0 = Math.min(x0, X); x1 = Math.max(x1, X); z0 = Math.min(z0, Z); z1 = Math.max(z1, Z) }
+  const big = Math.max(x1 - x0, z1 - z0), sc = Math.min(classic ? 1 : .42, 100 / big), pts = new Float32Array(N * 3); for (let i = 0; i < N * 3; i++) pts[i] = raw[i] * sc;
+  const lap = parkLap10(c), tk = Math.sqrt(sc), style = def.trainStyle || 'sit';// a scale model runs √scale faster (same gravity)
+  let SL = 10; if (def.srcEls && def.srcEls[0]) SL = +def.srcEls[0][1].len || 14; else if (def.zonesF) { const z = def.zonesF.find(q => q.k === 'station'); if (z) SL = (z.fb - z.fa) * c.L }
+  const exc = clamp(m.thrill * .8 + Math.min(m.air, 6) * 2 + Math.min(m.inv, 7) * 1.5, 6, 100), int = classic ? clamp(34 + m.inv * 12 + m.h * .6, 10, 100) : m.intensity, nau = classic ? clamp(18 + m.inv * 10, 0, 100) : clamp((100 - m.comfort) * .5 + m.inv * 3.5, 0, 100);
+  p = {
+    def, c, sc, pts, up, L: c.L * sc, bb: [x0 * sc, x1 * sc, z0 * sc, z1 * sc], H: m.h * sc, lapT: lap.t, lapS: lap.s, T: lap.T * tk, tk, SL: Math.max(6, Math.min(SL * sc, 12)), style, seats: (SEATS10[style] || 2) * 4, hang: !!HANG10[style],
+    exc: Math.round(exc), int: Math.round(int), nau: Math.round(nau), inv: m.inv, realH: m.h, realV: m.vmax, realL: c.L, yS: pts[1],
+    hw: style === 'wing' ? 1.95 : style === 'dive' ? 1.7 : style === 'floorless' ? 1.2 : .5,// half width of the train: the platform edge stands clear of it
+    cost: Math.round((4200 + c.L * 9 + m.h * 150 + m.inv * 1100) / 100) * 100, run: Math.round(24 + c.L * .035 + m.h * .45), lv: def.name === 'Thunder Comet' || def.name === 'Nova Giant' ? 9 : exc < 32 ? 1 : exc < 58 ? 2 : exc < 76 ? 4 : exc < 92 ? 6 : 8, fare: Math.max(2, Math.round(exc / 14))
+  };
+  p.zp0 = -(p.hw + .3); p.zp1 = p.zp0 - 2.1; p.yP = p.hang ? Math.max(.25, p.yS - 1.9) : p.yS - .32;// platform: inner edge, outer edge, height
+  RP10.set(def, p); return p;
+}
+// what a thing in the park is, whatever kind it is: {t, n, ic, cost, exc, int, nau, cap, dur, run, lv, fare, prof?}
+function objInfo10(o) {
+  if (o.k[1] === ':') { const def = coasterDef10(o.k); if (!def) return null; const p = rideProf10(def); return { t: 'coaster', n: def.name, ic: '🎢', cost: p.cost, exc: p.exc, int: p.int, nau: p.nau, cap: p.seats, dur: p.T, run: p.run, lv: p.lv, fare: p.fare, prof: p, def, type: def.type } }
+  return CAT10[o.k] || null;
+}
+const objName10 = o => (o.name && o.name.length ? o.name : (objInfo10(o) || {}).n) || 'Attraction';
+// ---- footprints. solid = tiles the thing stands on; air = tiles under low track (paths and small scenery may use them);
+// pad = the queue yard of a ride; all in grid tiles. Local frame of a coaster: origin = start of the station, track heads +x,
+// the platform and the queue yard are on the left (−z).
+const rotL10 = (x, z, r) => r === 0 ? [x, z] : r === 1 ? [-z, x] : r === 2 ? [-x, -z] : [z, -x];
+const FPC10 = new Map();
+function coasterCells10(p, r) {
+  const key = r; p.fp = p.fp || {}; if (p.fp[key]) return p.fp[key];
+  const solid = new Map(), air = new Map(), put = (m, x, z) => { const [X, Z] = rotL10(x, z, r), i = Math.floor(X / TS10), j = Math.floor(Z / TS10); m.set(i + ',' + j, [i, j]) };
+  for (let i = 0; i < N; i++) { const x = p.pts[i * 3], y = p.pts[i * 3 + 1], z = p.pts[i * 3 + 2]; if (y < 4.4) { for (const dx of [-.7, .7]) for (const dz of [-.7, .7]) put(solid, x + dx, z + dz) } else if (y < 11) put(air, x, z) }
+  // the station complex: platform strip and an 8 × 8 m queue yard on the left of the station
+  const pad = []; for (let a = 0; a < 2; a++) for (let b = -3; b < 0; b++) { put(solid, a * 4 + 2, b * 4 + 2); if (b < -1) { const [X, Z] = rotL10(a * 4 + 2, b * 4 + 2, r); pad.push([Math.floor(X / TS10), Math.floor(Z / TS10)]) } }
+  for (let x = 1; x < p.SL + 1; x += 2) for (const z of [-2.5, -.5, .6]) put(solid, x, z);
+  air.forEach((v_, k) => { if (solid.has(k)) air.delete(k) });
+  return p.fp[key] = { solid: [...solid.values()], air: [...air.values()], pad };
+}
+function footprint10(o) {
+  const inf = objInfo10(o); if (!inf) return null;
+  if (inf.t === 'coaster') { const f = coasterCells10(inf.prof, o.r), sh = a => a.map(([i, j]) => [i + o.x, j + o.z]); return { solid: sh(f.solid), air: sh(f.air), pad: sh(f.pad), coaster: true } }
+  const W = o.r % 2 ? inf.d : inf.w, D = o.r % 2 ? inf.w : inf.d, solid = []; for (let j = 0; j < D; j++) for (let i = 0; i < W; i++) solid.push([o.x + i, o.z + j]);
+  return { solid, W, D, pad: inf.t === 'flat' ? solid : null };
+}
+// can it stand there? Returns '' when it fits, or the reason in plain words.
+function fitWhy10(fp, o, loading) {
+  const inf = objInfo10(o), small = inf && inf.t === 'deco';
+  for (const [i, j] of fp.solid) { if (!inG10(i, j)) return 'It reaches outside the park grounds'; const k = tI10(i, j); if (!TY.own[k]) return 'Part of it is on land you do not own yet'; if (TY.occ[k] && TY.occ[k] !== o.id) return 'Something is already built there'; if (TY.path[k]) return 'A path is in the way'; if (!small && TY.air[k] && TY.air[k] !== o.id) return 'A coaster track passes low over that spot' }
+  if (fp.air) for (const [i, j] of fp.air) { if (!inG10(i, j)) return 'It reaches outside the park grounds'; const k = tI10(i, j); if (!TY.own[k]) return 'Part of it is over land you do not own yet'; const q = TY.occ[k]; if (q && q !== o.id) { const b = TY.objById.get(q), bi = b && objInfo10(b); if (!bi || bi.t !== 'deco') return 'The track would pass through ' + (b ? objName10(b) : 'something') } if (TY.air[k] && TY.air[k] !== o.id) return 'It would cross another coaster' }
+  return '';
+}
+const fits10 = (fp, o, loading) => fitWhy10(fp, o, loading) === '';
+// ---- small geometry helpers: many boxes with their own colours merged into ONE mesh (one draw call)
+function mergeCol10(parts) {
+  let nV = 0, nI = 0; for (const [g] of parts) { nV += g.attributes.position.count; nI += g.index ? g.index.count : g.attributes.position.count }
+  const pos = new Float32Array(nV * 3), nor = new Float32Array(nV * 3), col = new Float32Array(nV * 3), idx = new Uint32Array(nI), nm = new THREE.Matrix3(), v_ = V(), cc = new THREE.Color(); let vo = 0, io = 0;
+  for (const [g, m, c] of parts) { const p_ = g.attributes.position, n_ = g.attributes.normal; nm.getNormalMatrix(m); cc.set(c);
+    for (let i = 0; i < p_.count; i++) { v_.fromBufferAttribute(p_, i).applyMatrix4(m); pos[(vo + i) * 3] = v_.x; pos[(vo + i) * 3 + 1] = v_.y; pos[(vo + i) * 3 + 2] = v_.z; v_.fromBufferAttribute(n_, i).applyMatrix3(nm).normalize(); nor[(vo + i) * 3] = v_.x; nor[(vo + i) * 3 + 1] = v_.y; nor[(vo + i) * 3 + 2] = v_.z; col[(vo + i) * 3] = cc.r; col[(vo + i) * 3 + 1] = cc.g; col[(vo + i) * 3 + 2] = cc.b }
+    if (g.index) { for (let i = 0; i < g.index.count; i++) idx[io + i] = g.index.getX(i) + vo; io += g.index.count } else { for (let i = 0; i < p_.count; i++) idx[io + i] = vo + i; io += p_.count } vo += p_.count; g.dispose() }
+  const o = new THREE.BufferGeometry(); o.setAttribute('position', new THREE.BufferAttribute(pos, 3)); o.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); o.setAttribute('color', new THREE.BufferAttribute(col, 3)); o.setIndex(new THREE.BufferAttribute(idx, 1)); o.computeBoundingSphere(); return o;
+}
+const TYM = {};// shared materials of the park world (made once)
+function tyMats10() {
+  if (TYM.vc) return TYM;
+  TYM.vc = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .62, metalness: .12, envMapIntensity: .6 });
+  TYM.vcMetal = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35, metalness: .55, envMapIntensity: .8 });
+  TYM.glow = new THREE.MeshBasicMaterial({ color: 0xffe9a8 });
+  TYM.ghostOk = new THREE.MeshBasicMaterial({ color: 0x2fe38a, transparent: true, opacity: .42, depthWrite: false }); TYM.ghostBad = new THREE.MeshBasicMaterial({ color: 0xff4a4a, transparent: true, opacity: .48, depthWrite: false }); TYM.ghostAir = new THREE.MeshBasicMaterial({ color: 0x5ab8ff, transparent: true, opacity: .26, depthWrite: false });
+  return TYM;
+}
+class Kit10 {// collects coloured boxes / cylinders and turns them into one mesh
+  constructor() { this.p = []; this.e = new THREE.Euler(); this.q = new THREE.Quaternion(); this.one = V(1, 1, 1) }
+  add(g, c, x, y, z, rx = 0, ry = 0, rz = 0) { this.q.setFromEuler(this.e.set(rx, ry, rz)); this.p.push([g, new THREE.Matrix4().compose(V(x, y, z), this.q, this.one), c]); return this }
+  box(w, h, d, c, x, y, z, rx, ry, rz) { return this.add(new THREE.BoxGeometry(w, h, d), c, x, y, z, rx, ry, rz) }
+  cyl(r0, r1, h, c, x, y, z, seg = 10, rx, ry, rz) { return this.add(new THREE.CylinderGeometry(r0, r1, h, seg), c, x, y, z, rx, ry, rz) }
+  mesh(metal) { if (!this.p.length) return null; const m = new THREE.Mesh(mergeCol10(this.p), metal ? tyMats10().vcMetal : tyMats10().vc); m.castShadow = true; m.receiveShadow = true; this.p = []; return m }
+}
+function nameSign10(text, col, w, h) { const t = canvasTex(512, Math.round(512 * h / w), (g, W, H_) => { g.fillStyle = '#0d1b33'; g.fillRect(0, 0, W, H_); g.fillStyle = col; g.fillRect(0, H_ - 12, W, 12); g.fillStyle = '#fff'; let fs = Math.round(H_ * .46); g.font = '800 ' + fs + 'px system-ui,sans-serif'; while (g.measureText(text.toUpperCase()).width > W - 30 && fs > 12) { fs -= 2; g.font = '800 ' + fs + 'px system-ui,sans-serif' } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text.toUpperCase(), W / 2, H_ * .46) }), m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide })); m.userData.sign10 = 1; return m }
+// ---- the coaster replica: rails, ties, supports, station, queue yard, trains
+const STN10 = [{ n: 'Classic', roof: 0x283040 }, { n: 'Pavilion', roof: 0xd94b3b }, { n: 'Glass hall', roof: 0x9fd8ff }, { n: 'Timber lodge', roof: 0x7a5230 }];
+function coasterBuild10(o, inf) {
+  const p = inf.prof, def = inf.def, g = new THREE.Group(), col = o.col || {}, hx = (k, d) => col[k] ? parseInt(col[k].slice(1), 16) : d, railC = hx('rail', def.rail), tieC = hx('tie', def.tie), darkC = def.dark || 0x2b3441, wood = !!def.noSup10, M_ = tyMats10();
+  const P3 = i => V(p.pts[i * 3], p.pts[i * 3 + 1], p.pts[i * 3 + 2]), U3 = i => V(p.up[i * 3], p.up[i * 3 + 1], p.up[i * 3 + 2]), T3 = i => { const a = (i + 1) % N, b = (i + N - 1) % N; return V(p.pts[a * 3] - p.pts[b * 3], p.pts[a * 3 + 1] - p.pts[b * 3 + 1], p.pts[a * 3 + 2] - p.pts[b * 3 + 2]).normalize() };
+  // rails: three tubes through every 3rd sample (closed curves)
+  const step = 3, off = (so, uo) => { const a = []; for (let i = 0; i < N; i += step) { const u = U3(i), t = T3(i), sd = V().crossVectors(u, t); a.push(P3(i).addScaledVector(sd, so).addScaledVector(u, uo)) } return a };
+  const railM = new THREE.MeshStandardMaterial({ color: railC, roughness: wood ? .5 : .3, metalness: wood ? .5 : .55, envMapIntensity: .7 }), tube = (a, r, m) => { const me = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(a, true, 'centripetal'), a.length, r, 5, true), m); me.castShadow = true; g.add(me); return me };
+  tube(off(.3, 0), .075, railM); tube(off(-.3, 0), .075, railM); if (!wood) tube(off(0, -.26), .11, new THREE.MeshStandardMaterial({ color: darkC, roughness: .5, metalness: .4 }));
+  g.userData.railM = railM;
+  // ties
+  const nT = Math.max(8, Math.floor(p.L / (wood ? .7 : .95))), ties = new THREE.InstancedMesh(new THREE.BoxGeometry(wood ? 1.5 : .8, .07, .17), new THREE.MeshStandardMaterial({ color: tieC, roughness: .7 }), nT), mm = new THREE.Matrix4(), qq = new THREE.Quaternion(), one = V(1, 1, 1);
+  for (let k = 0; k < nT; k++) { const i = Math.floor(k / nT * N), u = U3(i), t = T3(i), sd = V().crossVectors(u, t); qq.setFromRotationMatrix(mm.makeBasis(sd, u, t)); ties.setMatrixAt(k, mm.compose(P3(i).addScaledVector(u, -.08), qq, one)) } ties.castShadow = true; g.add(ties);
+  // supports: steel columns, or pairs of timber posts for wooden coasters
+  const sup = []; const gap = wood ? 3 : 6.5; let acc_ = gap; for (let i = 0; i < N; i++) { acc_ += p.L / N; if (acc_ < gap) continue; const u = U3(i), y = p.pts[i * 3 + 1]; if (u.y > .55 && y > 1.5) { sup.push(i); acc_ = 0 } }
+  if (sup.length) {
+    if (wood) { const po = new THREE.InstancedMesh(new THREE.BoxGeometry(.16, 1, .16), new THREE.MeshStandardMaterial({ color: 0xd2b48a, roughness: .9 }), sup.length * 2), be = new THREE.InstancedMesh(new THREE.BoxGeometry(1.7, .1, .12), po.material, sup.length * 3); let nb = 0;
+      sup.forEach((i, k) => { const t = T3(i), sd = V(-t.z, 0, t.x).normalize(), y = p.pts[i * 3 + 1] - .2, zq = V().crossVectors(sd, Yax); qq.setFromRotationMatrix(mm.makeBasis(sd, Yax, zq)); for (const s_ of [-.75, .75]) po.setMatrixAt(k * 2 + (s_ > 0 ? 1 : 0), mm.compose(V(p.pts[i * 3] + sd.x * s_, y / 2, p.pts[i * 3 + 2] + sd.z * s_), qq, V(1, y, 1))); for (let yy = y; yy > .8 && nb < sup.length * 3; yy -= 3.2) be.setMatrixAt(nb++, mm.compose(V(p.pts[i * 3], yy, p.pts[i * 3 + 2]), qq, one)) }); be.count = nb; po.castShadow = true; g.add(po, be) }
+    else { const co = new THREE.InstancedMesh(new THREE.CylinderGeometry(.12, .16, 1, 7), new THREE.MeshStandardMaterial({ color: darkC, roughness: .5, metalness: .4 }), sup.length); sup.forEach((i, k) => { const u = U3(i), y = p.pts[i * 3 + 1] - .3; co.setMatrixAt(k, mm.compose(V(p.pts[i * 3] - u.x * .3, y / 2, p.pts[i * 3 + 2] - u.z * .3), qq.identity(), V(1, y, 1))) }); co.castShadow = true; g.add(co) }
+  }
+  // station (platform on the left of the track), roof by style, name board, queue yard with rails and an arch
+  const K = new Kit10(), yS = p.yS, SL = p.SL, st = STN10[col.stn || 0] || STN10[0], roofC = hx('roof', st.roof), accC = parseInt((def.color || '#ffc233').slice(1), 16) || 0xffc233, hang = p.hang, yP = p.yP, zc = (p.zp0 + p.zp1) / 2;
+  K.box(SL + 1, yP, 2.1, 0xd6dae0, SL / 2, yP / 2, zc).box(SL + 1, .06, .14, 0xffd23f, SL / 2, yP + .03, p.zp0 - .08);
+  if (hang) K.box(SL + 1, yP, p.hw * 2 + .6, 0xc3c9d2, SL / 2, yP / 2, 0);// trains that hang under the track load from a floor below it
+  for (let x = 0; x <= SL + .01; x += SL / 2) for (const z of [p.zp1 + .15, hang ? p.hw + .45 : p.zp0 - .15]) K.box(.16, yS + 2.9, .16, 0x3a4250, x + .5, (yS + 2.9) / 2, z);
+  const rw = hang ? 2.1 + p.hw * 2 + 1 : 2.9 + (p.hw - .5), rz = hang ? (p.zp1 + p.hw + .45) / 2 : zc + (p.hw - .5) / 2;
+  if ((col.stn || 0) === 1) { K.box(SL + 1.8, .14, rw + .5, roofC, SL / 2 + .5, yS + 3.0, rz); K.box(SL + 1.2, .5, rw - .6, roofC, SL / 2 + .5, yS + 3.3, rz); K.box(SL * .6, .5, rw - 1.6, 0xfff6e8, SL / 2 + .5, yS + 3.75, rz) }
+  else if ((col.stn || 0) === 2) { K.box(SL + 1.8, .1, rw + .4, roofC, SL / 2 + .5, yS + 3.1, rz); for (let x = 0; x <= SL + 1; x += (SL + 1) / 4) K.box(.1, .5, rw + .5, 0xf2f4f8, x, yS + 3.35, rz) }
+  else if ((col.stn || 0) === 3) { K.box(SL + 2, .16, rw * .62, roofC, SL / 2 + .5, yS + 3.3, rz - rw * .22, .42).box(SL + 2, .16, rw * .62, roofC, SL / 2 + .5, yS + 3.3, rz + rw * .22, -.42) }
+  else K.box(SL + 1.8, .16, rw + .3, roofC, SL / 2 + .5, yS + 3.05, rz).box(SL + 1.9, .28, .1, accC, SL / 2 + .5, yS + 3.05, rz - rw / 2 - .15);
+  // ramp from the yard up to the platform, the yard floor, the zig-zag rails and the entrance arch
+  { const z0 = Math.min(-4.3, p.zp1 - 1.5), len = Math.hypot(p.zp1 - z0, yP); K.box(1.6, .1, len, 0xb9c0c9, 1.2, yP * .5, (p.zp1 + z0) / 2, -Math.atan2(yP, p.zp1 - z0)) }
+  K.box(8, .08, 8, 0xc9b79a, 4, .04, -8);
+  for (let r = 0; r < 4; r++) { const z = -4.9 - r * 1.75; K.box(r % 2 ? 5.4 : 5.4, .05, .05, 0xe8edf3, r % 2 ? 3.5 : 3.1, .78, z); for (let x = .6; x < 6; x += 1.35) K.box(.05, .78, .05, 0x8b97a6, x + (r % 2 ? .4 : 0), .39, z) }
+  for (const x of [.25, 7.75]) K.box(.06, .8, 7.4, 0x8b97a6, x, .4, -8); K.box(.06, .8, .06, 0x8b97a6, 6.6, .4, -11.9);
+  for (const x of [.9, 3.3]) K.box(.22, 3, .22, accC, x, 1.5, -11.9); K.box(2.9, .5, .3, accC, 2.1, 3.1, -11.9);
+  const sm = K.mesh(); if (sm) g.add(sm);
+  const sg = nameSign10(objName10(o), def.color || '#ffc233', Math.min(SL + .6, 7), 1.05); sg.position.set(SL / 2 + .5, yS + 3.95, rz - rw / 2 - .2); g.add(sg); g.userData.sign = sg;
+  const lights = new THREE.Mesh(new THREE.BoxGeometry(SL, .06, .1), M_.glow); lights.position.set(SL / 2 + .5, yS + 2.9, rz); lights.userData.night10 = 1; lights.visible = false; g.add(lights);
+  return g;
+}
+// one car as a single coloured mesh; riders are instanced heads + bodies (shown only for seats that are taken)
+function carGeo10(style, body, accent, lead) {
+  const K = new Kit10(), dk = 0x23272e;
+  if (style === 'wing') { K.box(.5, .32, 1, body, 0, 0, 0).box(3.4, .1, .3, dk, 0, .1, -.1); for (const s_ of [-1, 1]) K.box(1.02, .34, .6, body, s_ * 1.33, .02, -.1).box(.08, .36, .62, accent, s_ * 1.92, .04, -.1) }
+  else if (style === 'dive' || style === 'floorless') { const W = style === 'dive' ? 3.3 : 2.3; K.box(W, .3, .62, body, 0, .06, -.06).box(W + .04, .05, .66, accent, 0, .22, -.06).box(.5, .2, .9, dk, 0, -.12, 0) }
+  else if (style === 'bike') { for (const s_ of [-.3, .3]) K.box(.26, .34, .84, body, s_, .06, .02).box(.22, .22, .3, accent, s_, .24, .36, -.5); K.box(.9, .05, .96, dk, 0, -.16, 0) }
+  else if (style === 'woodie') { K.box(.94, .46, 1.02, body, 0, .08, 0).box(.98, .06, 1.06, accent, 0, .33, 0) }
+  else { K.box(.9, .36, 1, body, 0, .02, 0).box(.96, .06, 1.04, accent, 0, .12, 0); if (HANG10[style]) K.box(.12, 1.1, .2, dk, 0, .82, -.05) }
+  if (lead && style !== 'wing' && style !== 'bike') K.box(.6, .24, .36, body, 0, 0, .62).box(.3, .06, .04, 0xfff6d8, 0, 0, .81);
+  K.box(.6, .1, .86, dk, 0, -.22, 0);
+  return mergeCol10(K.p);
+}
+function seatPos10(style) { const a = []; if (style === 'wing') [-1.6, -1.05, 1.05, 1.6].forEach(x => a.push([x, 0, -.1])); else if (style === 'dive') [-1.3, -.78, -.26, .26, .78, 1.3].forEach(x => a.push([x, .24, -.1])); else if (style === 'floorless') [-.78, -.26, .26, .78].forEach(x => a.push([x, .24, -.1])); else if (style === 'bike') [-.3, .3].forEach(x => a.push([x, .34, -.12])); else[-.24, .24].forEach(x => a.push([x, .22, -.1])); return a }
+function trainBuild10(o, inf, k) {
+  const p = inf.prof, def = inf.def, col = o.col || {}, style = col.train && SEATS10[col.train] === SEATS10[p.style] && !!HANG10[col.train] === p.hang ? col.train : p.style, hx = (key, d) => col[key] ? parseInt(col[key].slice(1), 16) : d, body = hx('body', def.body), accent = hx('accent', def.accent), cars = [], M_ = tyMats10();
+  for (let c = 0; c < 4; c++) { const me = new THREE.Mesh(carGeo10(style, body, accent, c === 0), M_.vcMetal); me.castShadow = true; cars.push(me) }
+  const seats = seatPos10(style), nS = seats.length * 4, heads = new THREE.InstancedMesh(new THREE.SphereGeometry(.13, 8, 6), new THREE.MeshStandardMaterial({ roughness: .7 }), nS), bodies = new THREE.InstancedMesh(new THREE.BoxGeometry(.3, .36, .24), new THREE.MeshStandardMaterial({ roughness: .75 }), nS);
+  heads.count = bodies.count = 0; heads.frustumCulled = bodies.frustumCulled = false;
+  return { cars, heads, bodies, seats, style, riders: [], tau: 0, ph: k ? 'hold' : 'load', wait: 0, s: 0 };
+}
+
+// ---- [22_ty_world.js]
+// ---- 10.0 MY PARK — the 3D world: ground, paths, fences, the gate, the sky and light of the day, and every model.
+// The park has its own root group next to the ride world (which is hidden while My Park is open). Static things are
+// merged or instanced so a busy park stays within a few hundred draw calls on a phone.
+const HALF10 = GW10 * TS10 / 2;
+const _tm = new THREE.Matrix4(), _tq = new THREE.Quaternion(), _tv = V(), _tv2 = V(), _tc = new THREE.Color(), _one10 = V(1, 1, 1);
+function tyH10(x, z) { const d = Math.max(Math.abs(x), Math.abs(z)) - (HALF10 + 6); if (d <= 0) return 0; const f = smooth10(d / 70), n = Math.sin(x * .031) * Math.cos(z * .027) + .5 * Math.sin(x * .07 + z * .05); return f * (7 + 5 * n) + Math.max(0, d - 90) * .22 * (1 + .3 * n) }
+function tyWorld10() {
+  if (TY.root) return; const R = TY.root = new THREE.Group(); R.name = 'my-park'; R.visible = false; scene.add(R); const M_ = tyMats10();
+  // lawn: one plane with a small painted texture (8 px per tile) that shows which land is yours
+  const cv = document.createElement('canvas'); cv.width = cv.height = GW10 * 8; TY.landCv = cv; const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; TY.landTx = tx;
+  const lawn = new THREE.Mesh(new THREE.PlaneGeometry(HALF10 * 2, HALF10 * 2), TY.lawnM = new THREE.MeshStandardMaterial({ map: tx, roughness: .95 })); lawn.rotation.x = -PI / 2; lawn.receiveShadow = true; R.add(lawn);
+  // the countryside around the park: rolling hills, a ring of trees and far mountains (all static, 3 draw calls)
+  const og = new THREE.PlaneGeometry(1100, 1100, 70, 70); og.rotateX(-PI / 2); const op = og.attributes.position, oc_ = new Float32Array(op.count * 3), ca = new THREE.Color(0x4f9a5a), cb = new THREE.Color(0x6fae6a);
+  for (let i = 0; i < op.count; i++) { const x = op.getX(i), z = op.getZ(i), y = tyH10(x, z); op.setY(i, y - .08); _tc.lerpColors(ca, cb, clamp(.5 + .4 * Math.sin(x * .05) * Math.cos(z * .04) + y * .02, 0, 1)); oc_[i * 3] = _tc.r; oc_[i * 3 + 1] = _tc.g; oc_[i * 3 + 2] = _tc.b }
+  og.setAttribute('color', new THREE.BufferAttribute(oc_, 3)); og.computeVertexNormals(); const out = new THREE.Mesh(og, TY.outM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .96 })); out.receiveShadow = true; R.add(out);
+  { const nT = mobile ? 170 : 300, r10 = rng10(77), tr = new THREE.InstancedMesh(new THREE.ConeGeometry(1.5, 4.6, 6).translate(0, 3, 0), new THREE.MeshStandardMaterial({ color: 0x2f8f55, roughness: .9 }), nT), tk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.22, .3, 1.4, 5).translate(0, .7, 0), new THREE.MeshStandardMaterial({ color: 0x6b4a30, roughness: .9 }), nT);
+    for (let i = 0; i < nT; i++) { let x, z; do { x = (r10() - .5) * 520; z = (r10() - .5) * 520 } while (Math.max(Math.abs(x), Math.abs(z)) < HALF10 + 9 || (Math.abs(x) < 9 && z > 0)); const s_ = .8 + r10() * 1.5, y = tyH10(x, z) - .1; _tm.compose(_tv.set(x, y, z), _tq.identity(), _tv2.set(s_, s_, s_)); tr.setMatrixAt(i, _tm); tk.setMatrixAt(i, _tm) } tr.castShadow = true; R.add(tr, tk);
+    const nM = 22, mt = new THREE.InstancedMesh(new THREE.ConeGeometry(1, 1, 6).translate(0, .5, 0), new THREE.MeshStandardMaterial({ color: 0x7d93a4, roughness: 1 }), nM); for (let i = 0; i < nM; i++) { const a = i / nM * 6.283 + r10() * .2, rr = 330 + r10() * 70, h = 50 + r10() * 60; _tm.compose(_tv.set(Math.cos(a) * rr, -2, Math.sin(a) * rr), _tq.identity(), _tv2.set(h * 1.1, h, h * 1.1)); mt.setMatrixAt(i, _tm) } R.add(mt) }
+  // paths: one instanced mesh, coloured per tile
+  TY.pathM = new THREE.MeshStandardMaterial({ roughness: .9 }); TY.pathMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(TS10 - .06, .1, TS10 - .06), TY.pathM, 1500); TY.pathMesh.count = 0; TY.pathMesh.receiveShadow = true; TY.pathMesh.frustumCulled = false; R.add(TY.pathMesh);
+  // approach road outside the gate
+  { const rd = new THREE.Mesh(new THREE.BoxGeometry(TS10 - .06, .1, 60), TY.pathM); rd.position.set(tX10(GATE_I10), .0, HALF10 + 30); rd.receiveShadow = true; R.add(rd) }
+  TY.fenceG = new THREE.Group(); R.add(TY.fenceG); TY.gateG = new THREE.Group(); R.add(TY.gateG); TY.objG = new THREE.Group(); R.add(TY.objG); TY.decoG = new THREE.Group(); R.add(TY.decoG); TY.ghostG = new THREE.Group(); R.add(TY.ghostG);
+  // grid lines shown while building
+  { const pts = []; for (let i = 0; i <= GW10; i++) { const a = -HALF10 + i * TS10; pts.push(a, .07, -HALF10, a, .07, HALF10, -HALF10, .07, a, HALF10, .07, a) } const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); TY.gridL = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .16, depthWrite: false })); TY.gridL.visible = false; R.add(TY.gridL) }
+  // selection frame
+  { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(24 * 3), 3)); TY.selL = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffe14a, depthTest: false, transparent: true })); TY.selL.renderOrder = 9; TY.selL.visible = false; TY.selL.frustumCulled = false; R.add(TY.selL) }
+  // sky dome: a gradient that follows the time of day and the weather, with the sun's glow
+  TY.skyU = { uTop: { value: new THREE.Color(0x3d8ee0) }, uHor: { value: new THREE.Color(0xcfe9ff) }, uSun: { value: new THREE.Color(0xfff0d1) }, uDir: { value: V(0, 1, 0) } };
+  TY.sky = new THREE.Mesh(new THREE.SphereGeometry(385, 24, 14), new THREE.ShaderMaterial({ uniforms: TY.skyU, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
+    vertexShader: 'varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader: 'uniform vec3 uTop,uHor,uSun,uDir;varying vec3 vD;void main(){vec3 d=normalize(vD);float h=clamp(d.y,0.,1.);vec3 c=mix(uHor,uTop,pow(h,.55));float s=max(dot(d,uDir),0.);c+=uSun*(pow(s,260.)*1.4+pow(s,10.)*.2);if(d.y<0.)c=mix(uHor,uHor*.8,clamp(-d.y*5.,0.,1.));gl_FragColor=vec4(c,1.);}' }));
+  TY.sky.renderOrder = -20; TY.sky.frustumCulled = false; R.add(TY.sky);
+  tyGuestMeshes10(); tyBubbles10();
+  TY.built = true;
+}
+// ---- land: paint the lawn texture and rebuild the fence around what you own
+function tyLand10() {
+  const g = TY.landCv.getContext('2d'), P_ = TY.park, r10 = rng10(5);
+  for (let j = 0; j < GH10; j++) for (let i = 0; i < GW10; i++) { const own = TY.own[tI10(i, j)], k = (i + j) % 2; g.fillStyle = own ? (k ? '#4fae62' : '#55b568') : (k ? '#3f7a52' : '#437f56'); g.fillRect(i * 8, j * 8, 8, 8); if (!own) { g.fillStyle = 'rgba(20,40,60,.16)'; g.fillRect(i * 8, j * 8, 8, 8) } }
+  for (let k = 0; k < 2600; k++) { g.fillStyle = r10() < .5 ? 'rgba(255,255,255,.035)' : 'rgba(0,40,0,.05)'; g.fillRect(r10() * GW10 * 8, r10() * GH10 * 8, 1 + r10() * 2, 1 + r10() * 2) }
+  TY.landTx.needsUpdate = true;
+  // fence: posts and two rails on every edge between your land and land that is not yours (the gate is left open)
+  while (TY.fenceG.children.length) { const o = TY.fenceG.children[0]; o.geometry.dispose(); TY.fenceG.remove(o) }
+  const edges = []; for (let j = 0; j < GH10; j++) for (let i = 0; i < GW10; i++) { if (!TY.own[tI10(i, j)]) continue; NB10.forEach(([dx, dz]) => { const a = i + dx, b = j + dz; if (inG10(a, b) && TY.own[tI10(a, b)]) return; if (i === GATE_I10 && j === GATE_J10 && dz === 1) return; edges.push([tX10(i) + dx * TS10 / 2, tZ10(j) + dz * TS10 / 2, dx !== 0]) }) }
+  if (edges.length) { const fm = TY.fenceM || (TY.fenceM = new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: .8 })), rail = new THREE.InstancedMesh(new THREE.BoxGeometry(TS10, .07, .07), fm, edges.length * 2), post = new THREE.InstancedMesh(new THREE.BoxGeometry(.12, 1.05, .12), fm, edges.length), qy = new THREE.Quaternion().setFromAxisAngle(Yax, PI / 2);
+    edges.forEach(([x, z, vert], k) => { for (let r = 0; r < 2; r++) rail.setMatrixAt(k * 2 + r, _tm.compose(_tv.set(x, .45 + r * .42, z), vert ? qy : _tq.identity(), _one10)); post.setMatrixAt(k, _tm.compose(_tv.set(x + (vert ? 0 : -TS10 / 2), .52, z + (vert ? -TS10 / 2 : 0)), _tq.identity(), _one10)) }); TY.fenceG.add(rail, post) }
+}
+// ---- the gate: arch, name board and ticket booths, in the park's colours
+function tyGate10() {
+  const G_ = TY.gateG, P_ = TY.park; while (G_.children.length) { const o = G_.children[0]; if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) { o.material.map.dispose(); o.material.dispose() } G_.remove(o) }
+  const K = new Kit10(), c1 = parseInt(P_.look.gate.slice(1), 16), c2 = parseInt(P_.look.sign.slice(1), 16), x0 = tX10(GATE_I10), z0 = HALF10 + .2;
+  for (const s_ of [-1, 1]) { K.box(1.5, 7.4, 1.5, c1, x0 + s_ * 3.6, 3.7, z0).box(1.9, .5, 1.9, c2, x0 + s_ * 3.6, 7.6, z0).cyl(0, 1.15, 1.8, c2, x0 + s_ * 3.6, 8.75, z0, 4, 0, PI / 4).box(2.6, 2.5, 2.4, 0xf6f1e7, x0 + s_ * 6.2, 1.25, z0 + .2).box(2.9, .3, 2.7, c1, x0 + s_ * 6.2, 2.65, z0 + .2).box(1.4, .9, .1, 0x2b3441, x0 + s_ * 6.2, 1.5, z0 + 1.43) }
+  K.box(8.8, 1.7, 1, c1, x0, 6.5, z0); for (const s_ of [-.9, .9]) K.box(.1, .95, 1.3, 0x8b97a6, x0 + s_, .47, z0);
+  G_.add(K.mesh()); const sg = nameSign10(P_.name, P_.look.sign, 8.2, 1.35); sg.position.set(x0, 6.5, z0 + .52); G_.add(sg); const sg2 = nameSign10(P_.name, P_.look.sign, 8.2, 1.35); sg2.position.set(x0, 6.5, z0 - .52); sg2.rotation.y = PI; G_.add(sg2);
+}
+// ---- paths
+function tyPaths10() { const m = TY.pathMesh; let n = 0; for (let k = 0; k < GW10 * GH10 && n < 1500; k++) { const st = TY.path[k]; if (!st) continue; m.setMatrixAt(n, _tm.compose(_tv.set(tX10(k % GW10), .05, tZ10(Math.floor(k / GW10))), _tq.identity(), _one10)); m.setColorAt(n, _tc.setHex(PATHS10[st - 1].c)); n++ } m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true }
+// ---- object models
+function objWorld10(o, fp) {// where the model's origin sits and how it is turned
+  const inf = objInfo10(o); if (inf.t === 'coaster') return { x: (o.x - GW10 / 2) * TS10, z: (o.z - GH10 / 2) * TS10, ry: -o.r * PI / 2 };
+  const W = o.r % 2 ? inf.d : inf.w, D = o.r % 2 ? inf.w : inf.d; return { x: (o.x - GW10 / 2 + W / 2) * TS10, z: (o.z - GH10 / 2 + D / 2) * TS10, ry: -o.r * PI / 2 };
+}
+function decoModel10(g, C) {
+  const m = C.model; switch (m) {
+    case 'tree': SCN.tree(g, 0x2c8f55); g.scale.setScalar(1.25); break; case 'pine': SCN72.pine(g); g.scale.setScalar(1.2); break; case 'palm': SCN.palm(g); break; case 'bush': SCN72.bush(g); g.scale.setScalar(1.5); break;
+    case 'flowers': deco3d80(g, 'flowers'); break; case 'rock': SCN.rock(g, 0x8d8f86); break; case 'fountain': deco3d80(g, 'fountain'); g.scale.setScalar(.85); break; case 'statue': deco3d80(g, 'statue', null, 0xffd23f); break;
+    case 'bench': deco3d80(g, 'benches'); break; case 'lamp': { Cy80(g, .07, .1, 3.2, lmat80(0x2b3441, .5, .5), 0, 1.6, 0, 8); const b = new THREE.Mesh(new THREE.SphereGeometry(.26, 10, 8), TY.lampM || (TY.lampM = new THREE.MeshStandardMaterial({ color: 0xfff2cc, roughness: .4, emissive: 0xffd28a, emissiveIntensity: .3 }))); b.position.y = 3.3; g.add(b); break }
+    case 'bin': { Cy80(g, .32, .26, .85, lmat80(0x2f7d4a, .6), 0, .43, 0, 10); Cy80(g, .35, .35, .08, lmat80(0x23272e, .5), 0, .88, 0, 10); break }
+    case 'flag': SCN.flag(g, 0xff3d6b); g.scale.setScalar(.8); break; case 'mushroom': SCN72.mushroom(g); break; case 'lolly': SCN72.lolly(g); break; case 'torch': SCN72.torch(g); break; case 'castle': SCN72.castle(g); g.scale.setScalar(.5); break;
+    default: SCN.rock(g);
+  }
+}
+function objBuild10(o) {
+  const inf = objInfo10(o), w = objWorld10(o), M_ = tyMats10(); let g;
+  if (inf.t === 'coaster') { g = coasterBuild10(o, inf); const nTr = 1 + (o.up && o.up.cap >= 2 ? 1 : 0); o.rt.trains = []; for (let k = 0; k < nTr; k++) { const tr = trainBuild10(o, inf, k); tr.cars.forEach(c => g.add(c)); g.add(tr.heads, tr.bodies); o.rt.trains.push(tr) } }
+  else if (inf.t === 'flat') { g = new THREE.Group(); const m = new THREE.Group(), an = []; att3d80(inf.model, m, an, o.col && o.col.body ? parseInt(o.col.body.slice(1), 16) : inf.col); try { mergeAnim80(m) } catch (e) {} m.position.z = .8; g.add(m); o.rt.anim = an; o.rt.animT = 0;
+    const K = new Kit10(), W = inf.w * TS10, D = inf.d * TS10; K.box(W - .3, .06, D - .3, 0xcdbfa6, 0, .03, 0); for (let x = -W / 2 + .5; x <= W / 2 - .4; x += 1.5) K.box(.05, .75, .05, 0x8b97a6, x, .38, -D / 2 + 1.9); K.box(W - 1, .05, .05, 0xe8edf3, 0, .75, -D / 2 + 1.9); for (const s_ of [-1, 1]) K.box(.2, 2.6, .2, inf.col, s_ * 1.2 - W / 2 + 2, 1.3, -D / 2 + .2); K.box(2.8, .45, .25, inf.col, -W / 2 + 2, 2.7, -D / 2 + .2); g.add(K.mesh());
+    const sg = nameSign10(objName10(o), '#' + new THREE.Color(inf.col).getHexString(), 3.4, .6); sg.position.set(W / 2 - 2.4, 2.2, -D / 2 + .15); sg.rotation.y = PI; g.add(sg); g.userData.sign = sg }
+  else if (inf.t === 'shop' || inf.t === 'fac') { g = new THREE.Group(); const m = new THREE.Group(); shop3d80(m, inf.model, inf.col); m.scale.setScalar(.92); m.position.z = -.3; g.add(m) }
+  else { g = new THREE.Group(); decoModel10(g, inf) }
+  g.position.set(w.x, 0, w.z); g.rotation.y = w.ry; g.userData.id = o.id; g.traverse(q => { if (q.isMesh && !q.userData.sign10) { q.castShadow = true } }); return g;
+}
+function objDispose10(g) { g.traverse(q => { if (q.geometry && !(RGEO && Object.values(RGEO).includes(q.geometry))) q.geometry.dispose(); if (q.isInstancedMesh) q.dispose();[].concat(q.material || []).forEach(m => { if (m && !keep.has(m) && !Object.values(TYM).includes(m) && m !== TY.lampM) { if (m.map) m.map.dispose(); m.dispose() } }) }); if (g.parent) g.parent.remove(g) }
+// scenery is merged into a few meshes; rebuilt (a moment later) whenever a piece of scenery is added or removed
+function decoRebuild10() {
+  TY.decoDirty = 0; while (TY.decoG.children.length) objDispose10(TY.decoG.children[0]); const tmp = new THREE.Group();
+  for (const o of TY.park.objs) { const inf = objInfo10(o); if (!inf || inf.t !== 'deco') continue; tmp.add(objBuild10(o)) }
+  if (tmp.children.length) { const mg = mergeGroup7(tmp); mg.traverse(q => { if (q.isMesh) q.castShadow = true }); TY.decoG.add(mg) } tmp.traverse(q => { if (q.geometry) q.geometry.dispose() });
+}
+function objAdd3d10(o) { const inf = objInfo10(o); if (!inf) return; o.rt = o.rt || rideRt10(o, inf); if (inf.t === 'deco') { TY.decoDirty = .25; return } if (o.rt.g) objDispose10(o.rt.g); o.rt.g = objBuild10(o); TY.objG.add(o.rt.g); o.rt.xf = objWorld10(o) }
+function objRemove3d10(o) { const inf = objInfo10(o); if (inf && inf.t === 'deco') { TY.decoDirty = .15; return } if (o.rt && o.rt.g) { objDispose10(o.rt.g); o.rt.g = null } }
+// local (ride frame) → world for a placed object
+function objPt10(o, lx, ly, lz, out) { const w = o.rt.xf || (o.rt.xf = objWorld10(o)), c = Math.cos(w.ry), s_ = Math.sin(w.ry); return out.set(w.x + lx * c + lz * s_, ly, w.z - lx * s_ + lz * c) }
+// ---- whole-park (re)build after loading a park
+function tyRebuild10() {
+  tyWorld10(); gridSync10(); while (TY.objG.children.length) objDispose10(TY.objG.children[0]);
+  TY.guests = []; TY.staff = []; TY.litter = []; TY.sel = null; TY.tool = null; ghostClear10();
+  for (const o of TY.park.objs) { o.rt = null; objAdd3d10(o) }
+  tyLand10(); tyGate10(); tyPaths10(); decoRebuild10(); beauty10(); linkAll10(); staffSync10(); TY.selL.visible = false;
+}
+// ---- camera: you look down at a point on the ground; drag to pan, pinch to zoom, twist to turn, two fingers up/down to tilt
+const camT10 = { x: 0, z: 70, yaw: 0, pitch: .95, dist: 78 };
+CAM72.park10 = { direct: true, free: true, fov: () => 48, fn(dt) {
+  const c = TY.cam, k = 1 - Math.pow(.0005, dt); c.x += (camT10.x - c.x) * k; c.z += (camT10.z - c.z) * k; c.dist += (camT10.dist - c.dist) * k; c.pitch += (camT10.pitch - c.pitch) * k; let dy = camT10.yaw - c.yaw; dy -= 2 * PI * Math.round(dy / (2 * PI)); c.yaw += dy * k; camT10.yaw = c.yaw + dy * (1 - k);
+  const ch = Math.cos(c.pitch) * c.dist; des.set(c.x + Math.sin(c.yaw) * ch, Math.max(2.2, Math.sin(c.pitch) * c.dist), c.z + Math.cos(c.yaw) * ch); look.set(c.x, 1, c.z); camera.up.set(0, 1, 0);
+} };
+// on-ride camera inside the park: sits in the front car of the chosen coaster and banks with the track
+const _pv = { p: V(), u: V(), t: V(), a: V() };
+CAM72.parkpov10 = { direct: true, free: true, fov: () => 74, fn(dt) {
+  const o = TY.pov && TY.objById.get(TY.pov); if (!o || !o.rt || !o.rt.trains) { tyPov10(null); return } const tr = o.rt.trains[0], inf = objInfo10(o), p = inf.prof;
+  trainPose10(p, tr.s, _pv.p, _pv.u, _pv.t); trainPose10(p, tr.s + 5, _pv.a, _tv, _tv2); const hang = p.hang ? -1.05 : 1.05;
+  objPt10(o, _pv.p.x + _pv.u.x * hang, 0, _pv.p.z + _pv.u.z * hang, des); des.y = _pv.p.y + _pv.u.y * hang; objPt10(o, _pv.a.x + _pv.u.x * hang, 0, _pv.a.z + _pv.u.z * hang, look); look.y = _pv.a.y + _pv.u.y * hang;
+  const w = o.rt.xf, c = Math.cos(w.ry), s_ = Math.sin(w.ry); camera.up.set(_pv.u.x * c + _pv.u.z * s_, _pv.u.y, -_pv.u.x * s_ + _pv.u.z * c);
+} };
+function tyPov10(id) { TY.pov = id || null; camMode = id ? 'parkpov10' : 'park10'; snap = true; if (!id) camera.up.set(0, 1, 0); if (typeof tyUi10 === 'function') tyUi10() }
+function camFocus10(x, z, dist) { camT10.x = clamp(x, -HALF10 - 20, HALF10 + 20); camT10.z = clamp(z, -HALF10 - 20, HALF10 + 40); if (dist) camT10.dist = clamp(dist, 14, 240) }
+// ---- light of the day. hour 0-24 → sun position, colours of sun / sky / fog, lamp glow; weather dims and greys it.
+const SKY10 = { day: [0x3d8ee0, 0xcfe9ff, 0xb9dcf5, 0xfff0d1, 3.0, 1.35], gold: [0x33457e, 0xffb98a, 0xe6b08e, 0xffa462, 2.1, .8], night: [0x030611, 0x0f1c3a, 0x0c1528, 0x8fa8ff, .5, .34] };
+const _kc = [new THREE.Color(), new THREE.Color(), new THREE.Color(), new THREE.Color()], _kd = [new THREE.Color(), new THREE.Color(), new THREE.Color(), new THREE.Color()], _sunD = V();
+function tyLight10(dt) {
+  const P_ = TY.park, h = P_.min / 60, el = Math.sin(PI * (h - 6) / 14), az = PI * (h - 6) / 14, W_ = WX10[P_.wx.k] || WX10.sunny;
+  const wDay = smooth10((el - .04) / .32), wNight = (h < 6 || h > 20) ? 1 : smooth10((-el + .02) / .14), wGold = clamp(1 - wDay - wNight, 0, 1), mix = (i, o) => { o.setHex(SKY10.day[i]).multiplyScalar(wDay); _tc.setHex(SKY10.gold[i]).multiplyScalar(wGold); o.add(_tc); _tc.setHex(SKY10.night[i]).multiplyScalar(wNight); o.add(_tc); return o };
+  const top = mix(0, _kc[0]), hor = mix(1, _kc[1]), fog = mix(2, _kc[2]), sunC = mix(3, _kc[3]); let sunI = SKY10.day[4] * wDay + SKY10.gold[4] * wGold + SKY10.night[4] * wNight, hemiI = SKY10.day[5] * wDay + SKY10.gold[5] * wGold + SKY10.night[5] * wNight;
+  // weather: ease towards the current weather's cloud cover / dimming so changes are gradual
+  const L_ = TY.lt || (TY.lt = { cover: W_.cover, dim: W_.dim, fog: 0, night: wNight }), ke = 1 - Math.exp(-dt * .35); L_.cover += (W_.cover - L_.cover) * ke; L_.dim += (W_.dim - L_.dim) * ke; L_.fog += ((W_.fog ? 1 : 0) - L_.fog) * ke; L_.night = wNight; L_.day = wDay;
+  const grey = c => { const l = c.r * .3 + c.g * .5 + c.b * .2, k = clamp((L_.cover - .3) * 1.1, 0, .82); c.r += (l * .92 - c.r) * k; c.g += (l * .95 - c.g) * k; c.b += (l - c.b) * k; c.multiplyScalar(.55 + .45 * L_.dim) };
+  grey(top); grey(hor); grey(fog); sunI *= L_.dim * (1 - .5 * clamp((L_.cover - .5) * 2, 0, 1) * wDay); hemiI *= .7 + .3 * L_.dim;
+  // sun (or moon) direction; the shadow box follows the spot you are looking at
+  if (wNight > .5) _sunD.set(-.45, .75, .35).normalize(); else _sunD.set(-Math.cos(az) * .85, Math.max(.12, el), -.42 + .2 * Math.cos(az)).normalize();
+  const f = TY.cam, R = clamp(f.dist * .9, 46, 120), sc = sun.shadow.camera; sun.position.set(f.x + _sunD.x * 140, _sunD.y * 140, f.z + _sunD.z * 140); sun.target.position.set(f.x, 0, f.z); sun.target.updateMatrixWorld();
+  if (Math.abs(sc.right - R) > 4) { sc.left = sc.bottom = -R; sc.right = sc.top = R; sc.near = 20; sc.far = 320; sc.updateProjectionMatrix() }
+  sun.color.copy(sunC); sun.intensity = sunI; hemi.intensity = hemiI; hemiBase = hemiI; renderer.toneMappingExposure = 1.08 + .14 * wNight;
+  TY.skyU.uTop.value.copy(top); TY.skyU.uHor.value.copy(hor); TY.skyU.uSun.value.copy(sunC).multiplyScalar((wNight > .5 ? .5 : 1) * clamp(1.15 - L_.cover, 0, 1)); TY.skyU.uDir.value.copy(_sunD); TY.sky.position.copy(camera.position);
+  if (scene.fog) { scene.fog.color.copy(fog); const far = 380 - 255 * L_.fog - 60 * clamp(L_.cover - .85, 0, .15) / .15 * (W_.rain ? 1 : 0); scene.fog.far = far; scene.fog.near = far * (.34 - .28 * L_.fog) }
+  // night: stars, lamps and station lights
+  const dark = wNight > .35 || L_.dim < .5; if (dark !== TY.dark) { TY.dark = dark; TY.root.traverse(o => { if (o.userData.night10) o.visible = dark }) }
+  if (TY.lampM) TY.lampM.emissiveIntensity = .25 + 2.6 * wNight; TYM.glow.color.setHex(0xffe9a8).multiplyScalar(.6 + .4 * wNight);
+  if (wNight > .2 && !stars) mkStars7(); if (stars) { stars.visible = wNight > .2 && L_.cover < .7; stars.material.opacity = .85 * wNight * clamp(1 - L_.cover, 0, 1) }
+  // wet ground when it rains (the 7.2 weather keeps the wetness value; rain and lightning are drawn by its systems too)
+  const wr = typeof wet72 === 'number' ? wet72 : 0; TY.lawnM.roughness = .95 - .4 * wr; TY.lawnM.color.setScalar(1 - .16 * wr); TY.pathM.roughness = .9 - .6 * wr; TY.pathM.color.setScalar(1 - .22 * wr); TY.outM.color.setScalar(1 - .14 * wr);
+  // tell the older systems what time it roughly is (their night lights and cloud colours follow it)
+  tod = wNight > .5 ? 'night' : wGold > .5 ? 'sunset' : 'day';
+}
+// the 7.2 weather flags are borrowed while My Park is open and handed back unchanged when it closes
+function tyWxApply10() { const W_ = WX10[TY.park.wx.k] || WX10.sunny; W7.rain = !!W_.rain && !W_.storm; W7.storm = !!W_.storm; W72.heavy = false; W72.snow = false; W72.cover = W_.cover; if (W_.storm) W7.stormT = Math.min(W7.stormT, 2) }
+// ---- entering and leaving My Park
+const tySv10 = {};
+function tyEnter10(slot, park) {
+  if (editing) return false; tyWorld10();
+  if (!TY.on) { Object.assign(tySv10, { playing, camMode, tod, rain: W7.rain, storm: W7.storm, heavy: W72.heavy, snow: W72.snow, cover: W72.cover, fogMul: W7.fogMul, stormT: W7.stormT, sl: sun.shadow.camera.left, sr: sun.shadow.camera.right, sf: sun.shadow.camera.far, sn: sun.shadow.camera.near, sp: sun.position.clone(), st: sun.target.position.clone(), far: camera.far }); W7.fogMul = 1 }
+  if (cine) setCine(false); if (labOpen) closeLab(); if (startOpen) closeStart(); $('#menu').hidden = true; closeHub72(); if (UI72.dk) closeDock72(); setPlay(false);
+  TY.slot = slot; TY.park = park; TY.visit = slot ? null : TY.visit; tyRebuild10(); TY.on = true; rg.visible = false; TY.root.visible = true; document.body.classList.add('ty10');
+  camMode = 'park10'; snap = true; camera.up.set(0, 1, 0); if (!TY.cam.set) { camT10.x = tX10(GATE_I10); camT10.z = tZ10(GATE_J10) - 18; camT10.yaw = 0; camT10.pitch = .9; camT10.dist = mobile ? 92 : 78; Object.assign(TY.cam, camT10) }
+  tyWxApply10(); TY.lt = null; TY.dark = null; tyLight10(1); tyUiOpen10(); emit72('ty10', { on: true }); return true;
+}
+function tyExit10() {
+  if (!TY.on) return; savePark10(); TY.on = false; TY.pov = null; TY.root.visible = false; rg.visible = true; document.body.classList.remove('ty10'); tyUiClose10(); camera.up.set(0, 1, 0);
+  W7.rain = tySv10.rain; W7.storm = tySv10.storm; W72.heavy = tySv10.heavy; W72.snow = tySv10.snow; W72.cover = tySv10.cover; W7.fogMul = tySv10.fogMul; W7.stormT = tySv10.stormT; tod = tySv10.tod;
+  const sc = sun.shadow.camera; sc.left = sc.bottom = tySv10.sl; sc.right = sc.top = tySv10.sr; sc.far = tySv10.sf; sc.near = tySv10.sn; sc.updateProjectionMatrix(); sun.position.copy(tySv10.sp); sun.target.position.copy(tySv10.st); sun.target.updateMatrixWorld();
+  camMode = CAM72[tySv10.camMode] || ['chase', 'side', 'front', 'ride', 'orbit'].includes(tySv10.camMode) ? tySv10.camMode : 'chase'; if (camMode === 'park10' || camMode === 'parkpov10') camMode = 'chase'; setCam(camMode); snap = true; applyTod(); setPlay(true); emit72('ty10', { on: false });
+}
+// while My Park is open the ride world's own sky / light updates wait (they are applied again when you leave)
+{ const f0 = applyTod; applyTod = function () { if (TY.on) return; return f0.apply(this, arguments) } }
+
+// ---- [23_ty_sim.js]
+// ---- 10.0 MY PARK — the simulation. Every visitor is one simulated person: they pay at the gate, walk the paths you
+// built, pick rides that suit them, stand in real queues, board when a train or ride cycle loads, react to the ride,
+// get hungry, thirsty and tired, buy things, drop litter and go home. Rides load from their queue, run their real lap
+// and wear out; mechanics and janitors walk to their jobs. Every dollar passes through earn10 / pay10.
+const SIM10 = { minPerSec: 2, open: 540, close: 1260, wageJan: 16, wageMech: 26, maxG: mobile ? 260 : 420 };
+// ---- path finding: one breadth-first "distance to target" map per destination, cached until paths or buildings change
+const FF10 = new Map(); let ffVer10 = -1;
+function field10(key, targets) {
+  if (ffVer10 !== TY.pathVer) { FF10.clear(); ffVer10 = TY.pathVer }
+  let f = FF10.get(key); if (f) return f; f = new Int16Array(GW10 * GH10).fill(-1); const q = []; for (const t of targets) if (TY.path[t] && f[t] < 0) { f[t] = 0; q.push(t) }
+  for (let h = 0; h < q.length; h++) { const t = q[h], i = t % GW10, j = (t - i) / GW10, d = f[t] + 1; for (const [dx, dz] of NB10) { const a = i + dx, b = j + dz; if (!inG10(a, b)) continue; const k = tI10(a, b); if (TY.path[k] && f[k] < 0) { f[k] = d; q.push(k) } } }
+  FF10.set(key, f); return f;
+}
+const gateT10 = () => tI10(GATE_I10, GATE_J10);
+// path tiles that touch a set of cells (where visitors stand to use the thing)
+function touchTiles10(cells) { const set = new Set(cells.map(([i, j]) => tI10(i, j))), out = []; for (const [i, j] of cells) for (const [dx, dz] of NB10) { const a = i + dx, b = j + dz; if (!inG10(a, b)) continue; const k = tI10(a, b); if (TY.path[k] && !set.has(k) && !out.includes(k)) out.push(k) } return out }
+// ---- runtime state of a placed thing
+function rideRt10(o, inf) { return { g: null, xf: null, q: [], riders: [], entry: [], linked: false, ph: 'load', t: 0, wait: 0, broken: 0, fix: 0, insp: 0, used: 0, sold: 0, anim: null, animT: 0, trains: null, waitAvg: 0, lastN: 0, tmr: 0 } }
+function linkObj10(o) {
+  const inf = objInfo10(o); if (!inf || !o.rt) return; const fp = footprint10(o), R = o.rt, gate = field10('gate', [gateT10()]);
+  R.entry = touchTiles10(inf.t === 'coaster' ? fp.pad : fp.solid).filter(t => gate[t] >= 0); R.linked = R.entry.length > 0;
+  if (R.linked) { let best = R.entry[0]; for (const t of R.entry) if (gate[t] < gate[best]) best = t; R.gateTile = best }
+  // queue slots in the thing's own frame (coasters: the yard beside the station; flat rides: the strip along the front)
+  if (inf.t === 'coaster') { const s_ = []; for (let l = 0; l < 4; l++) for (let k = 0; k < 7; k++) s_.push([l % 2 ? 6.2 - k * .9 : .8 + k * .9, -5.75 - l * 1.75]); R.slots = s_; R.board = [1.2, inf.prof.yP, inf.prof.zp1 + .4]; R.exit = [7.3, -8.2] }
+  else if (inf.t === 'flat') { const W = inf.w * TS10, D = inf.d * TS10, s_ = []; for (let l = 0; l < 2; l++) for (let x = -W / 2 + .9; x < W / 2 - .7; x += .85) s_.push([l % 2 ? -x : x, -D / 2 + .55 + l * .75]); R.slots = s_; R.board = [0, .1, -D / 2 + 2.6]; R.exit = [W / 2 - .6, -D / 2 + .5] }
+  R.qCap = R.slots ? Math.min(R.slots.length, inf.t === 'coaster' ? 20 + 4 * (o.up ? o.up.cap : 0) : 12 + 2 * (o.up ? o.up.cap : 0)) : 0;
+}
+function linkAll10() { for (const o of TY.park.objs) if (o.rt) linkObj10(o); TY.linkVer = TY.pathVer }
+// ---- scenery value: every tile gets the beauty of the scenery around it (felt by visitors walking and waiting there)
+function beauty10() { TY.beauty.fill(0); for (const o of TY.park.objs) { const C = CAT10[o.k]; if (!C || !C.beauty) continue; for (let dj = -3; dj <= 3; dj++) for (let di = -3; di <= 3; di++) { const i = o.x + di, j = o.z + dj; if (!inG10(i, j)) continue; TY.beauty[tI10(i, j)] += C.beauty / (1 + .6 * (Math.abs(di) + Math.abs(dj))) } } }
+// ---- prices, worth and appeal
+const fareOf10 = (o, inf) => o.price >= 0 ? o.price : (inf.fare != null ? inf.fare : inf.price || 0);
+const worth10 = inf => 1.2 + inf.exc / 8.5;// what a ride of this excitement is worth to an average visitor ($)
+const perk10 = k => !!(TY.park && TY.park.perks[k]);
+function rideOpen10(o) { const R = o.rt; return !!R && o.open !== false && !R.broken && !R.insp && R.linked && parkOpen10() }
+const parkOpen10 = () => { const P_ = TY.park; return P_.open && P_.min >= SIM10.open && P_.min < SIM10.close };
+// ---- visitors
+let gid10 = 1;
+const SK10 = [0xf1c27d, 0xe0ac69, 0xc68642, 0x8d5524, 0xffdbac, 0xa86b3c], SH10 = [0x2f7dff, 0xffd23f, 0x2fd18b, 0xff6fa8, 0xff7a3d, 0x9b6bff, 0xf2f2f2, 0x18b8c9, 0xe63946, 0x2a9d8f], PA10 = [0x2d3a55, 0x3b3b3b, 0x5a4632, 0x1f4f6b, 0x6b2d3a, 0x8a8f99];
+function guestSpawn10() {
+  const P_ = TY.park; let r = Math.random(), ty = 0; for (let k = 0; k < GT10.length; k++) { r -= GT10[k].share; if (r <= 0) { ty = k; break } } const T_ = GT10[ty];
+  // the gate: each person has a price they are willing to pay, higher for a park with a good name and more to do
+  const nR = P_.objs.reduce((a, o) => { const i = objInfo10(o); return a + (i && (i.t === 'coaster' ? 2.2 : i.t === 'flat' ? 1 : 0)) }, 0), will = (9 + P_.rep * .3 + Math.min(18, nR * 1.6)) * (.7 + Math.random() * .7) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1);
+  if (P_.fee > will) { P_.tot.turned++; TY.day.turned++; if (Math.random() < .3) bubbleAt10(tX10(GATE_I10) + rnd7(-2, 2), HALF10 + 4, '💸'); return null }
+  const h = (gid10 * 2654435761) >>> 0, g = { id: gid10++, ty, x: tX10(GATE_I10) + rnd7(-1.2, 1.2), z: HALF10 + rnd7(4, 9), y: 0, tx: 0, tz: 0, ti: gateT10(), st: 'walk', goal: null, cash: rnd7(T_.cash[0], T_.cash[1]) * (perk10('vip') ? 1.2 : 1), happy: 58 + Math.random() * 16, hunger: rnd7(8, 40), thirst: rnd7(8, 40), energy: rnd7(78, 100), bladder: rnd7(0, 30), nausea: 0,
+    t: 0, stay: rnd7(190, 330), sp: 1.45 + Math.random() * .5, off: (Math.random() - .5) * 2.4, yaw: PI, bob: Math.random() * 6, shirt: SH10[(h >>> 3) % SH10.length], pants: PA10[(h >>> 7) % PA10.length], skin: SK10[(h >>> 11) % SK10.length], did: {}, skip: {}, rides: 0, spent: 0, wq: 0, leave: false, umb: false, gift: false, say: '', sayT: 0, th: '', hide: false, sit: 0, useT: 0 };
+  g.tx = tX10(GATE_I10) + g.off * .5; g.tz = tZ10(GATE_J10); g.cash -= P_.fee; g.spent += P_.fee; earn10('gate', P_.fee); P_.tot.guests++; TY.day.guests++; TY.guests.push(g); return g;
+}
+function say10(g, e, th) { g.say = e; g.sayT = 2.6; if (th) g.th = th; TY.thoughts[th || e] = (TY.thoughts[th || e] || 0) + 1 }
+// choose what to do next (called whenever a visitor is free and standing on a path)
+function gDecide10(g) {
+  const P_ = TY.park, T_ = GT10[g.ty]; g.goal = null; g.wq = 0;
+  if (g.leave || !parkOpen10() || g.t > g.stay || g.cash < 2 || g.happy < 16 || g.energy < 5) { if (!g.leave) { g.leave = true; if (g.happy < 16) say10(g, '😡', 'I want to go home') } return gGo10(g, { k: 'exit' }, 'gate', [gateT10()]) }
+  // needs come first
+  if (g.bladder > 68 && gKind10(g, 'wc')) return; if (g.nausea > 62 && (gKind10(g, 'bench') || gKind10(g, 'info'))) return;
+  if (g.hunger > 60 && (gKind10(g, 'food') || gKind10(g, 'treat'))) return; if (g.thirst > 60 && gKind10(g, 'drink')) return; if (g.energy < 26 && gKind10(g, 'bench')) return;
+  if (WX10[P_.wx.k].rain && !g.umb && g.cash > 12 && Math.random() < .5 && gKind10(g, 'info')) return;
+  if (g.hunger > 60 && !g.saidH) { g.saidH = 1; say10(g, '🍔', 'I am hungry and there is nowhere to eat') } if (g.thirst > 60 && !g.saidT) { g.saidT = 1; say10(g, '🥤', 'I am thirsty and there is nowhere to get a drink') } if (g.bladder > 68 && !g.saidW) { g.saidW = 1; say10(g, '🚻', 'I need a restroom') }
+  // then a ride: how well it suits this person, minus the wait, the walk and having done it before
+  let best = null, bs = .22, exp = false, long = false; const here = g.ti;
+  for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots || g.skip[o.id] > g.t) continue; const inf = objInfo10(o); if (!rideOpen10(o)) continue;
+    const f = field10('o' + o.id, R.entry), d = f[here]; if (d < 0) continue; const fare = fareOf10(o, inf);
+    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; continue }
+    const fit = inf.int < T_.lo ? 1 - (T_.lo - inf.int) / 40 : inf.int > T_.hi ? 1 - (inf.int - T_.hi) / 28 : 1; if (fit <= .05) continue;
+    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 5.5 || R.q.length >= R.qCap) { long = true; continue }
+    const n = g.did[o.id] || 0, sc = (inf.exc / 55) * (.35 + .65 * fit) * (inf.t === 'coaster' ? T_.coaster : 1) * Math.pow(g.ty === 3 ? .78 : .52, n) * (1 - Math.min(.6, wait / (T_.pat * 9))) * (1 - Math.min(.5, d / 70)) * (.75 + Math.random() * .5) * (g.nausea > 45 ? Math.max(.2, 1 - inf.nau / 60) : 1);
+    if (sc > bs) { bs = sc; best = o } }
+  if (best) return gGo10(g, { k: 'ride', id: best.id }, 'o' + best.id, best.rt.entry);
+  if (exp && Math.random() < .35) say10(g, '💸', 'The rides cost too much'); else if (long && Math.random() < .35) say10(g, '😤', 'The queues are too long');
+  if (g.happy > 50 && g.cash > 14 && Math.random() < .3 && (!g.gift && Math.random() < .5 ? gKind10(g, 'gift') : gKind10(g, 'treat'))) return;
+  if (g.rides > 0 && g.t > 70 && Math.random() < .16 + (P_.objs.some(o => o.rt && o.rt.slots && rideOpen10(o)) ? 0 : .5)) { g.leave = true; if (!P_.objs.some(o => o.rt && o.rt.slots && rideOpen10(o))) say10(g, '😕', 'There is nothing to ride'); return gGo10(g, { k: 'exit' }, 'gate', [gateT10()]) }
+  // otherwise stroll to a random spot (prettier places attract more)
+  const gate = field10('gate', [gateT10()]); let pick = -1, pw = -1; for (let k = 0; k < 14; k++) { const t = Math.floor(Math.random() * GW10 * GH10); if (TY.path[t] && gate[t] >= 0) { const w = Math.random() * (1 + TY.beauty[t] * .08); if (w > pw) { pw = w; pick = t } } }
+  if (pick >= 0) gGo10(g, { k: 'stroll' }, 't' + pick, [pick]); else { g.st = 'idle'; g.useT = 1.5 }
+}
+// head for the nearest thing of a kind (food, drink, treat, gift, wc, info, bench). Returns false when there is none in reach.
+function gKind10(g, kind) {
+  const P_ = TY.park, tg = [], here = g.ti; for (const o of P_.objs) { const C = CAT10[o.k]; if (!C || !o.rt || !o.rt.linked) continue; if ((C.sells === kind || C.job === kind) && (C.job || o.open !== false) && !(g.skip[o.id] > g.t) && !(kind === 'bench' && o.rt.used >= 2)) for (const t of o.rt.entry) tg.push(t) }
+  if (!tg.length) return false; const f = field10('k' + kind + '|' + tg.length + '|' + tg[0], tg); if (f[here] < 0) return false; gGo10(g, { k: kind }, 'k' + kind + '|' + tg.length + '|' + tg[0], tg); return true;
+}
+function gGo10(g, goal, key, targets) { g.goal = goal; g.fkey = key; g.ftg = targets; g.st = 'walk'; gStep10(g) }
+// pick the next tile towards the goal (or act when already there)
+function gStep10(g) {
+  const f = field10(g.fkey, g.ftg), d = f[g.ti]; if (d < 0) { if (g.goal && g.goal.id) g.skip[g.goal.id] = g.t + 40; g.st = 'idle'; g.useT = .4; g.goal = null; return } if (d === 0) return gArrive10(g);
+  const i = g.ti % GW10, j = (g.ti - i) / GW10; let nx = -1, n = 0; for (const [dx, dz] of NB10) { const a = i + dx, b = j + dz; if (!inG10(a, b)) continue; const k = tI10(a, b); if (f[k] === d - 1 && Math.random() < 1 / ++n) nx = k }
+  if (nx < 0) { g.st = 'idle'; g.useT = .4; return } const a = nx % GW10, b = (nx - a) / GW10, dx = a - i, dz = b - j; g.ti = nx; g.tx = tX10(a) + (dz !== 0 ? g.off : g.off * .35 * dz); g.tz = tZ10(b) + (dx !== 0 ? g.off : 0); g.st = 'walk';
+}
+function gArrive10(g) {
+  const P_ = TY.park, G_ = g.goal; if (!G_) return gDecide10(g);
+  if (G_.k === 'exit') { g.st = 'out'; g.tx = tX10(GATE_I10) + g.off * .5; g.tz = HALF10 + 12; return }
+  if (G_.k === 'stroll') { g.st = 'idle'; g.useT = 1.5 + Math.random() * 3; g.goal = null; return }
+  if (G_.k === 'ride') { const o = TY.objById.get(G_.id); if (!o || !o.rt || !rideOpen10(o) || o.rt.q.length >= o.rt.qCap) { if (o) g.skip[o.id] = g.t + 30; if (o && o.rt && o.rt.q.length >= o.rt.qCap) { say10(g, '😤', 'The queue for ' + objName10(o) + ' is full'); g.happy -= 2 } return gDecide10(g) } o.rt.q.push(g); g.st = 'queue'; g.qo = o; g.wq = 0; return }
+  // a shop, facility or bench next to this tile
+  const here = g.ti, kind = G_.k; let o = null; for (const q of P_.objs) { const C = CAT10[q.k]; if (C && q.rt && q.rt.entry.includes(here) && (C.sells === kind || C.job === kind) && !(g.skip[q.id] > g.t)) { o = q; break } } if (!o) return gDecide10(g);
+  const C = CAT10[o.k], w = o.rt.xf || objWorld10(o); g.yaw = Math.atan2(w.x - g.x, w.z - g.z);
+  if (kind === 'bench') { o.rt.used++; g.st = 'use'; g.useT = 6 + Math.random() * 5; g.sit = 1; g.uo = o; g.energy = Math.min(100, g.energy + 38); g.nausea = Math.max(0, g.nausea - 40); return }
+  const price = o.price >= 0 ? o.price : C.price, max = ({ food: 9.5, drink: 5.5, treat: 6.5, gift: 19, wc: 1.5, info: 13 })[kind] * (.8 + (g.id % 7) * .07) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1);
+  if (kind === 'info' && !(WX10[P_.wx.k].rain && !g.umb)) { g.nausea = Math.max(0, g.nausea - 60); g.st = 'use'; g.useT = 2.5; say10(g, '🩹'); return }// first aid is free
+  if (price > max || price > g.cash) { say10(g, '💸', 'The ' + C.n.toLowerCase() + ' is too expensive'); g.happy -= 3; g.skip[o.id] = g.t + 60; return gDecide10(g) }
+  g.cash -= price; g.spent += price; if (price > 0) earn10(kind === 'food' || kind === 'drink' || kind === 'treat' ? 'food' : 'shops', price); pay10('stock', C.unit); o.st.n++; o.st.inc += price; o.rt.sold++; P_.tot.sales++; g.st = 'use'; g.useT = 2.2;
+  if (kind === 'food') { g.hunger = Math.max(0, g.hunger - 62); g.bladder += 8; g.happy += 2; g.lit = .55; say10(g, '😋') } else if (kind === 'drink') { g.thirst = Math.max(0, g.thirst - 66); g.bladder += 22; g.lit = .4 } else if (kind === 'treat') { g.hunger = Math.max(0, g.hunger - 22); g.happy += 6; g.lit = .35; say10(g, '🍦') }
+  else if (kind === 'gift') { g.happy += 8; g.gift = true; say10(g, '🎁') } else if (kind === 'wc') { g.bladder = 0; g.useT = 3 } else if (kind === 'info') { g.umb = true; say10(g, '☂️') }
+}
+// a visitor's verdict after a ride
+function gRated10(g, o, inf) {
+  const T_ = GT10[g.ty], fit = inf.int < T_.lo ? 1 - (T_.lo - inf.int) / 40 : inf.int > T_.hi ? 1 - (inf.int - T_.hi) / 28 : 1, n = g.did[o.id] || 0, fp = o.rt.gateTile != null ? TY.beauty[o.rt.gateTile] : 0;
+  let joy = inf.exc * (.5 + .62 * Math.max(-.3, fit)) * (inf.t === 'coaster' ? .9 + .12 * T_.coaster : 1) + (n ? 0 : 7) + Math.min(8, fp * .5) + (o.up ? o.up.fx * 4 : 0) - Math.min(14, g.wq * .16);
+  joy = clamp(joy + rnd7(-6, 6), 0, 115); g.happy = clamp(g.happy + (joy - 44) * .24, 0, 100); g.nausea = clamp(g.nausea + inf.nau * T_.nau * rnd7(.3, .6), 0, 100); g.energy -= 3 + inf.int * .03; g.did[o.id] = n + 1; g.rides++;
+  const fare = fareOf10(o, inf); if (fare > worth10(inf) * 1.02) { g.happy -= 2.5 }
+  o.st.like += clamp(joy / 20, 0, 5); o.st.rated++;
+  if (inf.int > T_.hi + 16) say10(g, '😱', objName10(o) + ' was too intense for me'); else if (g.nausea > 72) say10(g, '🤢', objName10(o) + ' made me feel sick'); else if (joy > 84) say10(g, '🤩', objName10(o) + ' was amazing!'); else if (joy > 62) say10(g, '😄', objName10(o) + ' was great'); else if (joy > 42) say10(g, '🙂'); else say10(g, '😐', objName10(o) + ' was a bit dull');
+}
+// ---- one step of everyone
+const _gp = V();
+function guestsStep10(dt) {
+  const P_ = TY.park, W_ = WX10[P_.wx.k], rain = W_.rain ? (W_.storm ? 2 : 1) : 0, hot = P_.wx.k === 'sunny' ? 1.25 : 1, dirt = (100 - TY.clean) * .0005, list = TY.guests;
+  for (let n = list.length - 1; n >= 0; n--) {
+    const g = list[n]; g.t += dt; if (g.sayT > 0) g.sayT -= dt;
+    if (g.st === 'ride') continue;
+    g.hunger += .2 * dt; g.thirst += .27 * hot * dt; g.bladder += .1 * dt; g.nausea = Math.max(0, g.nausea - .55 * dt); g.happy -= dirt * dt * 60; if (rain && !g.umb) g.happy -= .16 * rain * dt;
+    if (g.st === 'walk' || g.st === 'out') {
+      const dx = g.tx - g.x, dz = g.tz - g.z, d = Math.hypot(dx, dz), stp = g.sp * dt * (g.leave ? 1.15 : 1) * (rain && !g.umb ? 1.15 : 1); g.energy -= .1 * dt; g.bob += dt * 8 * g.sp;
+      if (d <= stp) { g.x = g.tx; g.z = g.tz; if (g.st === 'out') { guestLeft10(g); list[n] = list[list.length - 1]; list.pop(); continue }
+        if (g.lit && Math.random() < .12) litterMaybe10(g); if (g.nausea > 88 && Math.random() < .2) { TY.litter.push({ x: g.x, z: g.z, v: 1 }); g.nausea -= 45; say10(g, '🤮', 'I was sick'); g.happy -= 6 }
+        const b = TY.beauty[g.ti]; if (b > 1) g.happy = Math.min(100, g.happy + Math.min(.5, b * .03));
+        if (!TY.path[g.ti]) { gRescue10(g); continue } gStep10(g) }
+      else { g.x += dx / d * stp; g.z += dz / d * stp; g.yaw = Math.atan2(dx, dz) }
+    } else if (g.st === 'queue') {
+      const o = g.qo, R = o && o.rt; if (!R || !rideOpen10(o)) { gLeaveQ10(g, false); continue } const qi = R.q.indexOf(g); if (qi < 0) { g.st = 'idle'; g.useT = .2; continue }
+      const sl = R.slots[Math.min(qi, R.slots.length - 1)]; objPt10(o, sl[0], 0, sl[1], _gp); const dx = _gp.x - g.x, dz = _gp.z - g.z, d = Math.hypot(dx, dz), stp = 1.5 * dt; if (d > .05) { if (d <= stp) { g.x = _gp.x; g.z = _gp.z } else { g.x += dx / d * stp; g.z += dz / d * stp; g.yaw = Math.atan2(dx, dz); g.bob += dt * 7 } }
+      g.wq += dt; if (g.wq > 18) g.happy -= (.05 - Math.min(.03, TY.beauty[R.gateTile || 0] * .002)) * dt; if (g.wq > GT10[g.ty].pat * 6.5) { say10(g, '😤', 'I waited too long for ' + objName10(o)); g.happy -= 6; gLeaveQ10(g, true) }
+    } else if (g.st === 'use' || g.st === 'idle') { g.useT -= dt; if (g.useT <= 0) { if (g.sit) { g.sit = 0; if (g.uo && g.uo.rt) g.uo.rt.used = Math.max(0, g.uo.rt.used - 1); g.uo = null } gDecide10(g) } }
+    else if (g.st === 'board') { const dx = g.tx - g.x, dz = g.tz - g.z, d = Math.hypot(dx, dz), stp = 2 * dt; if (d <= stp) { g.st = 'ride'; g.hide = true } else { g.x += dx / d * stp; g.z += dz / d * stp; g.y += (g.ty_ - g.y) * Math.min(1, stp / d); g.yaw = Math.atan2(dx, dz); g.bob += dt * 8 } }
+  }
+}
+function gLeaveQ10(g, angry) { const R = g.qo && g.qo.rt; if (R) { const i = R.q.indexOf(g); if (i >= 0) R.q.splice(i, 1); g.skip[g.qo.id] = g.t + 45 } g.qo = null; g.st = 'idle'; g.useT = .3; if (!TY.path[g.ti]) gRescue10(g) }
+// someone standing where a path was removed is put back on the nearest path
+function gRescue10(g) { const i0 = xT10(g.x), j0 = zT10(g.z); for (let r = 0; r < 12; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) { if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue; const i = i0 + di, j = j0 + dj; if (inG10(i, j) && TY.path[tI10(i, j)]) { g.ti = tI10(i, j); g.tx = tX10(i); g.tz = tZ10(j); g.st = 'walk'; g.goal = null; g.fkey = 't' + g.ti; g.ftg = [g.ti]; g.goal = { k: 'stroll' }; return } } g.ti = gateT10(); g.x = tX10(GATE_I10); g.z = tZ10(GATE_J10); g.st = 'idle'; g.useT = .2 }
+function litterMaybe10(g) { const p = g.lit * (perk10('tidy2') ? .65 : 1); g.lit = 0; if (Math.random() > p || TY.litter.length > 220) return; const i = g.ti % GW10, j = (g.ti - i) / GW10; for (const o of TY.park.objs) if (o.k === 'bin' && Math.abs(o.x - i) <= 3 && Math.abs(o.z - j) <= 3) return; TY.litter.push({ x: g.x + rnd7(-.8, .8), z: g.z + rnd7(-.8, .8), v: 0 }) }
+function guestLeft10(g) { const P_ = TY.park; P_.rep = clamp(P_.rep + (clamp(g.happy, 0, 100) - P_.rep) * .012, 0, 100); TY.day.left++; TY.day.happySum += g.happy; if (g.happy > 62) xp10(1); if (g.qo) gLeaveQ10(g) }
+// ---- rides: load from the queue, run, unload
+function trainPose10(p, s_, oP, oU, oT) { const f = (((s_ % p.L) + p.L) % p.L) / p.L * N, i = Math.floor(f) % N, j = (i + 1) % N, a = f - Math.floor(f), P_ = p.pts, U_ = p.up; oP.set(P_[i * 3] + (P_[j * 3] - P_[i * 3]) * a, P_[i * 3 + 1] + (P_[j * 3 + 1] - P_[i * 3 + 1]) * a, P_[i * 3 + 2] + (P_[j * 3 + 2] - P_[i * 3 + 2]) * a); oU.set(U_[i * 3] + (U_[j * 3] - U_[i * 3]) * a, U_[i * 3 + 1] + (U_[j * 3 + 1] - U_[i * 3 + 1]) * a, U_[i * 3 + 2] + (U_[j * 3 + 2] - U_[i * 3 + 2]) * a); const k = (i + 2) % N, h = (i + N - 1) % N; oT.set(P_[k * 3] - P_[h * 3], P_[k * 3 + 1] - P_[h * 3 + 1], P_[k * 3 + 2] - P_[h * 3 + 2]).normalize(); oU.addScaledVector(oT, -oU.dot(oT)).normalize() }
+function lapS10(p, tau) { const t = p.lapT, s_ = p.lapS; let lo = 0, hi = t.length - 1; if (tau >= t[hi]) return s_[hi]; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (t[m] <= tau) lo = m; else hi = m } return s_[lo] + (s_[hi] - s_[lo]) * (tau - t[lo]) / Math.max(1e-6, t[hi] - t[lo]) }
+function boardOne10(o, inf, into, yB) {// the front of the queue pays, walks to the platform and gets on
+  const R = o.rt, g = R.q.shift(), fare = fareOf10(o, inf); if (g.cash < fare) { g.st = 'idle'; g.useT = .3; g.qo = null; return false }
+  g.cash -= fare; g.spent += fare; earn10('rides', fare); o.st.n++; o.st.inc += fare; TY.park.tot.rides++; TY.day.rides++; R.waitAvg += (g.wq - R.waitAvg) * .15;
+  objPt10(o, R.board[0], 0, R.board[2], _gp); g.st = 'board'; g.tx = _gp.x; g.tz = _gp.z; g.ty_ = yB; g.qo = null; g.ro = o; into.push(g); return true;
+}
+function unload10(o, inf, riders) { const R = o.rt; let k = 0; for (const g of riders) { objPt10(o, R.exit[0] + (k % 2) * .5, 0, R.exit[1] - (k >> 1) * .5, _gp); g.x = _gp.x; g.z = _gp.z; g.y = 0; g.hide = false; g.ro = null; g.ti = R.gateTile != null ? R.gateTile : g.ti; g.tx = tX10(g.ti % GW10) + g.off * .5; g.tz = tZ10(Math.floor(g.ti / GW10)); g.st = 'walk'; g.goal = null; g.fkey = 't' + g.ti; g.ftg = [g.ti]; g.goal = { k: 'stroll' }; gRated10(g, o, inf); k++ } riders.length = 0 }
+function ridesStep10(dt) {
+  const P_ = TY.park, open = parkOpen10(), dh = dt * SIM10.minPerSec / 60;// park hours in this step
+  for (const o of P_.objs) {
+    const R = o.rt; if (!R) continue; const inf = objInfo10(o); if (!inf || inf.t === 'deco') continue;
+    const runs = o.open !== false && open && R.linked;
+    if (runs && !R.broken) { const c = inf.run * dh * (perk10('ops2') ? .88 : 1); pay10('run', c); o.st.run += c }
+    if (inf.t === 'shop' || inf.t === 'fac') continue;
+    if (R.broken) { o.st.down += dt; continue }
+    if (R.insp > 0) { R.insp -= dt; if (R.insp <= 0) { o.rel = 100; pay10('repair', 40 + inf.cost * .004) } continue }
+    const loadGap = .3 * (perk10('ops1') ? .75 : 1) * (1 - .12 * (o.up ? o.up.cap : 0));
+    if (inf.t === 'flat') {
+      if (R.ph === 'load') { R.t += dt; R.tmr -= dt; if (runs && R.riders.length < inf.cap + 2 * (o.up ? o.up.cap : 0) && R.q.length && R.tmr <= 0 && nearSlot10(o, R.q[0])) { boardOne10(o, inf, R.riders, .1); R.tmr = loadGap }
+        const full = R.riders.length >= inf.cap + 2 * (o.up ? o.up.cap : 0), ready = R.riders.length && R.riders.every(g => g.st === 'ride'); if (ready && (full || R.t > 9 && !R.q.length || R.t > 16)) { R.ph = 'run'; R.t = 0; wear10(o, inf) } }
+      else if (R.ph === 'run') { R.t += dt; R.animT += dt; if (R.t >= inf.dur) { R.ph = 'load'; R.t = 0; unload10(o, inf, R.riders); if (!breakMaybe10(o, inf)) xp10(.2) } }
+    } else {
+      const p = inf.prof, s0 = p.SL - .7; let busy = R.trains.some(t => t.ph === 'load' || t.ph === 'unload');
+      R.trains.forEach((tr, k) => {
+        if (tr.ph === 'hold') { tr.s = s0 - 6.2; if (!busy && R.trains[0].ph === 'run' && R.trains[0].tau > p.lapT[p.lapT.length - 1] * .45) { tr.ph = 'load'; tr.wait = 0; busy = true } }
+        else if (tr.ph === 'load') { tr.s = s0; tr.wait += dt; R.tmr -= dt; if (runs && tr.riders.length < p.seats && R.q.length && R.tmr <= 0 && nearSlot10(o, R.q[0])) { boardOne10(o, inf, tr.riders, p.yP); R.tmr = loadGap }
+          const full = tr.riders.length >= p.seats, ready = tr.riders.length && tr.riders.every(g => g.st === 'ride'); if (ready && (full || tr.wait > 9 && !R.q.length || tr.wait > 18)) { tr.ph = 'run'; tr.tau = 0; wear10(o, inf) } }
+        else if (tr.ph === 'run') { tr.tau += dt / p.tk; const T_ = p.lapT[p.lapT.length - 1]; if (tr.tau >= T_) { if (busy) { tr.tau = T_; tr.s = s0 - 6.2 } else { tr.ph = 'unload'; tr.wait = 0; tr.s = s0; busy = true } } else tr.s = s0 + lapS10(p, tr.tau) * p.sc }
+        else if (tr.ph === 'unload') { tr.wait += dt; if (tr.wait > 1.6) { unload10(o, inf, tr.riders); tr.ph = 'load'; tr.wait = 0; if (!breakMaybe10(o, inf)) xp10(.3) } }
+      });
+    }
+    // an idle, worn ride gets an inspection when a mechanic is free
+    if (o.rel < 55 && !R.q.length && R.ph === 'load' && !(R.trains && R.trains.some(t => t.riders.length)) && !(R.riders && R.riders.length) && mechFree10()) { R.insp = 9 * (perk10('mech1') ? .7 : 1); toast10('🛠 ' + objName10(o) + ' is closed for a short inspection', 'insp' + o.id) }
+  }
+}
+const nearSlot10 = (o, g) => { const sl = o.rt.slots[0]; objPt10(o, sl[0], 0, sl[1], _gp); return g.st === 'queue' && Math.hypot(_gp.x - g.x, _gp.z - g.z) < .5 };
+function wear10(o, inf) { o.age = (o.age || 0) + 1; o.rel = Math.max(0, o.rel - (inf.t === 'coaster' ? .9 : .6) * (1 - .22 * (o.up ? o.up.rel : 0))) }
+function breakMaybe10(o, inf) {
+  const R = o.rt, p = Math.pow((100 - o.rel) / 100, 2) * .22 * (perk10('mech2') ? .7 : 1); if (TY.park.mode === 'sandbox' && !TY.park.seen.breaks || Math.random() > p) return false;
+  R.broken = 1; R.fix = 0; R.q.slice().forEach(g => { g.happy -= 4; if (Math.random() < .4) say10(g, '🔧', objName10(o) + ' broke down while I was waiting'); gLeaveQ10(g, true) });
+  toast10('🔧 ' + objName10(o) + ' has broken down' + (TY.park.staff.mech ? ' — a mechanic is on the way' : ' — hire a mechanic to repair it'), 'brk' + o.id, true); return true;
+}
+// ---- staff: janitors sweep litter, mechanics walk to broken rides. They are people on the paths too.
+function staffSync10() {
+  const P_ = TY.park, want = { jan: P_.staff.jan, mech: P_.staff.mech }; for (const k of ['jan', 'mech']) { let have = TY.staff.filter(s_ => s_.k === k); while (have.length > want[k]) { const s_ = have.pop(); TY.staff.splice(TY.staff.indexOf(s_), 1) } while (have.length < want[k]) { const s_ = { k, x: tX10(GATE_I10) + rnd7(-1, 1), z: tZ10(GATE_J10 - 1) + rnd7(-1, 1), ti: tI10(GATE_I10, GATE_J10 - 1), tx: 0, tz: 0, st: 'idle', t: 0, job: null, yaw: 0, bob: 0, off: rnd7(-1, 1) }; s_.tx = s_.x; s_.tz = s_.z; TY.staff.push(s_); have.push(s_) } }
+}
+const mechFree10 = () => TY.staff.some(s_ => s_.k === 'mech' && !s_.job);
+function staffStep10(dt) {
+  const P_ = TY.park;
+  for (const s_ of TY.staff) {
+    s_.t -= dt;
+    if (s_.st === 'work') { if (s_.t <= 0) { if (s_.k === 'jan') { const i = TY.litter.indexOf(s_.job); if (i >= 0) TY.litter.splice(i, 1) } else if (s_.job && s_.job.rt) { const o = s_.job, inf = objInfo10(o); o.rt.broken = 0; o.rel = Math.min(100, o.rel + 40); pay10('repair', Math.round(120 + inf.cost * .012)); toast10('✅ ' + objName10(o) + ' is repaired and running again', 'fix' + o.id) } s_.job = null; s_.st = 'idle'; s_.t = .5 } continue }
+    if (!s_.job && s_.t <= 0) {// look for work
+      if (s_.k === 'jan' && TY.litter.length) { let b = null, bd = 1e9; for (const l of TY.litter) { if (l.who && l.who !== s_) continue; const d = Math.hypot(l.x - s_.x, l.z - s_.z) * (l.v ? .5 : 1); if (d < bd) { bd = d; b = l } } if (b) { b.who = s_; s_.job = b; s_.goal = tI10(clamp(xT10(b.x), 0, GW10 - 1), clamp(zT10(b.z), 0, GH10 - 1)) } }
+      else if (s_.k === 'mech') { const o = P_.objs.find(q => q.rt && q.rt.broken === 1 && q.rt.linked); if (o) { o.rt.broken = 2; s_.job = o; s_.goal = o.rt.gateTile } }
+      if (!s_.job) { const gate = field10('gate', [gateT10()]); for (let k = 0; k < 8; k++) { const t = Math.floor(Math.random() * GW10 * GH10); if (TY.path[t] && gate[t] >= 0) { s_.goal = t; break } } s_.t = 4 + Math.random() * 4 }
+    }
+    // walk: tile by tile towards the goal
+    const dx = s_.tx - s_.x, dz = s_.tz - s_.z, d = Math.hypot(dx, dz), stp = (s_.k === 'jan' && perk10('tidy1') ? 2.5 : 1.9) * dt;
+    if (d > stp) { s_.x += dx / d * stp; s_.z += dz / d * stp; s_.yaw = Math.atan2(dx, dz); s_.bob += dt * 9; continue } s_.x = s_.tx; s_.z = s_.tz;
+    if (!TY.path[s_.ti]) { const g = { x: s_.x, z: s_.z }; gRescue10(g); s_.ti = g.ti; s_.tx = g.tx; s_.tz = g.tz; continue }
+    if (s_.goal == null || !TY.path[s_.goal]) { if (s_.job && s_.k === 'jan') { s_.st = 'work'; s_.t = 1.1 } continue }
+    const f = field10('t' + s_.goal, [s_.goal]), dd = f[s_.ti];
+    if (dd <= 0) { if (s_.job) { if (s_.k === 'jan') { s_.tx = s_.job.x; s_.tz = s_.job.z; if (Math.hypot(s_.tx - s_.x, s_.tz - s_.z) < .3 || dd < 0) { s_.st = 'work'; s_.t = perk10('tidy1') ? .7 : 1.1 } } else { s_.st = 'work'; s_.t = 14 * (perk10('mech1') ? .7 : 1) * (1 - .1 * (s_.job.up ? s_.job.up.rel : 0)) } } s_.goal = null; continue }
+    const i = s_.ti % GW10, j = (s_.ti - i) / GW10; for (const [ax, az] of NB10) { const a = i + ax, b = j + az; if (inG10(a, b) && f[tI10(a, b)] === dd - 1) { s_.ti = tI10(a, b); s_.tx = tX10(a) + s_.off; s_.tz = tZ10(b) + s_.off; break } }
+  }
+}
+// ---- the clock, the weather, arrivals, the books
+function newDay10() { return { guests: 0, left: 0, happySum: 0, rides: 0, turned: 0, peak: 0 } }
+const WXNEXT10 = { sunny: ['sunny', 'sunny', 'sunny', 'cloudy', 'cloudy', 'fog'], cloudy: ['sunny', 'sunny', 'cloudy', 'rain', 'rain', 'fog'], rain: ['cloudy', 'cloudy', 'rain', 'storm', 'sunny'], storm: ['rain', 'rain', 'cloudy'], fog: ['sunny', 'cloudy', 'cloudy'] };
+function setWx10(k, user) { const P_ = TY.park; if (!WX10[k] || P_.wx.k === k) return; P_.wx.k = k; P_.wx.until = P_.day * 1440 + P_.min + 90 + Math.random() * 200; tyWxApply10(); if (!user) toast10(WX10[k].ic + ' Weather: ' + WX10[k].n.toLowerCase() + (WX10[k].come < .7 ? ' — fewer visitors will come' : ''), 'wx'); if (k === 'rain' || k === 'storm') TY.guests.forEach(g => { if (!g.umb && Math.random() < .12) say10(g, '☔', 'It is raining') }) }
+function clockStep10(dt) {
+  const P_ = TY.park, open = parkOpen10(), night = P_.min >= SIM10.close + 30 || P_.min < SIM10.open - 60, empty = !TY.guests.length;
+  if (P_.clock.auto !== false || TY.visit) P_.min += dt * SIM10.minPerSec * (night && empty ? 9 : 1);
+  if (P_.min >= 1440) { P_.min -= 1440; P_.day++ }
+  if (!TY.dayOpen && P_.min >= SIM10.open && P_.min < SIM10.close) { TY.dayOpen = true; TY.day = newDay10(); if (P_.min < SIM10.open + 8) toast10('🌅 Day ' + P_.day + ': the park is open', 'day') }
+  if (TY.dayOpen && P_.min >= SIM10.close) { TY.dayOpen = false; TY.guests.forEach(g => { g.leave = true }); endDay10() }
+  if (P_.wx.auto !== false && P_.day * 1440 + P_.min > P_.wx.until) setWx10(pickR10(WXNEXT10[P_.wx.k] || ['sunny']));
+  // wages and arrivals only while open
+  if (open) { const dh = dt * SIM10.minPerSec / 60; pay10('wages', (P_.staff.jan * SIM10.wageJan + P_.staff.mech * SIM10.wageMech) * dh); if (P_.promo > 0) P_.promo = Math.max(0, P_.promo - dt) }
+  if (open && TY.guests.length < maxGuests10()) { TY.arr += arrivalRate10() * dt; while (TY.arr >= 1) { TY.arr -= 1; guestSpawn10() } } else TY.arr = Math.min(TY.arr, .9);
+  TY.day.peak = Math.max(TY.day.peak, TY.guests.length);
+}
+function maxGuests10() { let m = 24; for (const o of TY.park.objs) { const inf = objInfo10(o); if (!inf || !o.rt || !o.rt.linked) continue; m += inf.t === 'coaster' ? inf.cap * 2.4 : inf.t === 'flat' ? inf.cap * 1.6 : inf.t === 'deco' ? .15 : 5 } return Math.min(SIM10.maxG, Math.round(m)) }
+function arrivalRate10() { const P_ = TY.park, n = P_.objs.reduce((a, o) => { const i = objInfo10(o); return a + (i && o.rt && o.rt.linked && rideOpen10(o) ? (i.t === 'coaster' ? 2 : i.t === 'flat' ? 1 : 0) : 0) }, 0), h = P_.min / 60, curve = .55 + .45 * Math.exp(-(((h - 12.5) / 3.2) ** 2)) - (h > 19 ? (h - 19) * .28 : 0);
+  return Math.max(0, (.035 + P_.rep * .0042) * (1 + Math.min(14, n) * .16) * WX10[P_.wx.k].come * curve * (1 + .12 * (perk10('mk1') + perk10('mk2') + perk10('mk3'))) * (P_.promo > 0 ? 1.5 : 1) * (n ? 1 : .15)) }
+function ratingNow10() {
+  const P_ = TY.park, G_ = TY.guests; let hs = 0; for (const g of G_) hs += g.happy; const happy = G_.length ? hs / G_.length : (TY.lastHappy || 55);
+  let ex = 0, kinds = new Set(), nr = 0, wsum = 0; for (const o of P_.objs) { const inf = objInfo10(o); if (!inf || !o.rt || !o.rt.slots || !o.rt.linked) continue; ex += inf.exc * (inf.t === 'coaster' ? 1.5 : 1); kinds.add(o.k); nr++; wsum += o.rt.q.length / Math.max(1, o.rt.qCap) }
+  let bs = 0, bn = 0; for (let k = 0; k < GW10 * GH10; k++) if (TY.path[k]) { bs += Math.min(12, TY.beauty[k]); bn++ }
+  const rides = Math.min(100, ex / 7 + kinds.size * 3.5), scen = bn ? Math.min(100, bs / bn * 14) : 0, q = nr ? 100 - Math.min(100, wsum / nr * 80) : 60, value = clamp(100 - Math.max(0, P_.fee - (8 + rides * .22)) * 4, 0, 100);
+  TY.rate = { happy, rides, clean: TY.clean, scen, value, q }; return clamp(.36 * happy + .22 * rides + .14 * TY.clean + .1 * scen + .1 * value + .08 * q, 0, 100);
+}
+function endDay10() {
+  const P_ = TY.park, d = TY.day, interest = P_.loan * .012; if (interest > 0) pay10('loan', interest);
+  const happy = d.left ? d.happySum / d.left : (TY.lastHappy || 55); TY.lastHappy = happy; P_.rating = ratingNow10(); P_.rep = clamp(P_.rep + (P_.rating - P_.rep) * .12, 0, 100);
+  const tot = ledSum10(P_.led), rec = { day: P_.day, inc: Math.round(tot.inc), exp: Math.round(tot.exp), guests: d.guests, peak: d.peak, rating: Math.round(P_.rating), happy: Math.round(happy), money: Math.round(P_.money), wx: P_.wx.k };
+  P_.hist.push(rec); if (P_.hist.length > 40) P_.hist.shift(); TY.lastDay = { ...rec, led: JSON.parse(JSON.stringify(P_.led)), rides: d.rides, turned: d.turned };
+  const profit = tot.inc - tot.exp; xp10(Math.max(0, profit) / 350 + d.guests * .05); P_.led = newLed10(); goals10(); savePark10();
+  if (TY.on && !TY.visit) dayCard10(TY.lastDay); if (P_.mode === 'career' && profit > 0) stat72('tyDays');
+}
+// ---- progression: park XP → level → unlocks and perk stars. Milestones pay cash. Also feeds the game's own XP and coins.
+const lvNeed10 = l => Math.round(110 * Math.pow(l, 1.55));
+function level10(P_ = TY.park) { let l = 1, x = P_ ? P_.xp : 0; while (x >= lvNeed10(l) && l < 30) { x -= lvNeed10(l); l++ } return { lv: P_ && P_.mode === 'sandbox' ? 30 : l, into: x, need: lvNeed10(l) } }
+function xp10(n) { const P_ = TY.park; if (!P_ || TY.visit || P_.mode === 'sandbox' || !(n > 0)) return; const a = level10().lv; P_.xp += n; const b = level10().lv; if (b > a) { toast10('⭐ Park level ' + b + '! New things to build and a perk star', 'lvl', true); try { sfx('unlock'); award72(40, 25, 'park level') } catch (e) {} if (TY.on) { confettiSmall(); tyUi10() } } }
+const PERKS10 = [
+  ['mk1', '📣', 'Local adverts', 'About 12% more visitors', 1, 'Marketing'], ['mk2', '📺', 'TV spot', 'Another 12% more visitors', 2, 'Marketing'], ['mk3', '🌐', 'Going viral', 'Another 12% more visitors', 3, 'Marketing'],
+  ['ops1', '⏱', 'Fast loading', 'Rides load 25% faster', 1, 'Operations'], ['ops2', '🔌', 'Efficient motors', 'Running costs down 12%', 2, 'Operations'], ['mech1', '🧰', 'Trained mechanics', 'Repairs and inspections 30% faster', 1, 'Operations'], ['mech2', '🛡', 'Preventive care', '30% fewer breakdowns', 2, 'Operations'],
+  ['tidy1', '🧹', 'Quick sweepers', 'Janitors work 30% faster', 1, 'Guests'], ['tidy2', '♻️', 'Tidy visitors', 'A third less litter', 1, 'Guests'], ['value1', '💎', 'Premium feel', 'Visitors accept 12% higher prices', 2, 'Guests'], ['value2', '👑', 'World famous', 'Another 12% on prices', 3, 'Guests'], ['vip', '💳', 'Big spenders', 'Visitors bring 20% more cash', 2, 'Guests']];
+const starsLeft10 = () => { const P_ = TY.park; let used = 0; PERKS10.forEach(p => { if (P_.perks[p[0]]) used += p[4] }); return (P_.mode === 'sandbox' ? 99 : level10().lv - 1) - used };
+const GOALS10 = [// career milestones, in order. test() reads the live park; each pays once.
+  ['g1', 'Open your first ride', 'Build a ride and connect it to a path', 500, () => TY.park.objs.some(o => o.rt && o.rt.slots && o.rt.linked)],
+  ['g2', 'First visitors', 'Have 15 visitors in the park at once', 600, () => TY.guests.length >= 15],
+  ['g3', 'Feed them', 'Build a food stall and a drinks stand', 500, () => ['food', 'drink'].every(k => TY.park.objs.some(o => CAT10[o.k] && CAT10[o.k].sells === k && o.rt && o.rt.linked))],
+  ['g4', 'Your first coaster', 'Build a roller coaster', 1500, () => TY.park.objs.some(o => o.k[1] === ':' && o.rt && o.rt.linked)],
+  ['g5', 'A good day', 'Finish a day with a profit', 1000, () => TY.park.hist.some(h => h.inc > h.exp)],
+  ['g6', 'Getting popular', '60 visitors at once', 1500, () => TY.guests.length >= 60],
+  ['g7', 'Well liked', 'Reach a park rating of 60', 2000, () => TY.park.rating >= 60],
+  ['g8', 'Room to grow', 'Buy two more plots of land', 1500, () => landCount10(TY.park) >= 10],
+  ['g9', 'Three coasters', 'Have three coasters running', 4000, () => TY.park.objs.filter(o => o.k[1] === ':' && o.rt && o.rt.linked).length >= 3],
+  ['g10', 'Big business', 'Earn $8,000 in one day', 3000, () => TY.park.hist.some(h => h.inc >= 8000)],
+  ['g11', 'Crowd puller', '150 visitors at once', 5000, () => TY.guests.length >= 150],
+  ['g12', 'Five-star park', 'Reach a park rating of 80', 6000, () => TY.park.rating >= 80],
+  ['g13', 'Flagship', 'Build Thunder Comet or Nova Giant', 8000, () => TY.park.objs.some(o => o.k === 'c:Thunder Comet' || o.k === 'c:Nova Giant')],
+  ['g14', 'Tycoon', 'Have $100,000 in the bank', 10000, () => TY.park.money >= 100000]];
+function goals10() { const P_ = TY.park; if (!P_ || P_.mode !== 'career' || TY.visit) return; for (const [id, n, , cash, test] of GOALS10) { if (P_.goals[id]) continue; let ok = false; try { ok = test() } catch (e) {} if (!ok) break; P_.goals[id] = P_.day; earn10('prize', cash); toast10('🎯 Goal reached: ' + n + ' — bonus ' + money10(cash), 'goal' + id, true); xp10(30); try { sfx('ach'); award72(25, 15, 'park goal') } catch (e) {} achTy10() } }
+ACH.push(['ty_open', '🏗', 'Park owner', 'Open a ride in My Park.'], ['ty_coaster', '🎢', 'Coaster tycoon', 'Run three coasters in My Park.'], ['ty_five', '🌟', 'Five-star park', 'Reach a park rating of 80 in My Park.'], ['ty_share', '🔗', 'Open house', 'Share your park with a code.'], ['ty_visit', '🧳', 'Tourist', 'Visit someone else’s park.']);
+function achGet10(k) { try { if (PRG.ach[k]) return; PRG.ach[k] = Date.now(); save7(); achToast(k) } catch (e) {} }
+function achTy10() { const G_ = TY.park.goals; if (G_.g1) achGet10('ty_open'); if (G_.g9) achGet10('ty_coaster'); if (G_.g12) achGet10('ty_five') }
+// ---- the frame: advance the simulation in small steps, then draw people, trains and effects
+TY.thoughts = {}; TY.day = newDay10(); TY.arr = 0; TY.clean = 100; TY.rate = {};
+function tySim10(raw) {
+  const P_ = TY.park, sp = TY.visit ? 1 : P_.speed; if (!sp) return; let left = Math.min(raw, .1) * sp, n = 0;
+  while (left > 1e-4 && n < 6) { const dt = Math.min(.1, left); left -= dt; n++; clockStep10(dt); ridesStep10(dt); guestsStep10(dt); staffStep10(dt) }
+  TY.simT += raw; TY.clean = clamp(100 - TY.litter.reduce((a, l) => a + (l.v ? 3 : 1), 0) * 1.1, 0, 100);
+  if ((TY.rt_ = (TY.rt_ || 0) - raw) <= 0) { TY.rt_ = 1; P_.rating += (ratingNow10() - P_.rating) * .2; if (TY.linkVer !== TY.pathVer) linkAll10(); goals10(); for (const k in TY.thoughts) TY.thoughts[k] *= .985 }
+}
+TICKS72.push((dt, raw) => {
+  if (!TY.on) return; const t0 = performance.now();
+  if (TY.decoDirty > 0) { TY.decoDirty -= raw; if (TY.decoDirty <= 0) decoRebuild10() }
+  tySim10(raw); tyDraw10(dt); tyLight10(dt); tyInputTick10(dt); tyHud10(raw);
+  saveT10 += raw; if (saveT10 > 8) { saveT10 = 0; savePark10() }
+  TY.perf.ms += (performance.now() - t0 - TY.perf.ms) * .05;
+});
+addEventListener('pagehide', () => { if (TY.on) savePark10() }); document.addEventListener('visibilitychange', () => { if (document.hidden && TY.on) savePark10() });
+
 }
 
 CI=RIDES.length;addEventListener('blur',()=>{hands7Want=false});
