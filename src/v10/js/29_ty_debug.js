@@ -25,3 +25,12 @@ DBG10.ty = {
 // grid facts for the path-routing test helper: which tiles are free for a path, which have one, and the tiles next to
 // an object's queue area (or its footprint for shops and flat rides)
 DBG10.tyGrid = id => { const o = TY.objById.get(id); if (!o) return null; const fp = footprint10(o), area = fp.pad || fp.solid, own = new Set(fp.solid.map(([i, j]) => tI10(i, j))), goal = []; for (const [i, j] of area) for (const [a, b] of NB10) { const x = i + a, z = j + b; if (!inG10(x, z)) continue; const k = tI10(x, z); if (!own.has(k) && TY.own[k] && !TY.occ[k]) goal.push(k) } const free = new Uint8Array(GW10 * GH10); for (let k = 0; k < GW10 * GH10; k++) free[k] = TY.own[k] && !TY.occ[k] ? 1 : 0; return { free: [...free], path: [...TY.path].map(x => x ? 1 : 0), goal } };
+Object.assign(DBG10, { design: key => DSN10[key] ? JSON.parse(JSON.stringify(DSN10[key])) : null });
+Object.assign(DBG10.ty, {
+  arrival: () => arrivalRate10(), maxGuests: () => maxGuests10(), camMode: () => camMode, hudHidden: () => getComputedStyle(document.querySelector('.top')).display === 'none',
+  litterAdd: n => { for (let k = 0; k < n; k++) TY.litter.push({ x: tX10(GATE_I10) + rnd7(-1, 1), z: tZ10(GATE_J10 - 2 - (k % 4)) + rnd7(-1, 1), v: 0 }); return TY.litter.length },
+  custom: (els, name) => { const P_ = TY.park, id = 't' + Object.keys(P_.custom).length; P_.custom[id] = { name: name || 'Test coaster', els: els.map(([t, p]) => ({ t, p })) }; CUSTDEF10.clear(); return coasterDef10('u:' + id) ? 'u:' + id : null },
+  spawn: n => { let k = 0; for (let i = 0; i < n; i++) if (guestSpawn10()) k++; return k }, lastDay: () => TY.lastDay, ui: () => ({ cat: TY.ui.cat, tool: TY.tool && TY.tool.k, sel: TY.sel && (TY.sel.id || 'guest'), pov: TY.pov, tut: TY.park.tut }),
+  weatherFlags: () => ({ rain: W7.rain, storm: W7.storm, cover: W72.cover, tod, dark: !!TY.dark, night: TY.lt ? +TY.lt.night.toFixed(2) : null, sunI: +sun.intensity.toFixed(2), fogFar: scene.fog ? Math.round(scene.fog.far) : null }),
+  trains: id => { const o = TY.objById.get(id); return o && o.rt && o.rt.trains ? o.rt.trains.map(t => ({ ph: t.ph, s: +t.s.toFixed(1), n: t.riders.length, cars: t.cars.length, x: +t.cars[0].position.x.toFixed(2), y: +t.cars[0].position.y.toFixed(2) })) : null }
+});
