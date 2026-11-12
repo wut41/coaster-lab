@@ -1,0 +1,72 @@
+/* While My Park is open the ride HUD steps aside */
+body.ty10 .top,body.ty10 .camera,body.ty10 .side,body.ty10 .controls,body.ty10 .hint,body.ty10 #score7,body.ty10 #hands7,body.ty10 #live,body.ty10 #legend,body.ty10 #spd7,body.ty10 #intro7,body.ty10 #disp7,body.ty10 #sum7,body.ty10 #ops72,body.ty10 #rep72,body.ty10 #lv80,body.ty10 #gc80,body.ty10 #cineBars,body.ty10 #cineTitle,body.ty10 #tBanner,body.ty10 #flash7,body.ty10 #pop7{display:none!important}
+#ty10{position:fixed;inset:0;z-index:5;pointer-events:none;font-family:var(--fUI);color:var(--ink);--ty:#ffb238;--ty2:#2fd6b0;--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
+#ty10[hidden],#ty10 [hidden]{display:none!important}
+#ty10>*{pointer-events:auto}
+#tyIn{position:absolute;inset:0;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#tyIn.build{cursor:crosshair}#tyIn:active{cursor:grabbing}
+.tyB{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:48px;min-height:48px;padding:5px 7px;border-radius:13px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:var(--ink);font:700 10.5px var(--fUI);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s,border-color .15s}
+.tyB i{font-style:normal;font-size:19px;line-height:1.1}.tyB:active{transform:scale(.94)}.tyB.on{background:linear-gradient(180deg,var(--ty),#e08a12);border-color:rgba(255,255,255,.5);color:#1d1100}
+.tyB[disabled]{opacity:.45}
+#tyTop{position:absolute;left:calc(8px + var(--sal));right:calc(8px + var(--sar));top:calc(8px + var(--sat));display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:16px!important}
+.tyName{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;line-height:1.15}.tyName b{font:800 15px var(--fD);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tyName small{font-size:11px;color:var(--ink2);white-space:nowrap}
+.tyStat{display:flex;align-items:center;gap:4px;height:38px;padding:0 9px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:var(--ink);font:800 13.5px var(--fD);cursor:pointer;white-space:nowrap}
+.tyStat i{font-style:normal;font-size:15px}.tyStat.neg b{color:#ff8a8a}.tyStat.up b{animation:tyUp .6s}
+@keyframes tyUp{0%{color:#7dffb0;transform:scale(1.18)}100%{transform:scale(1)}}
+.tySpd{display:flex;border-radius:11px;overflow:hidden;border:1px solid rgba(255,255,255,.14)}.tySpd button{width:34px;height:38px;border:0;background:rgba(255,255,255,.06);color:var(--ink);font-size:14px;cursor:pointer}.tySpd button.on{background:var(--ty);color:#1d1100}
+#tyBadge{position:absolute;left:50%;top:calc(66px + var(--sat));transform:translateX(-50%);padding:5px 12px;border-radius:99px;background:rgba(47,214,176,.92);color:#04241c;font:800 12px var(--fD);letter-spacing:.3px;white-space:nowrap;pointer-events:none}
+#tyBadge.visit{background:rgba(124,196,255,.95);color:#06203a}
+#tyFeed{position:absolute;left:calc(10px + var(--sal));top:calc(70px + var(--sat));display:flex;flex-direction:column;gap:6px;max-width:min(330px,calc(100vw - 86px));pointer-events:none}
+.tyMsg{padding:8px 11px;border-radius:12px;background:rgba(10,18,34,.86);border:1px solid rgba(255,255,255,.14);font:700 12.5px/1.35 var(--fUI);box-shadow:0 6px 18px rgba(0,0,0,.3);animation:tyIn .25s}.tyMsg.hi{border-color:var(--ty);background:rgba(46,30,6,.92)}.tyMsg.out{opacity:0;transform:translateX(-12px);transition:all .4s}
+@keyframes tyIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+#tySide{position:absolute;right:calc(8px + var(--sar));top:calc(70px + var(--sat));display:flex;flex-direction:column;gap:6px}
+#tySide .tyB{background:rgba(10,18,34,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#tyBar{position:absolute;left:50%;bottom:calc(8px + var(--sab));transform:translateX(-50%);display:flex;gap:5px;padding:6px;border-radius:18px!important;max-width:calc(100vw - 12px)}
+#tyTray{position:absolute;left:50%;bottom:calc(74px + var(--sab));transform:translateX(-50%);width:min(760px,calc(100vw - 12px));padding:8px;border-radius:18px!important}
+.tyTrH{display:flex;align-items:center;gap:8px;margin:0 2px 6px}.tyTrH b{font:800 14px var(--fD);flex:1}.tyTrH small{color:var(--ink2);font-size:11.5px}.tyX{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:var(--ink);font-size:15px;cursor:pointer}
+.tyItems{display:flex;gap:7px;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:thin}
+.tyIt{flex:0 0 auto;width:112px;min-height:104px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px;border-radius:13px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:var(--ink);text-align:left;cursor:pointer;font:700 12px/1.25 var(--fUI)}
+.tyIt i{font-style:normal;font-size:24px}.tyIt b{font:800 12.5px/1.2 var(--fD)}.tyIt small{color:var(--ink2);font-size:10.5px;line-height:1.3}.tyIt em{font-style:normal;margin-top:auto;font:800 12px var(--fD);color:var(--ty)}
+.tyIt.on{border-color:var(--ty);background:rgba(255,178,56,.16)}.tyIt.lock{opacity:.55}.tyIt.lock em{color:#9aabc4}.tyIt.poor em{color:#ff8a8a}
+.tyIt.wide{width:150px}.tyDot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+#tyPlace{position:absolute;left:50%;bottom:calc(74px + var(--sab));transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:16px!important;max-width:calc(100vw - 12px)}
+#tyPlace .pMsg{font:700 12.5px/1.3 var(--fUI);min-width:0;flex:1 1 auto}#tyPlace .pMsg b{display:block;font:800 13.5px var(--fD)}#tyPlace .pMsg.bad small{color:#ff9a9a}#tyPlace .pMsg small{color:var(--ink2)}
+#tyPlace .btn{min-height:44px;white-space:nowrap}
+#tyCard{position:absolute;left:calc(8px + var(--sal));bottom:calc(74px + var(--sab));width:min(350px,calc(100vw - 16px));max-height:min(62vh,520px);overflow:auto;padding:11px;border-radius:18px!important;overscroll-behavior:contain}
+.tyCH{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}.tyCH i{font-style:normal;font-size:26px;line-height:1}.tyCH div{flex:1;min-width:0}.tyCH b{display:block;font:800 16px/1.2 var(--fD);overflow-wrap:anywhere}.tyCH small{color:var(--ink2);font-size:11.5px}
+.tyChip{display:inline-block;padding:2px 8px;border-radius:99px;font:800 10.5px var(--fD);background:rgba(74,222,128,.18);color:#7dffb0;border:1px solid rgba(74,222,128,.4)}.tyChip.bad{background:rgba(255,107,107,.16);color:#ff9a9a;border-color:rgba(255,107,107,.45)}.tyChip.warn{background:rgba(255,192,77,.16);color:#ffd27a;border-color:rgba(255,192,77,.45)}
+.tyBars{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:11.5px;margin:6px 0}.tyBars span{color:var(--ink2)}.tyBars u{display:block;height:7px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden;text-decoration:none}.tyBars u>s{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--ty2),var(--ty));text-decoration:none}.tyBars b{font:800 11.5px var(--fD)}
+.tyKV{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:6px 0}.tyKV span{display:block;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.05);font-size:10.5px;color:var(--ink2)}.tyKV span b{display:block;color:var(--ink);font:800 13.5px var(--fD)}
+.tyRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.tyRow .btn{flex:1 1 auto;min-height:42px;font-size:13px;padding:8px 10px}
+.tyStep{display:flex;align-items:center;gap:8px;margin:7px 0;padding:6px 8px;border-radius:12px;background:rgba(255,255,255,.05)}.tyStep span{flex:1;font-size:12px;color:var(--ink2);line-height:1.3}.tyStep span b{display:block;color:var(--ink);font:800 15px var(--fD)}.tyStep button{width:40px;height:40px;border-radius:11px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--ink);font:800 18px var(--fD);cursor:pointer}
+.tySw{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0}.tySw button{width:32px;height:32px;border-radius:9px;border:2px solid rgba(255,255,255,.25);cursor:pointer}.tySw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--ty)}
+.tySeg{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0}.tySeg button{padding:7px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:var(--ink);font:700 12px var(--fUI);cursor:pointer}.tySeg button.on{background:var(--ty);color:#1d1100;border-color:transparent}
+#tyPov{position:absolute;left:50%;top:calc(12px + var(--sat));transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:16px!important}#tyPov b{font:800 14px var(--fD)}
+body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCard,body.ty10pov #tyTray,body.ty10pov #tyPlace,body.ty10pov #tyFeed,body.ty10pov #tyBadge{display:none!important}
+#tyDay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100vw - 20px));max-height:calc(100vh - 40px);overflow:auto;padding:16px;border-radius:20px!important;z-index:2}
+#tyDay h3{margin:0 0 2px;font:800 19px var(--fD)}#tyDay p{margin:0 0 8px;color:var(--ink2);font-size:12.5px}
+.tyLed{width:100%;border-collapse:collapse;font-size:12.5px}.tyLed td{padding:4px 2px;border-bottom:1px solid rgba(255,255,255,.07)}.tyLed td:last-child{text-align:right;font:800 12.5px var(--fD)}.tyLed tr.tot td{border-top:1px solid rgba(255,255,255,.25);border-bottom:0;font:800 14px var(--fD)}.tyLed .pos{color:#7dffb0}.tyLed .neg{color:#ff9a9a}
+#tyTut{position:absolute;left:50%;top:calc(70px + var(--sat));transform:translateX(-50%);width:min(380px,calc(100vw - 110px));padding:10px 12px;border-radius:16px!important;font:700 13px/1.4 var(--fUI);border-color:var(--ty)!important}
+#tyTut b{display:block;font:800 14px var(--fD);margin-bottom:2px}#tyTut .btn{margin-top:8px;min-height:38px;font-size:12.5px;padding:6px 12px}
+/* the Park office dashboard reuses the 7.2 panel shell; these are its own bits */
+.ty10pk h3{font:800 15px var(--fD);margin:14px 0 6px}.ty10pk h3 small{font:600 11.5px var(--fUI);color:var(--ink2);margin-left:6px}
+.ty10pk .tyGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.ty10pk .tyTile{padding:10px;border-radius:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-size:11.5px;color:var(--ink2)}.ty10pk .tyTile b{display:block;color:var(--ink);font:800 18px var(--fD)}
+.ty10pk .tyList{display:flex;flex-direction:column;gap:6px}.ty10pk .tyLi{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:var(--ink);text-align:left;font:600 12.5px/1.35 var(--fUI);width:100%}.ty10pk button.tyLi{cursor:pointer}.ty10pk .tyLi>i{font-style:normal;font-size:22px}.ty10pk .tyLi>div{flex:1;min-width:0}.ty10pk .tyLi b{display:block;font:800 13.5px var(--fD)}.ty10pk .tyLi small{color:var(--ink2)}.ty10pk .tyLi em{font-style:normal;font:800 13px var(--fD);white-space:nowrap}
+.ty10pk .tyLi.done{opacity:.6}.ty10pk .tyLi.now{border-color:var(--ty)}.ty10pk .tyNote{font-size:12px;color:var(--ink2);line-height:1.45;margin:6px 0}
+.ty10pk input[type=text],.ty10pk textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:11px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:var(--ink);font:600 14px var(--fUI)}.ty10pk textarea{height:84px;font:12px/1.4 ui-monospace,Menlo,monospace;word-break:break-all}
+.ty10pk input[type=range]{width:100%;accent-color:var(--ty)}
+.ty10pk .tyLb td{padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.07);font-size:12.5px}.ty10pk .tyLb{width:100%;border-collapse:collapse}.ty10pk .tyLb td:first-child{width:28px;font:800 13px var(--fD);color:var(--ty)}
+@media (max-width:640px){
+ #tyTop{gap:4px;padding:5px 6px;flex-wrap:wrap}.tyName{flex:1 1 90px}.tyName b{font-size:13.5px}#tyMenuB span{display:none}#tyMenuB{min-width:42px;min-height:40px}
+ .tyStat{height:34px;padding:0 7px;font-size:12.5px}.tySpd button{width:30px;height:34px}
+ #tyBar{gap:3px;padding:5px}#tyBar .tyB{min-width:42px;min-height:46px;padding:4px 4px;font-size:9.5px}#tyBar .tyB i{font-size:18px}
+ #tySide{top:calc(104px + var(--sat))}#tySide .tyB{min-width:44px;min-height:44px}#tySide .tyB span{display:none}
+ #tyFeed{top:calc(104px + var(--sat))}#tyBadge{top:calc(100px + var(--sat))}#tyTut{top:calc(104px + var(--sat));width:calc(100vw - 76px);left:8px;transform:none}
+ #tyCard{left:6px;right:6px;width:auto;max-height:46vh}.tyIt{width:102px}
+}
+@media (max-width:360px){#tyBar .tyB{min-width:38px}#tyBar .tyB span{font-size:8.5px}.tyStat i{display:none}.tyStat{padding:0 6px}}
+@media (max-height:480px){
+ #tyBar{left:auto;right:calc(8px + var(--sar));transform:none;bottom:calc(6px + var(--sab))}#tyBar .tyB{min-height:40px}#tyBar .tyB span{display:none}
+ #tyTray,#tyPlace{bottom:calc(58px + var(--sab))}#tyCard{bottom:calc(8px + var(--sab));max-height:calc(100vh - 76px);width:min(320px,46vw)}.tyIt{min-height:84px}
+ #tySide{flex-direction:row;top:auto;bottom:calc(60px + var(--sab))}#tySide .tyB span{display:none}#tySide .tyB{min-width:40px;min-height:40px}
+}

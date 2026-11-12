@@ -1,11 +1,11 @@
 const { open } = require('./harness');
 const ROOT = require('path').join(__dirname, '..') + '/';
 require('fs').mkdirSync(__dirname + '/shots', { recursive: true });
-const F = ROOT + 'coaster_lab_v8_6.html', SH = __dirname + '/shots/';
+const F = ROOT + 'coaster_lab_v9_0.html', SH = __dirname + '/shots/';
 const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
 (async () => {
   for (const [w, h] of [[390, 844], [844, 390]]) {
-    const { browser, page, errors } = await open(F, { w, h, storage: { 'coasterlab.tut.v2': '1' } });
+    const { browser, page, errors } = await open(F, { w, h, storage: { 'coasterlab.tut.v2': '1', 'coasterlab.v80.bWelcome': '1' } });// a returning builder (9.0: Intermediate, so the 🧬 Evolve tab is in the library)
     const X = (f, a) => page.evaluate(f, a), V6 = 'window.__coasterDebug.v80.v86';
     ok(await X(() => window.__coasterDebug.v80.v86.openBuilder()), `${w}x${h} builder open`);
     await page.waitForTimeout(800);

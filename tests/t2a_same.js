@@ -12,7 +12,7 @@ const run = async file => {
   await browser.close(); return { r, errors };
 };
 (async () => {
-  const a = await run(ROOT + 'coaster_lab_v8_5.html'), b = await run(ROOT + 'coaster_lab_v8_6.html');
+  const a = await run(ROOT + 'coaster_lab_v8_5.html'), b = await run(ROOT + 'coaster_lab_v9_0.html');
   let same = true; a.r.forEach((x, i) => { const eq = JSON.stringify(x) === JSON.stringify(b.r[i]); if (!eq) same = false; console.log((eq ? 'SAME ' : 'DIFF ') + x[0] + '  v8.5 ' + JSON.stringify(x[1][5]) + '  v8.6 ' + JSON.stringify(b.r[i][1][5])) });
   console.log(same ? 'PASS rides identical with Disaster Mode off' : 'FAIL rides differ'); console.log('errors', a.errors.length, b.errors.length);
 })();

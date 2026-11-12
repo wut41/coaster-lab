@@ -22,7 +22,10 @@ async function open(file, { w = 390, h = 844, mobile = true, skipStart = true, s
     try { for (const k in st) localStorage.setItem(k, st[k]); } catch (e) {}
   }, [Object.assign(skipStart ? { 'coasterlab.skipStart': '1' } : {}, storage)]);
   const page = await ctx.newPage();
-  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); if (m.type() === 'warning') warns.push(m.text()); });
+  // The game catches a failing background task and only warns ("Coaster Lab: "background task 6" failed (1×); …"), so the rest keeps
+  // running; other modules catch their own errors and warn with a version tag ("8.0 inspector TypeError …"). For the tests both
+  // are still failures: they are counted with the console errors.
+  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); if (m.type() === 'warning') { warns.push(m.text()); if (/^Coaster Lab: "[^"]*" failed/.test(m.text()) || /^\d\.\d [a-z].*(Error|JSHandle@error)/.test(m.text())) errors.push('CAUGHT ' + m.text()) } });
   page.on('pageerror', e => errors.push('PAGEERROR ' + (e.stack || e.message)));
   await page.goto('https://coaster.test/' + path.basename(file));
   await page.waitForFunction(() => window.__booted === true, null, { timeout: 60000 });
