@@ -25,14 +25,17 @@ function rideProf10(def) {
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; const raw = new Float32Array(N * 3), up = new Float32Array(N * 3);
   for (let i = 0; i < N; i++) { const q = c.P[i], dx = q.x - P0.x, dz = q.z - P0.z, X = dx * cs + dz * sn, Z = -dx * sn + dz * cs, u = c.U[i]; raw[i * 3] = X; raw[i * 3 + 1] = q.y + .7; raw[i * 3 + 2] = Z; up[i * 3] = u.x * cs + u.z * sn; up[i * 3 + 1] = u.y; up[i * 3 + 2] = -u.x * sn + u.z * cs; x0 = Math.min(x0, X); x1 = Math.max(x1, X); z0 = Math.min(z0, Z); z1 = Math.max(z1, Z) }
   const big = Math.max(x1 - x0, z1 - z0), sc = Math.min(classic ? 1 : .42, 100 / big), pts = new Float32Array(N * 3); for (let i = 0; i < N * 3; i++) pts[i] = raw[i] * sc;
+  // which way does the circuit turn? The station complex (platform, queue yard) goes on the outside of the loop, so a
+  // path can always reach it: zs = 1 keeps it on the riders' left (−z), −1 mirrors it to the right
+  let area = 0; for (let i = 0; i < N; i++) { const j = (i + 1) % N; area += raw[i * 3] * raw[j * 3 + 2] - raw[j * 3] * raw[i * 3 + 2] } const zs = area >= 0 ? 1 : -1;
   const lap = parkLap10(c), tk = Math.sqrt(sc), style = def.trainStyle || 'sit';// a scale model runs √scale faster (same gravity)
   let SL = 10; if (def.srcEls && def.srcEls[0]) SL = +def.srcEls[0][1].len || 14; else if (def.zonesF) { const z = def.zonesF.find(q => q.k === 'station'); if (z) SL = (z.fb - z.fa) * c.L }
-  const exc = clamp(m.thrill * .8 + Math.min(m.air, 6) * 2 + Math.min(m.inv, 7) * 1.5, 6, 100), int = classic ? clamp(34 + m.inv * 12 + m.h * .6, 10, 100) : m.intensity, nau = classic ? clamp(18 + m.inv * 10, 0, 100) : clamp((100 - m.comfort) * .5 + m.inv * 3.5, 0, 100);
+  const exc = clamp(22 + m.thrill * .7 + Math.min(m.air, 6) * 2 + Math.min(m.inv, 7) * 1.2, 10, 100), int = classic ? clamp(34 + m.inv * 12 + m.h * .6, 10, 100) : m.intensity, nau = classic ? clamp(18 + m.inv * 10, 0, 100) : clamp((100 - m.comfort) * .5 + m.inv * 3.5, 0, 100);
   p = {
-    def, c, sc, pts, up, L: c.L * sc, bb: [x0 * sc, x1 * sc, z0 * sc, z1 * sc], H: m.h * sc, lapT: lap.t, lapS: lap.s, T: lap.T * tk, tk, SL: Math.max(6, Math.min(SL * sc, 12)), style, seats: (SEATS10[style] || 2) * 4, hang: !!HANG10[style],
+    def, c, sc, pts, up, L: c.L * sc, bb: [x0 * sc, x1 * sc, z0 * sc, z1 * sc], H: m.h * sc, lapT: lap.t, lapS: lap.s, T: lap.T * tk, tk, SL: Math.max(6, Math.min(SL * sc, 12)), style, seats: (SEATS10[style] || 2) * ((SEATS10[style] || 2) > 2 ? 4 : 6), hang: !!HANG10[style], zs, nCars: (SEATS10[style] || 2) > 2 ? 4 : 6,
     exc: Math.round(exc), int: Math.round(int), nau: Math.round(nau), inv: m.inv, realH: m.h, realV: m.vmax, realL: c.L, yS: pts[1],
     hw: style === 'wing' ? 1.95 : style === 'dive' ? 1.7 : style === 'floorless' ? 1.2 : .5,// half width of the train: the platform edge stands clear of it
-    cost: Math.round((4200 + c.L * 9 + m.h * 150 + m.inv * 1100) / 100) * 100, run: Math.round(24 + c.L * .035 + m.h * .45), lv: def.name === 'Thunder Comet' || def.name === 'Nova Giant' ? 9 : exc < 32 ? 1 : exc < 58 ? 2 : exc < 76 ? 4 : exc < 92 ? 6 : 8, fare: Math.max(2, Math.round(exc / 14))
+    cost: Math.round((4200 + c.L * 9 + m.h * 150 + m.inv * 1100) / 100) * 100, run: +(1 + c.L * .004 + m.h * .03 + (def.zonesF && def.zonesF.some(z => z.k === 'launch') ? 1.5 : 0)).toFixed(2), lv: def.name === 'Thunder Comet' || def.name === 'Nova Giant' ? 9 : exc < 32 ? 1 : exc < 58 ? 2 : exc < 76 ? 4 : exc < 92 ? 6 : 8, fare: Math.max(2, Math.round(exc / 14))
   };
   p.zp0 = -(p.hw + .3); p.zp1 = p.zp0 - 2.1; p.yP = p.hang ? Math.max(.25, p.yS - 1.9) : p.yS - .32;// platform: inner edge, outer edge, height
   RP10.set(def, p); return p;
@@ -53,8 +56,8 @@ function coasterCells10(p, r) {
   const solid = new Map(), air = new Map(), put = (m, x, z) => { const [X, Z] = rotL10(x, z, r), i = Math.floor(X / TS10), j = Math.floor(Z / TS10); m.set(i + ',' + j, [i, j]) };
   for (let i = 0; i < N; i++) { const x = p.pts[i * 3], y = p.pts[i * 3 + 1], z = p.pts[i * 3 + 2]; if (y < 4.4) { for (const dx of [-.7, .7]) for (const dz of [-.7, .7]) put(solid, x + dx, z + dz) } else if (y < 11) put(air, x, z) }
   // the station complex: platform strip and an 8 × 8 m queue yard on the left of the station
-  const pad = []; for (let a = 0; a < 2; a++) for (let b = -3; b < 0; b++) { put(solid, a * 4 + 2, b * 4 + 2); if (b < -1) { const [X, Z] = rotL10(a * 4 + 2, b * 4 + 2, r); pad.push([Math.floor(X / TS10), Math.floor(Z / TS10)]) } }
-  for (let x = 1; x < p.SL + 1; x += 2) for (const z of [-2.5, -.5, .6]) put(solid, x, z);
+  const pad = [], zs = p.zs; for (let a = 0; a < 2; a++) for (let b = -3; b < 0; b++) { put(solid, a * 4 + 2, (b * 4 + 2) * zs); if (b < -1) { const [X, Z] = rotL10(a * 4 + 2, (b * 4 + 2) * zs, r); pad.push([Math.floor(X / TS10), Math.floor(Z / TS10)]) } }
+  for (let x = 1; x < p.SL + 1; x += 2) for (const z of [-2.5, -.5, .6]) put(solid, x, z * zs);
   air.forEach((v_, k) => { if (solid.has(k)) air.delete(k) });
   return p.fp[key] = { solid: [...solid.values()], air: [...air.values()], pad };
 }
@@ -97,7 +100,8 @@ class Kit10 {// collects coloured boxes / cylinders and turns them into one mesh
   cyl(r0, r1, h, c, x, y, z, seg = 10, rx, ry, rz) { return this.add(new THREE.CylinderGeometry(r0, r1, h, seg), c, x, y, z, rx, ry, rz) }
   mesh(metal) { if (!this.p.length) return null; const m = new THREE.Mesh(mergeCol10(this.p), metal ? tyMats10().vcMetal : tyMats10().vc); m.castShadow = true; m.receiveShadow = true; this.p = []; return m }
 }
-function nameSign10(text, col, w, h) { const t = canvasTex(512, Math.round(512 * h / w), (g, W, H_) => { g.fillStyle = '#0d1b33'; g.fillRect(0, 0, W, H_); g.fillStyle = col; g.fillRect(0, H_ - 12, W, 12); g.fillStyle = '#fff'; let fs = Math.round(H_ * .46); g.font = '800 ' + fs + 'px system-ui,sans-serif'; while (g.measureText(text.toUpperCase()).width > W - 30 && fs > 12) { fs -= 2; g.font = '800 ' + fs + 'px system-ui,sans-serif' } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text.toUpperCase(), W / 2, H_ * .46) }), m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide })); m.userData.sign10 = 1; return m }
+function nameSign10(text, col, w, h) { const g = new THREE.Group(), a = nameSign1_10(text, col, w, h), b = new THREE.Mesh(a.geometry, a.material); b.rotation.y = PI; b.position.z = -.01; b.userData.sign10 = 1; g.add(a, b); g.userData.sign10 = 1; return g }
+function nameSign1_10(text, col, w, h) { const t = canvasTex(512, Math.round(512 * h / w), (g, W, H_) => { g.fillStyle = '#0d1b33'; g.fillRect(0, 0, W, H_); g.fillStyle = col; g.fillRect(0, H_ - 12, W, 12); g.fillStyle = '#fff'; let fs = Math.round(H_ * .46); g.font = '800 ' + fs + 'px system-ui,sans-serif'; while (g.measureText(text.toUpperCase()).width > W - 30 && fs > 12) { fs -= 2; g.font = '800 ' + fs + 'px system-ui,sans-serif' } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text.toUpperCase(), W / 2, H_ * .46) }), m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide })); m.userData.sign10 = 1; return m }
 // ---- the coaster replica: rails, ties, supports, station, queue yard, trains
 const STN10 = [{ n: 'Classic', roof: 0x283040 }, { n: 'Pavilion', roof: 0xd94b3b }, { n: 'Glass hall', roof: 0x9fd8ff }, { n: 'Timber lodge', roof: 0x7a5230 }];
 function coasterBuild10(o, inf) {
@@ -134,9 +138,9 @@ function coasterBuild10(o, inf) {
   for (let r = 0; r < 4; r++) { const z = -4.9 - r * 1.75; K.box(r % 2 ? 5.4 : 5.4, .05, .05, 0xe8edf3, r % 2 ? 3.5 : 3.1, .78, z); for (let x = .6; x < 6; x += 1.35) K.box(.05, .78, .05, 0x8b97a6, x + (r % 2 ? .4 : 0), .39, z) }
   for (const x of [.25, 7.75]) K.box(.06, .8, 7.4, 0x8b97a6, x, .4, -8); K.box(.06, .8, .06, 0x8b97a6, 6.6, .4, -11.9);
   for (const x of [.9, 3.3]) K.box(.22, 3, .22, accC, x, 1.5, -11.9); K.box(2.9, .5, .3, accC, 2.1, 3.1, -11.9);
-  const sm = K.mesh(); if (sm) g.add(sm);
-  const sg = nameSign10(objName10(o), def.color || '#ffc233', Math.min(SL + .6, 7), 1.05); sg.position.set(SL / 2 + .5, yS + 3.95, rz - rw / 2 - .2); g.add(sg); g.userData.sign = sg;
-  const lights = new THREE.Mesh(new THREE.BoxGeometry(SL, .06, .1), M_.glow); lights.position.set(SL / 2 + .5, yS + 2.9, rz); lights.userData.night10 = 1; lights.visible = false; g.add(lights);
+  const stG = new THREE.Group(), sm = K.mesh(); if (sm) stG.add(sm); stG.scale.z = p.zs; g.add(stG);
+  const sg = nameSign10(objName10(o), def.color || '#ffc233', Math.min(SL + .6, 7), 1.05); sg.position.set(SL / 2 + .5, yS + 3.95, (rz - rw / 2 - .2) * p.zs); g.add(sg); g.userData.sign = sg;
+  const lights = new THREE.Mesh(new THREE.BoxGeometry(SL, .06, .1), M_.glow); lights.position.set(SL / 2 + .5, yS + 2.9, rz * p.zs); lights.userData.night10 = 1; lights.visible = false; g.add(lights);
   return g;
 }
 // one car as a single coloured mesh; riders are instanced heads + bodies (shown only for seats that are taken)
@@ -154,8 +158,8 @@ function carGeo10(style, body, accent, lead) {
 function seatPos10(style) { const a = []; if (style === 'wing') [-1.6, -1.05, 1.05, 1.6].forEach(x => a.push([x, 0, -.1])); else if (style === 'dive') [-1.3, -.78, -.26, .26, .78, 1.3].forEach(x => a.push([x, .24, -.1])); else if (style === 'floorless') [-.78, -.26, .26, .78].forEach(x => a.push([x, .24, -.1])); else if (style === 'bike') [-.3, .3].forEach(x => a.push([x, .34, -.12])); else[-.24, .24].forEach(x => a.push([x, .22, -.1])); return a }
 function trainBuild10(o, inf, k) {
   const p = inf.prof, def = inf.def, col = o.col || {}, style = col.train && SEATS10[col.train] === SEATS10[p.style] && !!HANG10[col.train] === p.hang ? col.train : p.style, hx = (key, d) => col[key] ? parseInt(col[key].slice(1), 16) : d, body = hx('body', def.body), accent = hx('accent', def.accent), cars = [], M_ = tyMats10();
-  for (let c = 0; c < 4; c++) { const me = new THREE.Mesh(carGeo10(style, body, accent, c === 0), M_.vcMetal); me.castShadow = true; cars.push(me) }
-  const seats = seatPos10(style), nS = seats.length * 4, heads = new THREE.InstancedMesh(new THREE.SphereGeometry(.13, 8, 6), new THREE.MeshStandardMaterial({ roughness: .7 }), nS), bodies = new THREE.InstancedMesh(new THREE.BoxGeometry(.3, .36, .24), new THREE.MeshStandardMaterial({ roughness: .75 }), nS);
+  for (let c = 0; c < p.nCars; c++) { const me = new THREE.Mesh(carGeo10(style, body, accent, c === 0), M_.vcMetal); me.castShadow = true; cars.push(me) }
+  const seats = seatPos10(style), nS = seats.length * p.nCars, heads = new THREE.InstancedMesh(new THREE.SphereGeometry(.13, 8, 6), new THREE.MeshStandardMaterial({ roughness: .7 }), nS), bodies = new THREE.InstancedMesh(new THREE.BoxGeometry(.3, .36, .24), new THREE.MeshStandardMaterial({ roughness: .75 }), nS);
   heads.count = bodies.count = 0; heads.frustumCulled = bodies.frustumCulled = false;
   return { cars, heads, bodies, seats, style, riders: [], tau: 0, ph: k ? 'hold' : 'load', wait: 0, s: 0 };
 }

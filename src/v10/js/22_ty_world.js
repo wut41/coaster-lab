@@ -75,8 +75,9 @@ function objBuild10(o) {
   const inf = objInfo10(o), w = objWorld10(o), M_ = tyMats10(); let g;
   if (inf.t === 'coaster') { g = coasterBuild10(o, inf); const nTr = 1 + (o.up && o.up.cap >= 2 ? 1 : 0); o.rt.trains = []; for (let k = 0; k < nTr; k++) { const tr = trainBuild10(o, inf, k); tr.cars.forEach(c => g.add(c)); g.add(tr.heads, tr.bodies); o.rt.trains.push(tr) } }
   else if (inf.t === 'flat') { g = new THREE.Group(); const m = new THREE.Group(), an = []; att3d80(inf.model, m, an, o.col && o.col.body ? parseInt(o.col.body.slice(1), 16) : inf.col); try { mergeAnim80(m) } catch (e) {} m.position.z = .8; g.add(m); o.rt.anim = an; o.rt.animT = 0;
-    const K = new Kit10(), W = inf.w * TS10, D = inf.d * TS10; K.box(W - .3, .06, D - .3, 0xcdbfa6, 0, .03, 0); for (let x = -W / 2 + .5; x <= W / 2 - .4; x += 1.5) K.box(.05, .75, .05, 0x8b97a6, x, .38, -D / 2 + 1.9); K.box(W - 1, .05, .05, 0xe8edf3, 0, .75, -D / 2 + 1.9); for (const s_ of [-1, 1]) K.box(.2, 2.6, .2, inf.col, s_ * 1.2 - W / 2 + 2, 1.3, -D / 2 + .2); K.box(2.8, .45, .25, inf.col, -W / 2 + 2, 2.7, -D / 2 + .2); g.add(K.mesh());
-    const sg = nameSign10(objName10(o), '#' + new THREE.Color(inf.col).getHexString(), 3.4, .6); sg.position.set(W / 2 - 2.4, 2.2, -D / 2 + .15); sg.rotation.y = PI; g.add(sg); g.userData.sign = sg }
+    const K = new Kit10(), W = inf.w * TS10, D = inf.d * TS10; K.box(W - .3, .06, D - .3, 0xcdbfa6, 0, .03, 0); g.add(K.mesh());
+    // the entrance sign stands on two posts; it is moved to the side that touches the path when the ride is connected
+    const sg = new THREE.Group(), K2 = new Kit10(); for (const s_ of [-1.25, 1.25]) K2.box(.16, 2.6, .16, inf.col, s_, 1.3, 0); K2.box(2.9, .2, .2, inf.col, 0, 2.62, 0); sg.add(K2.mesh()); const pl = nameSign10(objName10(o), '#' + new THREE.Color(inf.col).getHexString(), 2.7, .52); pl.position.y = 2.05; sg.add(pl); sg.visible = false; g.add(sg); g.userData.sign = sg }
   else if (inf.t === 'shop' || inf.t === 'fac') { g = new THREE.Group(); const m = new THREE.Group(); shop3d80(m, inf.model, inf.col); m.scale.setScalar(.92); m.position.z = -.3; g.add(m) }
   else { g = new THREE.Group(); decoModel10(g, inf) }
   g.position.set(w.x, 0, w.z); g.rotation.y = w.ry; g.userData.id = o.id; g.traverse(q => { if (q.isMesh && !q.userData.sign10) { q.castShadow = true } }); return g;
@@ -95,7 +96,7 @@ function objPt10(o, lx, ly, lz, out) { const w = o.rt.xf || (o.rt.xf = objWorld1
 // ---- whole-park (re)build after loading a park
 function tyRebuild10() {
   tyWorld10(); gridSync10(); while (TY.objG.children.length) objDispose10(TY.objG.children[0]);
-  TY.guests = []; TY.staff = []; TY.litter = []; TY.sel = null; TY.tool = null; ghostClear10();
+  TY.guests = []; TY.staff = []; TY.litter = []; TY.sel = null; TY.tool = null; TY.pov = null; ghostClear10(); TY.day = newDay10(); TY.dayOpen = false; TY.thoughts = {}; TY.arr = 0; TY.lastHappy = null; TY.ui.cat = '';
   for (const o of TY.park.objs) { o.rt = null; objAdd3d10(o) }
   tyLand10(); tyGate10(); tyPaths10(); decoRebuild10(); beauty10(); linkAll10(); staffSync10(); TY.selL.visible = false;
 }
