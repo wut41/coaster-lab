@@ -3,6 +3,15 @@ const K10 = 'coasterlab.v10.';
 const LS10 = (k, d) => { try { const r = localStorage.getItem(K10 + k); return r == null ? d : JSON.parse(r) } catch (e) { return d } };
 const SS10 = (k, val) => { if (RESTORE80) return false; try { localStorage.setItem(K10 + k, JSON.stringify(val)); return true } catch (e) { saveFail81('v10.' + k, e); return false } };
 const DEL10 = k => { try { localStorage.removeItem(K10 + k) } catch (e) {} };
+// PRIVATE storage. What identifies this device (its secret for the parks it published) and the signed-in session are
+// kept under another key prefix than the saves. The game's "Save a copy", backup and restore features handle every
+// key that starts with "coasterlab.", so they never contain these: a save file can be shared without giving the
+// account or the device's parks away, and restoring someone's file never signs you in as them.
+const KP10 = 'coasterlab-device.v10.';
+const LSP10 = (k, d) => { try { const r = localStorage.getItem(KP10 + k); return r == null ? d : JSON.parse(r) } catch (e) { return d } };
+const SSP10 = (k, val) => { try { localStorage.setItem(KP10 + k, JSON.stringify(val)); return true } catch (e) { return false } };
+const DELP10 = k => { try { localStorage.removeItem(KP10 + k) } catch (e) {} };
+try { for (const k of ['auth', 'dev', 'sync']) localStorage.removeItem(K10 + k) } catch (e) {}// early 10.0 test builds kept them with the saves
 const DBG10 = {}; DEBUG80.v10 = DBG10;
 const lerp10 = (a, b, t) => a + (b - a) * t;
 const sat10 = x => x < 0 ? 0 : x > 1 ? 1 : x;

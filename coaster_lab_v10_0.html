@@ -7762,6 +7762,15 @@ const K10 = 'coasterlab.v10.';
 const LS10 = (k, d) => { try { const r = localStorage.getItem(K10 + k); return r == null ? d : JSON.parse(r) } catch (e) { return d } };
 const SS10 = (k, val) => { if (RESTORE80) return false; try { localStorage.setItem(K10 + k, JSON.stringify(val)); return true } catch (e) { saveFail81('v10.' + k, e); return false } };
 const DEL10 = k => { try { localStorage.removeItem(K10 + k) } catch (e) {} };
+// PRIVATE storage. What identifies this device (its secret for the parks it published) and the signed-in session are
+// kept under another key prefix than the saves. The game's "Save a copy", backup and restore features handle every
+// key that starts with "coasterlab.", so they never contain these: a save file can be shared without giving the
+// account or the device's parks away, and restoring someone's file never signs you in as them.
+const KP10 = 'coasterlab-device.v10.';
+const LSP10 = (k, d) => { try { const r = localStorage.getItem(KP10 + k); return r == null ? d : JSON.parse(r) } catch (e) { return d } };
+const SSP10 = (k, val) => { try { localStorage.setItem(KP10 + k, JSON.stringify(val)); return true } catch (e) { return false } };
+const DELP10 = k => { try { localStorage.removeItem(KP10 + k) } catch (e) {} };
+try { for (const k of ['auth', 'dev', 'sync']) localStorage.removeItem(K10 + k) } catch (e) {}// early 10.0 test builds kept them with the saves
 const DBG10 = {}; DEBUG80.v10 = DBG10;
 const lerp10 = (a, b, t) => a + (b - a) * t;
 const sat10 = x => x < 0 ? 0 : x > 1 ? 1 : x;
@@ -9461,7 +9470,7 @@ const skipRt10 = (k, v) => k === 'rt' ? undefined : v;
 // the park as saved: runtime state (3D objects, queues) is never written
 savePark10 = function () { const P_ = TY.park; if (!P_ || TY.visit || !TY.slot || RESTORE80) return false; try { localStorage.setItem(K10 + 'park.' + TY.slot, JSON.stringify(P_, skipRt10)); return true } catch (e) { saveFail81('v10.park', e); return false } };
 // this device: a secret (proves which parks it published; never shown) and a public id, name and colour for presence
-function dev10() { let d = LS10('dev', null); if (!d || typeof d.key !== 'string' || !/^[0-9a-f]{48}$/.test(d.key)) { const a = new Uint8Array(30); crypto.getRandomValues(a); const hx = [...a].map(b => b.toString(16).padStart(2, '0')).join(''); d = { key: hx.slice(0, 48), pid: hx.slice(48), nick: 'Guest ' + (1000 + Math.floor(Math.random() * 9000)), col: pickR10(['#ff5a6e', '#ffc233', '#2fd18b', '#22e0ff', '#9b6bff', '#ff7a2f', '#ff4fd8']) }; SS10('dev', d) } return d }
+function dev10() { let d = LSP10('dev', null); if (!d || typeof d.key !== 'string' || !/^[0-9a-f]{48}$/.test(d.key)) { const a = new Uint8Array(30); crypto.getRandomValues(a); const hx = [...a].map(b => b.toString(16).padStart(2, '0')).join(''); d = { key: hx.slice(0, 48), pid: hx.slice(48), nick: 'Guest ' + (1000 + Math.floor(Math.random() * 9000)), col: pickR10(['#ff5a6e', '#ffc233', '#2fd18b', '#22e0ff', '#9b6bff', '#ff7a2f', '#ff4fd8']) }; SSP10('dev', d) } return d }
 // ---- park codes
 const b64u10 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') };
 const ub64u10 = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u };
@@ -9584,7 +9593,7 @@ function shareAct10(k, v_, t) {
     case 'sandIn': (async () => { const c = ($('#tyCodeI') || {}).value || CLOUD10.ui.code, o = /^CL10/.test(c.trim()) ? await unpack10(c) : null, P2 = o && cleanPark10(o, 'sandbox'); if (!P2) { CLOUD10.msg = 'Paste a long park code (CL10…) to copy a park into your Sandbox.'; done(); return } if (!(await ask7('Replace your Sandbox park with “' + P2.name + '”? Your Career park is not touched.', 'Replace Sandbox', 'Cancel', true))) return; P2.id = newPark10('sandbox').id; SS10('park.sandbox', JSON.parse(JSON.stringify(P2, skipRt10))); closePk72(); tyOpen10('sandbox') })(); return false;
     case 'fileIn': { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json'; inp.onchange = async () => { const f = inp.files && inp.files[0]; if (!f || f.size > 3e6) return; try { const o = JSON.parse(await f.text()); if (o && typeof o.code === 'string') { const w = await visitCode10(o.code); if (w) { CLOUD10.msg = w; done() } } else { CLOUD10.msg = 'That file is not a Coaster Lab park.'; done() } } catch (e) { CLOUD10.msg = 'That file could not be read.'; done() } }; inp.click(); return false }
     case 'pub': publish10(); return false;
-    case 'nickSave': { const n = cleanName(CLOUD10.ui.nick != null ? CLOUD10.ui.nick : d.nick).slice(0, 20); if (n) { d.nick = n; SS10('dev', d); CLOUD10.ui.nick = null; if (LIVE10.joined) liveTrack10(); say('Name saved') } return false }
+    case 'nickSave': { const n = cleanName(CLOUD10.ui.nick != null ? CLOUD10.ui.nick : d.nick).slice(0, 20); if (n) { d.nick = n; SSP10('dev', d); CLOUD10.ui.nick = null; if (LIVE10.joined) liveTrack10(); say('Name saved') } return false }
     case 'unpub': (async () => { if (!(await ask7('Remove the published park ' + v_ + ' from the cloud? Its ratings go too.', 'Remove', 'Keep', true))) return; try { await rpc10('cl_unpublish_park', { p_owner_key: d.key, p_code: v_ }); if (P_ && P_.seen.cloud === v_) { delete P_.seen.cloud; savePark10(); liveLeave10() } CLOUD10.checked = 0; cloudCheck10(true) } catch (e) { CLOUD10.why = cloudWhy10(e); done() } })(); return false;
     case 'acct': acctOpen10(); return false;
     case 'sort': CLOUD10.sort = v_; if (!CLOUD10.lists[v_]) { CLOUD10.checked = 0; cloudCheck10(true) } return true;
@@ -9610,7 +9619,7 @@ TY10.open = tyOpen10; TY10.visit = tyVisit10;
 //  · Password reset uses Supabase's email. Until the project has its own email sender, Supabase's built-in one is
 //    limited to a couple of emails an hour (and to the project team's addresses), so resets may not arrive.
 const AUTH10 = { s: null, mode: 'in', busy: '', err: '', msg: '', ui: { email: '', pw: '', name: '', show: false, pw2: '', nick: null }, saves: {}, ask: null, syncing: false, syncAt: 0, syncErr: '', recover: false, open: false, t: 20, dirty: false };
-{ const s = LS10('auth', null); if (s && typeof s.at === 'string' && typeof s.rt === 'string' && typeof s.uid === 'string' && s.uid) AUTH10.s = s }
+{ const s = LSP10('auth', null); if (s && typeof s.at === 'string' && typeof s.rt === 'string' && typeof s.uid === 'string' && s.uid) AUTH10.s = s }
 const nameOk10 = n => String(n == null ? '' : n).replace(/[\u0000-\u001f<>"&]/g, '').trim().slice(0, 24);
 // the name shown on published parks and above the live pin: the account's player name, else this device's nickname
 const nick10 = () => AUTH10.s && AUTH10.s.name ? AUTH10.s.name : dev10().nick;
@@ -9645,9 +9654,9 @@ function authWhy10(e, what) {
 function authSet10(j) {
   if (!j || typeof j.access_token !== 'string' || typeof j.refresh_token !== 'string') return false; const u = j.user || {}, old = AUTH10.s;
   AUTH10.s = { at: j.access_token, rt: j.refresh_token, exp: j.expires_at ? j.expires_at * 1000 : Date.now() + (+j.expires_in || 3600) * 1000, uid: u.id || (old && old.uid) || '', email: u.email || (old && old.email) || '', name: nameOk10(u.user_metadata && u.user_metadata.username) || (old && old.name) || '' };
-  SS10('auth', AUTH10.s); return true;
+  SSP10('auth', AUTH10.s); return true;
 }
-function authClear10(msg) { AUTH10.s = null; AUTH10.mode = 'in'; DEL10('auth'); AUTH10.saves = {}; AUTH10.ask = null; AUTH10.recover = false; AUTH10.syncErr = ''; if (msg) AUTH10.msg = msg; acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
+function authClear10(msg) { AUTH10.s = null; AUTH10.mode = 'in'; DELP10('auth'); AUTH10.saves = {}; AUTH10.ask = null; AUTH10.recover = false; AUTH10.syncErr = ''; if (msg) AUTH10.msg = msg; acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
 // a valid access token (renewed shortly before it runs out), or null when signed out
 let _ref10 = null;
 async function token10(force) {
@@ -9665,7 +9674,7 @@ async function signUp10(email, pw, name) {
     let free = true; try { free = await rpc10('cl_username_free', { p_name: name }) } catch (e) { if (!e || !e.status) throw e }// (when the cloud functions are not installed yet the sign-up itself still says if a name is taken)
     if (free === false) { AUTH10.busy = ''; return authFail10('That player name is taken. Try another one.') }
     const j = await authApi10('signup', { email, password: pw, data: { username: name } }); AUTH10.busy = ''; AUTH10.ui.pw = '';
-    if (authSet10(j)) { if (!AUTH10.s.name) AUTH10.s.name = name; SS10('auth', AUTH10.s); AUTH10.msg = 'Welcome, ' + AUTH10.s.name + '! Your parks are now kept in your account.'; acctChip10(); acctDraw10(); try { sfx('unlock') } catch (e) {} await syncAll10(); return true }
+    if (authSet10(j)) { if (!AUTH10.s.name) AUTH10.s.name = name; SSP10('auth', AUTH10.s); AUTH10.msg = 'Welcome, ' + AUTH10.s.name + '! Your parks are now kept in your account.'; acctChip10(); acctDraw10(); try { sfx('unlock') } catch (e) {} await syncAll10(); return true }
     AUTH10.mode = 'in'; AUTH10.msg = 'Your account is made, but it has to be confirmed by email before you can sign in. Open the link in the email sent to ' + email + ', then sign in here.'; acctDraw10(); return false;
   } catch (e) { AUTH10.busy = ''; return authFail10(authWhy10(e, 'up')) }
 }
@@ -9698,7 +9707,7 @@ async function newPw10(pw) {
 async function newName10(n) {
   n = nameOk10(n); AUTH10.err = AUTH10.msg = ''; if (n.length < 3) return authFail10('A player name has 3 to 24 letters.');
   AUTH10.busy = 'Changing your player name…'; acctDraw10();
-  try { const r = await rpc10('cl_set_username', { p_name: n }); AUTH10.busy = ''; AUTH10.s.name = r.username; SS10('auth', AUTH10.s); AUTH10.ui.nick = null; AUTH10.msg = 'You are now ' + r.username + '.'; acctChip10(); acctDraw10(); if (LIVE10.joined) liveTrack10(); return true }
+  try { const r = await rpc10('cl_set_username', { p_name: n }); AUTH10.busy = ''; AUTH10.s.name = r.username; SSP10('auth', AUTH10.s); AUTH10.ui.nick = null; AUTH10.msg = 'You are now ' + r.username + '.'; acctChip10(); acctDraw10(); if (LIVE10.joined) liveTrack10(); return true }
   catch (e) { AUTH10.busy = ''; return authFail10(e && e.status && e.message && !/HTTP \d/.test(e.message) ? e.message.charAt(0).toUpperCase() + e.message.slice(1) + '.' : cloudWhy10(e)) }
 }
 // a link from an email (password reset, or a confirmation once those are switched on) signs the player in
@@ -9716,8 +9725,8 @@ const metaOf10 = P_ => ({ name: nameOk10(P_.name) || 'My Park', day: +P_.day || 
 const metaRaw10 = raw => { try { return metaOf10(JSON.parse(raw)) } catch (e) { return null } };
 const untouched10 = raw => { try { const P_ = JSON.parse(raw); return (+P_.day || 1) <= 1 && (!P_.objs || !P_.objs.length) && !(P_.tot && P_.tot.exp > 0) } catch (e) { return true } };
 function devName10() { const u = navigator.userAgent || ''; return (/iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows PC' : /Linux/.test(u) ? 'Linux PC' : 'Browser') + ' ' + dev10().pid.slice(0, 4) }
-function syncRec10(slot) { const st = LS10('sync', {}); return AUTH10.s && st.uid === AUTH10.s.uid && st[slot] || null }
-function syncMark10(slot, rev, h) { let st = LS10('sync', {}); if (!AUTH10.s) return; if (st.uid !== AUTH10.s.uid) st = { uid: AUTH10.s.uid }; st[slot] = { rev, h }; SS10('sync', st) }
+function syncRec10(slot) { const st = LSP10('sync', {}); return AUTH10.s && st.uid === AUTH10.s.uid && st[slot] || null }
+function syncMark10(slot, rev, h) { let st = LSP10('sync', {}); if (!AUTH10.s) return; if (st.uid !== AUTH10.s.uid) st = { uid: AUTH10.s.uid }; st[slot] = { rev, h }; SSP10('sync', st) }
 const liveSlot10 = slot => TY.on && !TY.visit && TY.slot === slot;
 // send this device's park. base = the cloud revision it replaces (undefined: the one this device last saw)
 async function syncUp10(slot, base) {
@@ -9738,17 +9747,17 @@ async function syncDown10(slot) {
   return true;
 }
 // the player started a park again from nothing: the copy in the account goes too (at the next sync if offline now)
-function acctWiped10(slot) { if (!AUTH10.s) return; const st = LS10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SS10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
+function acctWiped10(slot) { if (!AUTH10.s) return; const st = LSP10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SSP10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
 // bring this device and the account in line. Never overwrites a played park without asking.
 async function syncAll10() {
   if (!AUTH10.s || AUTH10.syncing || AUTH10.ask) return false; AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
   try {
     const me = await rpc10('cl_me', {}); if (!me) throw { status: 401 }; if (!AUTH10.s) return false;
-    if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SS10('auth', AUTH10.s); acctChip10() }
+    if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SSP10('auth', AUTH10.s); acctChip10() }
     AUTH10.saves = {}; for (const sv of me.saves || []) AUTH10.saves[sv.slot] = sv;
     for (const slot of ['career', 'sandbox']) {
       let cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
-      if (rec && rec.wiped) { if (cl) await rpc10('cl_save_delete', { p_slot: slot }); delete AUTH10.saves[slot]; cl = null; const st = LS10('sync', {}); delete st[slot]; SS10('sync', st); rec = null }
+      if (rec && rec.wiped) { if (cl) await rpc10('cl_save_delete', { p_slot: slot }); delete AUTH10.saves[slot]; cl = null; const st = LSP10('sync', {}); delete st[slot]; SSP10('sync', st); rec = null }
       if (!cl) { if (raw && !untouched10(raw)) await syncUp10(slot, null); continue }
       if (!raw) { await syncDown10(slot); continue }
       if (rec && rec.rev === cl.rev) { if (rec.h !== h) { const r = await syncUp10(slot, cl.rev); if (r && r.conflict) { AUTH10.ask = { slot, cloud: r, local: metaRaw10(raw) }; break } } continue }// only this device changed
@@ -9885,7 +9894,7 @@ DBG10.ty = {
 // grid facts for the path-routing test helper: which tiles are free for a path, which have one, and the tiles next to
 // an object's queue area (or its footprint for shops and flat rides)
 // player accounts (tests play the part of the account server)
-DBG10.acct = { state: () => ({ in: !!AUTH10.s, uid: AUTH10.s && AUTH10.s.uid, name: AUTH10.s && AUTH10.s.name, email: AUTH10.s && AUTH10.s.email, exp: AUTH10.s && AUTH10.s.exp, mode: AUTH10.mode, err: AUTH10.err, msg: AUTH10.msg, busy: AUTH10.busy, open: AUTH10.open, recover: AUTH10.recover, syncing: AUTH10.syncing, syncErr: AUTH10.syncErr, synced: !!AUTH10.syncAt, ask: AUTH10.ask && { slot: AUTH10.ask.slot, cloud: AUTH10.ask.cloud.meta, local: AUTH10.ask.local }, saves: JSON.parse(JSON.stringify(AUTH10.saves)), rec: LS10('sync', {}), nick: nick10() }),
+DBG10.acct = { state: () => ({ in: !!AUTH10.s, uid: AUTH10.s && AUTH10.s.uid, name: AUTH10.s && AUTH10.s.name, email: AUTH10.s && AUTH10.s.email, exp: AUTH10.s && AUTH10.s.exp, mode: AUTH10.mode, err: AUTH10.err, msg: AUTH10.msg, busy: AUTH10.busy, open: AUTH10.open, recover: AUTH10.recover, syncing: AUTH10.syncing, syncErr: AUTH10.syncErr, synced: !!AUTH10.syncAt, ask: AUTH10.ask && { slot: AUTH10.ask.slot, cloud: AUTH10.ask.cloud.meta, local: AUTH10.ask.local }, saves: JSON.parse(JSON.stringify(AUTH10.saves)), rec: LSP10('sync', {}), nick: nick10() }),
   open: m => acctOpen10(m), close: () => acctClose10(), signUp: (e, p, n) => signUp10(e, p, n), signIn: (e, p) => signIn10(e, p), signOut: () => signOut10(), sync: () => syncAll10(), keep: w => syncKeep10(w), up: slot => syncUp10(slot), recover: e => recover10(e), newPw: p => newPw10(p), newName: n => newName10(n), bak: slot => bakSwap10(slot), token: f => token10(f).then(t => !!t), expire: () => { if (AUTH10.s) AUTH10.s.exp = Date.now() - 1000 }, hash: () => acctHash10(), raw: slot => rawPark10(slot), hasBak: slot => !!localStorage.getItem(K10 + 'park.' + slot + '.bak') };
 DBG10.tyGrid = id => { const o = TY.objById.get(id); if (!o) return null; const fp = footprint10(o), area = fp.pad || fp.solid, own = new Set(fp.solid.map(([i, j]) => tI10(i, j))), goal = []; for (const [i, j] of area) for (const [a, b] of NB10) { const x = i + a, z = j + b; if (!inG10(x, z)) continue; const k = tI10(x, z); if (!own.has(k) && TY.own[k] && !TY.occ[k]) goal.push(k) } const free = new Uint8Array(GW10 * GH10); for (let k = 0; k < GW10 * GH10; k++) free[k] = TY.own[k] && !TY.occ[k] ? 1 : 0; return { free: [...free], path: [...TY.path].map(x => x ? 1 : 0), goal } };
 Object.assign(DBG10, { design: key => DSN10[key] ? JSON.parse(JSON.stringify(DSN10[key])) : null });

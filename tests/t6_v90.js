@@ -97,7 +97,8 @@ const until = async (page, f, ms = 60000) => { const t = Date.now(); while (Date
     const quiet = { 'coasterlab.v72.park': JSON.stringify({ v: 1, paused: true }), 'coasterlab.v80.settings': JSON.stringify({ events: false }) };// same start in both versions: clock stopped, no random events
     const day = async (file, fare) => { const { browser, page, errors } = await open(file, { w: 390, h: 844, storage: quiet }); const r = await page.evaluate(f => { const d = window.__coasterDebug; d.v80.seed(7); d.v72.simSet({ price: { ticket: 25, ride: f } }); d.v72.simRun(1440); const h = JSON.parse(d.v80.simSnap()).hist.slice(-1)[0]; return { inc: Math.round(h.income), v: Math.round(h.visitors), th: d.v80.v90 ? Object.keys(d.v80.v90.thoughts()) : [] } }, fare); await browser.close(); return { ...r, errors } };
     const o1 = await day(OLD, 1), n1 = await day(F, 1), n7 = await day(F, 7), n20 = await day(F, 20), o20 = await day(OLD, 20);
-    ok(n1.inc === o1.inc && n1.v === o1.v, `at the default $1 fare a seeded park day is identical to 8.6 (income ${o1.inc} → ${n1.inc}, visitors ${o1.v} → ${n1.v})`);
+    // 9.0 gave the identical day here. 10.0 adds ten coasters, and Park HQ counts every ride in the game, so the same day now draws more people.
+    ok(n1.v > o1.v && n1.v < o1.v * 1.6 && n1.inc > o1.inc && n1.inc < o1.inc * 1.6, `at the default $1 fare the same seeded Park HQ day draws more visitors than 8.6 because the park has ten more coasters (income ${o1.inc} → ${n1.inc}, visitors ${o1.v} → ${n1.v})`);
     ok(n7.inc > n1.inc * 1.2 && n20.inc < n7.inc * .8, `fares have a sweet spot: day income $1 ${n1.inc} · $7 ${n7.inc} · $20 ${n20.inc}`);
     ok(o20.inc > n20.inc * 3, `the 8.6 "always charge the maximum" exploit is gone ($20 fare: ${o20.inc} in 8.6 → ${n20.inc})`);
     ok(n20.th.some(t => /rides cost too much/.test(t)) && !n1.th.some(t => /rides cost too much/.test(t)), 'guests say "The rides cost too much" at $20, not at $1');

@@ -6,7 +6,7 @@ const { open } = require('./harness'), L = require('./tools/park_lib'), makeClou
 const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
-const ONLY = process.env.T9 || 'ABCDEFG';
+const ONLY = process.env.T11 || 'ABCDEFG';// run some sections only: T11=BC node t11_v10_account.js
 const D = 'window.__coasterDebug.v80.v10', PW = 'correct-horse-9', quiet = e => e.filter(x => !/Failed to load resource|ERR_FAILED|WebSocket connection/.test(x));// refused requests are part of these tests; the live-presence socket has no stand-in here
 const until = async (pg, f, a, ms = 12000) => { const t = Date.now(); while (Date.now() - t < ms) { if (await pg.evaluate(f, a)) return true; await pg.waitForTimeout(150) } return false };
 const idle = pg => until(pg, () => { const s = window.__coasterDebug.v80.v10.acct.state(); return !s.busy && !s.syncing });
@@ -20,7 +20,7 @@ const park = pg => pg.evaluate(() => { const s = window.__coasterDebug.v80.v10.t
     ok(await X(() => document.querySelector('#acct10').hidden), 'the sign-in page is not shown until you ask for it');
     await page.click('#start [data-go="ty10"]'); await page.waitForTimeout(900); await X(() => window.__coasterDebug.v80.v10.ty.build('carousel', 21, 41, 0)); await X(() => window.__coasterDebug.v80.v10.ty.ff(20));
     const p = await park(page); ok(p && p.objs >= 1 && !(await st(page)).in, 'signed out, My Park works as before (built a Carousel; ' + p.objs + ' things)');
-    await X(() => window.__coasterDebug.v80.v10.ty.save()); ok(await X(() => !!localStorage.getItem('coasterlab.v10.park.career') && !localStorage.getItem('coasterlab.v10.auth')), 'the park is saved on this device; no account data is stored');
+    await X(() => window.__coasterDebug.v80.v10.ty.save()); ok(await X(() => !!localStorage.getItem('coasterlab.v10.park.career') && !localStorage.getItem('coasterlab-device.v10.auth')), 'the park is saved on this device; no account data is stored');
     ok(!db.calls.some(c => c.startsWith('auth/') || /^cl_(me|save)/.test(c)), 'signed out, nothing is sent to the account server (' + db.calls.length + ' cloud calls in all)');
     ok(quiet(errors).length === 0, 'no errors signed out' + (quiet(errors).length ? ': ' + quiet(errors).slice(0, 3).join(' | ') : '')); await browser.close();
   }
@@ -47,13 +47,14 @@ const park = pg => pg.evaluate(() => { const s = window.__coasterDebug.v80.v10.t
     let s = await st(page); const u = db.users[0];
     ok(s.in && s.name === 'Robin' && s.email === 'robin@example.test' && u && u.email === 'robin@example.test' && u.name === 'Robin', 'Create my account: the account exists and you are signed in at once as Robin');
     ok(db.mails === 0, 'no email was needed or sent to create the account');
-    ok(await X(pw => { const all = JSON.stringify(Object.fromEntries(Object.entries(localStorage))); return !all.includes(pw) && /"at":"at\./.test(localStorage.getItem('coasterlab.v10.auth')) }, PW), 'this device keeps the session, never the password');
+    ok(await X(pw => { const all = JSON.stringify(Object.fromEntries(Object.entries(localStorage))); return !all.includes(pw) && /"at":"at\./.test(localStorage.getItem('coasterlab-device.v10.auth')) }, PW), 'this device keeps the session, never the password');
+    ok(await X(() => { const saves = Object.keys(localStorage).filter(k => k.startsWith('coasterlab.')), tok = JSON.parse(localStorage.getItem('coasterlab-device.v10.auth')).at, dev = JSON.parse(localStorage.getItem('coasterlab-device.v10.dev') || '{"key":"-none-"}').key; return saves.length > 0 && !saves.some(k => /\.(auth|dev|sync)$/.test(k)) && !saves.some(k => { const v = localStorage.getItem(k) || ''; return v.includes(tok) || v.includes(dev) }) }), 'the session and the device secret are stored apart from the saves, so “Save a copy” and backups (every coasterlab.* key) never contain them');
     ok(await X(() => /Robin/.test(document.querySelector('#acB .acWho').textContent) && /Sign out/.test(document.querySelector('#acB').textContent) && /Career park/.test(document.querySelector('#acB').textContent)), 'the page now shows your account: name, email, your parks, Sign out');
     await page.screenshot({ path: SH + 'v10_account_signed_in_phone.png' });
     await page.click('#acB [data-ac="close"], #acct10 .acX'); await page.waitForTimeout(200); ok(await X(() => /Robin/.test(document.querySelector('#start .acChip').textContent)), 'the title screen button now shows your player name');
     // sign out, wrong password, sign in
     await X(() => window.__coasterDebug.v80.v10.acct.open()); await page.waitForTimeout(200); await page.click('#acB [data-ac="out"]'); await idle(page); await page.waitForTimeout(300); s = await st(page);
-    ok(!s.in && await X(() => !localStorage.getItem('coasterlab.v10.auth')) && /still on this device/.test(s.msg), 'Sign out removes the session from this device and says the parks stay here');
+    ok(!s.in && await X(() => !localStorage.getItem('coasterlab-device.v10.auth')) && /still on this device/.test(s.msg), 'Sign out removes the session from this device and says the parks stay here');
     await page.fill('#acEmail', 'robin@example.test'); await page.fill('#acPw', 'wrong-password'); await page.click('.acGo'); await idle(page); s = await st(page);
     ok(!s.in && s.err === 'Wrong email or password.', 'a wrong password: “' + s.err + '”');
     await page.fill('#acPw', PW); await page.keyboard.press('Enter'); await idle(page); s = await st(page); ok(s.in && s.name === 'Robin', 'the right password (Enter key) signs you in');
@@ -129,8 +130,8 @@ const park = pg => pg.evaluate(() => { const s = window.__coasterDebug.v80.v10.t
     await XA(() => { window.__coasterDebug.v80.v10.ty.act('hq', 'share') }); await A.page.waitForTimeout(700);
     ok(await XA(() => { const t = document.querySelector('#pkB').textContent; return /Sam/.test(t) && /saved to your account/.test(t) && /in your account/.test(t) && !document.querySelector('#tyNickI') }), 'Park Office → Share shows the account, the published park “in your account”, and the name comes from the account');
     await A.page.screenshot({ path: SH + 'v10_account_share_tab.png' });
-    const devA = await XA(() => localStorage.getItem('coasterlab.v10.dev')), rawA = await XA(() => localStorage.getItem('coasterlab.v10.park.career'));
-    const C = await open(F, { w: 390, h: 844, cloud, storage: { 'coasterlab.v10.dev': devA, 'coasterlab.v10.park.career': rawA } }), XC = (f, a) => C.page.evaluate(f, a);
+    const devA = await XA(() => localStorage.getItem('coasterlab-device.v10.dev')), rawA = await XA(() => localStorage.getItem('coasterlab.v10.park.career'));
+    const C = await open(F, { w: 390, h: 844, cloud, storage: { 'coasterlab-device.v10.dev': devA, 'coasterlab.v10.park.career': rawA } }), XC = (f, a) => C.page.evaluate(f, a);
     await XC(() => window.__coasterDebug.v80.v10.ty.open('career')); await C.page.waitForTimeout(800); await XC(() => window.__coasterDebug.v80.v10.ty.cloudCheck()); await C.page.waitForTimeout(400); await XC(() => window.__coasterDebug.v80.v10.ty.publish()); await C.page.waitForTimeout(900);
     ok(db.parks.length === 1 && /belongs to an account/.test((await XC(() => window.__coasterDebug.v80.v10.ty.cloud())).why), 'signed out, even the same device cannot change a park that belongs to an account');
     ok(quiet(A.errors).length === 0 && quiet(B.errors).length === 0 && quiet(C.errors).length === 0, 'no errors on any device' + ([...quiet(A.errors), ...quiet(B.errors), ...quiet(C.errors)].slice(0, 3).join(' | ')));

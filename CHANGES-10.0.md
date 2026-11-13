@@ -25,7 +25,7 @@ of land; you start with 8 plots, an entrance and $25,000.
   say "the rides cost too much"); charge less and queues grow.
 * **Land** is bought plot by plot, next to what you own; each plot costs more than the last.
 * **Upgrades** per ride: capacity (a second train on coasters at level 2), reliability, effects; plus station style,
-  train colour and name.
+  train type, colour and name. The entrance gate and park sign have their own colours.
 * **Staff**: janitors sweep litter, mechanics walk to broken rides and repair them. Rides wear with use, get
   inspected when a mechanic is free, and break more often when neglected. A broken ride lets everyone off first;
   people who paid but never set off get a refund.
@@ -131,6 +131,16 @@ Title screen → **👤 Sign in** (also in Park & tools and Park Office → Shar
 * **Signed out, offline, or before the database is set up, the game plays exactly as before.** Signing out keeps your
   parks on the device.
 
+## Also in this build (from other work sessions, merged)
+
+* **Art** (`31_art.js`): a neon logo on the title screen, photo clouds, a sunset sky, a grass texture.
+* **Graphics extras** (`40_gfx.js`): glow, a sun disc, shinier metal track, shake and motion blur on drops, scaled
+  down automatically on phones and when the frame rate drops.
+* **Sound** (`35_sound.js`, see `CHANGES-SOUND.md`): rider screams, a My Park soundscape, a remembered Sound switch.
+
+One side effect to know: the older **Park HQ** mode counts every ride in the game, so with ten more coasters the
+same day there now brings roughly a third more visitors and income than in 9.0.
+
 ## Owner Control Center
 
 A new tab, **🏗 My Park 10.0** (also reachable from Park Office → Park → ♛ Owner controls). It shows the running
@@ -147,15 +157,18 @@ The older Owner tabs are unchanged.
   patches (three version labels, four texts, three hooks in the track renderer for wooden track) and
   inserts `src/v10/css`, `src/v10/html` and `src/v10/js` in file-name order. All 10.0 script code sits in one block
   with every name ending in `10`, so it cannot collide with the 9.0 code. Old functions are wrapped, never rewritten.
-* **Storage.** My Park uses its own keys (`coasterlab.v10.*`): `park.career`, `park.sandbox`, their `.bak` backups,
-  `dev` (this device's random id, nickname and colour), `auth` (the signed-in session), `sync` (which cloud revision
-  this device last saw). Older saves are not touched.
-* **Modules** (`src/v10/js`): `00_core` helpers · `05_tune` design tuner · `10_trains` train types · `11_designs`,
+* **Storage.** My Park uses its own keys (`coasterlab.v10.*`): `park.career`, `park.sandbox` and their `.bak`
+  backups. Older saves are not touched. Three things are deliberately kept **outside** the save area, under
+  `coasterlab-device.v10.*`: `dev` (this device's secret for the parks it published, its nickname and colour), `auth`
+  (the signed-in session) and `sync` (which cloud revision this device last saw). The game's "Save a copy", backup
+  and restore features handle every `coasterlab.*` key, so a save file never contains a session or a device secret
+  and can be shared safely.
+* **Modules** (`src/v10/js`, 21 files): `00_core` helpers · `05_tune` design tuner · `10_trains` train types · `11_designs`,
   `12_rides` the twelve rides · `20_ty_core` park data, catalogue, ledger · `21_ty_rides` coasters as park objects ·
   `22_ty_world` 3D park, sky, light, camera · `23_ty_sim` visitors, rides, staff, clock, goals · `24_ty_draw` drawing
   visitors and trains · `25_ty_build` building rules and touch input · `26_ty_ui` park interface · `27_ty_office` Park
   Office · `28_ty_share` codes, cloud, live presence · `28b_ty_account` accounts and cloud saves · `29_ty_debug` test
-  hooks · `30_gen` generator · `31_owner` Owner tab.
+  hooks · `30_gen` generator · `31_owner` Owner tab · `31_art`, `35_sound`, `40_gfx` art, sound and graphics extras.
 * **Performance.** Visitors are drawn as five instanced meshes (one draw call each) and paths as one; scenery is
   merged per kind. Path-finding is one flow field per destination, shared by everyone walking there and rebuilt only
   when paths change.
@@ -190,7 +203,7 @@ Supabase; see "What is left").
 * Coasters in the park are scaled-down copies so several fit on the lawn (builder coasters to about 40% size); the
   on-ride camera in the park rides the scaled copy.
 * Visitors walk only on paths and queue in straight lines; there are no groups or families walking together.
-* The page grew from 1.44 MB to 1.8 MB.
+* The page grew from 1.44 MB to 2.4 MB (about 0.6 MB of that are the four pictures built into the file).
 
 ## What is left
 

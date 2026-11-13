@@ -1,7 +1,7 @@
 # Coaster Lab tests
 
 Automated checks for `coaster_lab_v10_0.html`. They run the real game in headless Chromium at a 390×844 phone
-size and an 844×390 landscape size (`t6_v90`, `t8_v10_park` and `t9_v10_account` also at 320×568 and 1200×800). three.js comes from the npm package instead of the CDN; it is byte-identical,
+size and an 844×390 landscape size (`t6_v90`, `t8_v10_park` and `t11_v10_account` also at 320×568 and 1200×800). three.js comes from the npm package instead of the CDN; it is byte-identical,
 so the page's integrity check still passes.
 
 ```bash
@@ -24,9 +24,11 @@ node t4_corners.js                # optional, slow (~15 min): proves every Daily
 | `t6_v90` | 9.0: three builder levels, one card per cause, repair + Undo, starter blueprints, closed-circuit sketches, ride fares (next to 8.6), speech bubbles, 8.6 saves, four screen sizes |
 | `t7_v10_rides` | 10.0 rides: the 10 new coasters and 2 rebuilt flagships pass the builder's full check with no warnings, all differ, run without errors; 8 new train types; ride camera; 🎲 Generate (results valid, Preview → Place it → Undo) |
 | `t8_v10_park` | 10.0 My Park: building rules, every dollar in the ledger, visitors arriving / queueing / riding / buying, prices, upgrades and a second train, breakdowns and repairs, litter, weather and the clock, closing time, goals and levels, saving, Sandbox, your own coaster in the park, park codes, the park cloud and live presence (stand-ins), the Owner tab, four screen sizes |
-| `t9_v10_account` | 10.0 accounts: the sign-in page, creating an account, signing in and out, session renewal, cloud saves on two devices (never overwritten without asking, backups), parks owned by the account, a project with email confirmation still on, forgot password and the reset link, offline, a database that is not set up yet, four screen sizes |
+| `t9_sound` | 10.0 sound upgrade: no audio before a tap, the remembered Sound switch, rider screams, the mixer channel, My Park soundscape |
+| `t10_v10_gfx` | 10.0 graphics extras: glow, sun disc, shinier metal, speed effects, the quality ladder and its Settings switches, the frame-rate watch |
+| `t11_v10_account` | 10.0 accounts: the sign-in page, creating an account, signing in and out, session renewal, cloud saves on two devices (never overwritten without asking, backups), parks owned by the account, a project with email confirmation still on, forgot password and the reset link, offline, a database that is not set up yet, four screen sizes |
 
-`t8` and `t9` can run one section at a time: `T8=C node t8_v10_park.js`, `T9=BC node t9_v10_account.js`.
+`t8`, `t9` and `t11` can run one section at a time: `T8=C node t8_v10_park.js`, `T9=A node t9_sound.js`, `T11=BC node t11_v10_account.js`.
 
 **The cloud in these tests is a stand-in.** The test machine cannot reach supabase.co, so `tools/cloud_mock.js` plays
 the account server and the database functions with the same rules as the SQL migration, and a small script plays the

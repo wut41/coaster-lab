@@ -34,14 +34,15 @@ const probe = async (file, w, h) => {
   for (const [w, h] of [[390, 844], [844, 390]]) {
     const a = await probe(ROOT + 'coaster_lab_v8_5.html', w, h), b = await probe(ROOT + 'coaster_lab_v10_0.html', w, h);
     ok(a.start && b.start && b.startClosed, `${w}x${h} start screen shows and Ride now closes it`);
-    ok(JSON.stringify(b.hub) === JSON.stringify(a.hub.slice(0, a.hub.length - 3).concat(['grav86', 'dz86', 'daily86'], a.hub.slice(-3))) || (a.hub.every(x => b.hub.includes(x)) && b.hub.length === a.hub.length + 3), 'Park & tools keeps all ' + a.hub.length + ' old tiles and adds 3: ' + b.groups.join(' / '));
+    const added = b.hub.filter(x => !a.hub.includes(x)).sort().join(',');// 8.6 added three tiles, 10.0 adds My Park and Account
+    ok(a.hub.every(x => b.hub.includes(x)) && added === 'acct10,daily86,dz86,grav86,ty10', 'Park & tools keeps all ' + a.hub.length + ' old tiles and adds 5 (' + added + '): ' + b.groups.join(' / '));
     ok(b.lab && a.lab, 'Research Lab opens');
-    const na = +a.goals.match(/of (\d+)/)[1], nb = +b.goals.match(/of (\d+)/)[1]; ok(nb === na + 8, `Goals lists ${nb} achievements (8.5 had ${na}, +8 new)`);
+    const na = +a.goals.match(/of (\d+)/)[1], nb = +b.goals.match(/of (\d+)/)[1]; ok(nb === na + 13, `Goals lists ${nb} achievements (8.5 had ${na}; +8 in 8.6 and +5 for My Park in 10.0)`);
     ok(a.settings.every(s => b.settings.includes(s)) && b.settings[0].includes('Experiments'), 'Settings keeps every 8.5 section and adds 🧪 Experiments on top');
-    ok(a.hq && b.hq, 'Park HQ opens'); ok(a.menu === b.menu && b.menu > 0, 'ride menu shows the same ' + b.menu + ' cards'); ok(b.ride5 === 5, 'switching rides works');
+    ok(a.hq && b.hq, 'Park HQ opens'); ok(b.menu === a.menu + 10 && a.menu > 0, 'ride menu shows the ' + a.menu + ' cards of 8.5 plus the 10 new coasters (' + b.menu + ')'); ok(b.ride5 === 5, 'switching rides works');
     ok(a.owner && b.owner, 'owner password prompt still appears (5 taps on Rides) — untouched');
     ok(b.builder && b.play === 'play' && b.exited, 'builder opens, playtests and exits'); ok(b.sketchOpen && a.sketchOpen, 'Sketch-to-Coaster studio opens');
-    ok(b.errors.length === 0 && a.errors.length === 0, `console errors v8.5: ${a.errors.length}, v8.6: ${b.errors.length}`); b.errors.slice(0, 4).forEach(e => console.log('   ', e.slice(0, 300)));
+    ok(b.errors.length === 0 && a.errors.length === 0, `console errors v8.5: ${a.errors.length}, v10.0: ${b.errors.length}`); b.errors.slice(0, 4).forEach(e => console.log('   ', e.slice(0, 300)));
   }
   // a whole lap on the Moon: the lap card names the gravity and the Moonwalker achievement unlocks
   const { browser, page, errors } = await open(ROOT + 'coaster_lab_v10_0.html');
