@@ -158,10 +158,11 @@ Everything below ran in **headless Chromium with a software graphics card** on t
 | `t10_v10_gfx` | 20 / 20 | graphics extras |
 | `t11_v10_account` | 82 / 82 | sign-in page, accounts, cloud saves on two devices, account-owned parks, email confirmation still on, password reset, offline, database not set up, four screen sizes |
 
-All 13 suites pass on the final build. During the work these suites caught real bugs that were then fixed: riders
-trapped behind an empty second train, riders stuck on a broken ride, visitors standing about in small parks, a
-leaderboard that stayed on "Loading…", the sign-in session being included in "Save a copy" files, and a cloud-sync
-timer that fired every 20 seconds instead of every 3 minutes.
+All 13 suites pass. The suites, and reading the old save features against the new code, turned up real bugs that
+were then fixed: riders trapped behind an empty second train, riders stuck on a broken ride, visitors standing about
+in small parks, a leaderboard that stayed on "Loading…", the sign-in session being included in "Save a copy" files,
+and a cloud-sync timer that fired every 20 seconds instead of every 3 minutes. Several checks in the suites
+themselves were also corrected: they depended on a fixed wait or on the random weather, not on the game.
 
 **Measured rides** (the game's own inspection, `tests/tools/shot_rides.js`):
 
