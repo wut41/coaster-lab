@@ -1089,7 +1089,7 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
  #tyFeed{top:calc(104px + var(--sat))}#tyBadge{top:calc(100px + var(--sat))}#tyTut{top:calc(104px + var(--sat));width:calc(100vw - 76px);left:8px;transform:none}
  #tyCard{left:6px;right:6px;width:auto;max-height:46vh}.tyIt{width:102px}
 }
-@media (max-width:360px){#tyBar .tyB{min-width:38px}#tyBar .tyB span{font-size:8.5px}.tyStat{padding:0 5px;gap:2px;font-size:12px}.tyStat i{font-size:12px}.tySpd button{width:28px}}
+@media (max-width:360px){#tyBar .tyB{min-width:38px}#tyBar .tyB span{font-size:8.5px}.tyStat{padding:0 6px;gap:3px;font-size:12px;min-width:40px;justify-content:center}.tyStat i{font-size:12px}.tySpd button{width:38px}}
 @media (max-height:480px){
  #tyTut{top:calc(60px + var(--sat));left:calc(8px + var(--sal));transform:none;width:min(340px,44vw);font-size:12px;padding:8px 10px}#tyFeed{top:calc(60px + var(--sat))}
  #tyBar{left:auto;right:calc(8px + var(--sar));transform:none;bottom:calc(6px + var(--sab))}#tyBar .tyB{min-height:40px}#tyBar .tyB span{display:none}
@@ -8234,7 +8234,7 @@ const GT10 = [// visitor types: share of arrivals, intensity they like, minutes 
   { k: 'gentle', n: 'Gentle rider', ic: '🌷', share: .12, lo: 0, hi: 30, pat: 7, cash: [50, 90], nau: 1.5, coaster: .7 }
 ];
 const INC10 = [['gate', '🎟 Entrance tickets'], ['rides', '🎢 Ride tickets'], ['food', '🍔 Food & drink'], ['shops', '🎁 Shops & services'], ['prize', '🏆 Goal prizes'], ['sale', '♻️ Sold attractions'], ['loan', '🏦 Loan taken']];
-const EXP10 = [['build', '🏗 Building & upgrades'], ['land', '🏞 Land'], ['run', '⚡ Power & running costs'], ['wages', '👷 Wages & ride operators'], ['repair', '🔧 Repairs & inspections'], ['stock', '📦 Stock for the shops'], ['loan', '🏦 Loan interest & repayments'], ['promo', '📣 Marketing']];
+const EXP10 = [['build', '🏗 Building & upgrades'], ['land', '🏞 Land'], ['run', '⚡ Power & running costs'], ['wages', '👷 Wages & ride operators'], ['repair', '🔧 Repairs & inspections'], ['refund', '↩ Ticket refunds'], ['stock', '📦 Stock for the shops'], ['loan', '🏦 Loan interest & repayments'], ['promo', '📣 Marketing']];
 const newLed10 = () => { const o = { inc: {}, exp: {} }; INC10.forEach(k => o.inc[k[0]] = 0); EXP10.forEach(k => o.exp[k[0]] = 0); return o };
 const ledSum10 = l => { let a = 0, b = 0; for (const k in l.inc) a += l.inc[k]; for (const k in l.exp) b += l.exp[k]; return { inc: a, exp: b, profit: a - b } };
 // ---- money. Every dollar goes through these two functions, so the balance and the books always agree.
@@ -8748,7 +8748,7 @@ function gDecide10(g) {
   if (g.happy > 50 && g.cash > 14 && Math.random() < .3 && (!g.gift && Math.random() < .5 ? gKind10(g, 'gift') : gKind10(g, 'treat'))) return;
   if (g.rides > 0 && g.t > 70 && Math.random() < .16 + (P_.objs.some(o => o.rt && o.rt.slots && rideOpen10(o)) ? 0 : .5)) { g.leave = true; if (!P_.objs.some(o => o.rt && o.rt.slots && rideOpen10(o))) say10(g, '😕', 'There is nothing to ride'); return gGo10(g, { k: 'exit' }, 'gate', [gateT10()]) }
   // otherwise stroll to a random spot (prettier places attract more)
-  const gate = field10('gate', [gateT10()]); let pick = -1, pw = -1; for (let k = 0; k < 14; k++) { const t = Math.floor(Math.random() * GW10 * GH10); if (TY.path[t] && gate[t] >= 0) { const w = Math.random() * (1 + TY.beauty[t] * .08); if (w > pw) { pw = w; pick = t } } }
+  const gate = field10('gate', [gateT10()]), PT = pathTiles10(); let pick = -1, pw = -1; for (let k = 0; k < 6 && PT.length; k++) { const t = PT[Math.floor(Math.random() * PT.length)]; if (gate[t] >= 0) { const w = Math.random() * (1 + TY.beauty[t] * .08); if (w > pw) { pw = w; pick = t } } }
   if (pick >= 0) gGo10(g, { k: 'stroll' }, 't' + pick, [pick]); else { g.st = 'idle'; g.useT = 1.5 }
 }
 // head for the nearest thing of a kind (food, drink, treat, gift, wc, info, bench). Returns false when there is none in reach.
@@ -8756,6 +8756,8 @@ function gKind10(g, kind) {
   const P_ = TY.park, tg = [], here = g.ti; for (const o of P_.objs) { const C = CAT10[o.k]; if (!C || !o.rt || !o.rt.linked) continue; if ((C.sells === kind || C.job === kind) && (C.job || o.open !== false) && !(g.skip[o.id] > g.t) && !(kind === 'bench' && o.rt.used >= 2)) for (const t of o.rt.entry) tg.push(t) }
   if (!tg.length) return false; const f = field10('k' + kind + '|' + tg.length + '|' + tg[0], tg); if (f[here] < 0) return false; gGo10(g, { k: kind }, 'k' + kind + '|' + tg.length + '|' + tg[0], tg); return true;
 }
+let _ptV = -1, _pt = [];
+function pathTiles10() { if (_ptV !== TY.pathVer) { _ptV = TY.pathVer; _pt = []; for (let t = 0; t < GW10 * GH10; t++) if (TY.path[t]) _pt.push(t) } return _pt }
 function gGo10(g, goal, key, targets) { g.goal = goal; g.fkey = key; g.ftg = targets; g.st = 'walk'; gStep10(g) }
 // pick the next tile towards the goal (or act when already there)
 function gStep10(g) {
@@ -8791,13 +8793,13 @@ function gRated10(g, o, inf) {
 // ---- one step of everyone
 const _gp = V();
 function guestsStep10(dt) {
-  const P_ = TY.park, W_ = WX10[P_.wx.k], rain = W_.rain ? (W_.storm ? 2 : 1) : 0, hot = P_.wx.k === 'sunny' ? 1.25 : 1, dirt = (100 - TY.clean) * .0005, list = TY.guests;
+  const P_ = TY.park, W_ = WX10[P_.wx.k], rain = W_.rain ? (W_.storm ? 2 : 1) : 0, hot = P_.wx.k === 'sunny' ? 1.25 : 1, dirt = (100 - TY.clean) * .0005, list = TY.guests, closed = !parkOpen10();// after closing time people hurry home
   for (let n = list.length - 1; n >= 0; n--) {
     const g = list[n]; g.t += dt; if (g.sayT > 0) g.sayT -= dt;
     if (g.st === 'ride') continue;
     g.hunger += .2 * dt; g.thirst += .27 * hot * dt; g.bladder += .1 * dt; g.nausea = Math.max(0, g.nausea - .55 * dt); g.happy -= dirt * dt * 60; if (rain && !g.umb) g.happy -= .16 * rain * dt;
     if (g.st === 'walk' || g.st === 'out') {
-      const dx = g.tx - g.x, dz = g.tz - g.z, d = Math.hypot(dx, dz), stp = g.sp * dt * (g.leave ? 1.15 : 1) * (rain && !g.umb ? 1.15 : 1); g.energy -= .1 * dt; g.bob += dt * 8 * g.sp;
+      const dx = g.tx - g.x, dz = g.tz - g.z, d = Math.hypot(dx, dz), stp = g.sp * dt * (g.leave ? (closed ? 1.7 : 1.15) : 1) * (rain && !g.umb ? 1.15 : 1); g.energy -= .1 * dt; g.bob += dt * 8 * g.sp;
       if (d <= stp) { g.x = g.tx; g.z = g.tz; if (g.st === 'out') { guestLeft10(g); list[n] = list[list.length - 1]; list.pop(); continue }
         if (g.lit && Math.random() < .12) litterMaybe10(g); if (g.nausea > 88 && Math.random() < .2) { TY.litter.push({ x: g.x, z: g.z, v: 1 }); g.nausea -= 45; say10(g, '🤮', 'I was sick'); g.happy -= 6 }
         const b = TY.beauty[g.ti]; if (b > 1) g.happy = Math.min(100, g.happy + Math.min(.5, b * .03));
@@ -8821,10 +8823,19 @@ function trainPose10(p, s_, oP, oU, oT) { const f = (((s_ % p.L) + p.L) % p.L) /
 function lapS10(p, tau) { const t = p.lapT, s_ = p.lapS; let lo = 0, hi = t.length - 1; if (tau >= t[hi]) return s_[hi]; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (t[m] <= tau) lo = m; else hi = m } return s_[lo] + (s_[hi] - s_[lo]) * (tau - t[lo]) / Math.max(1e-6, t[hi] - t[lo]) }
 function boardOne10(o, inf, into, yB) {// the front of the queue pays, walks to the platform and gets on
   const R = o.rt, g = R.q.shift(), fare = fareOf10(o, inf); if (g.cash < fare) { g.st = 'idle'; g.useT = .3; g.qo = null; return false }
-  g.cash -= fare; g.spent += fare; earn10('rides', fare); o.st.n++; o.st.inc += fare; TY.park.tot.rides++; TY.day.rides++; R.waitAvg += (g.wq - R.waitAvg) * .15;
+  g.cash -= fare; g.spent += fare; g.fare = fare; earn10('rides', fare); o.st.n++; o.st.inc += fare; TY.park.tot.rides++; TY.day.rides++; R.waitAvg += (g.wq - R.waitAvg) * .15;
   if (R.wboard) _gp.set(R.wboard[0] + rnd7(-1.2, 1.2), 0, R.wboard[1] + rnd7(-1.2, 1.2)); else objPt10(o, R.board[0], 0, R.board[2], _gp); g.st = 'board'; g.tx = _gp.x; g.tz = _gp.z; g.ty_ = yB; g.qo = null; g.ro = o; into.push(g); return true;
 }
-function unload10(o, inf, riders) { const R = o.rt; let k = 0; for (const g of riders) { if (R.wexit) _gp.set(R.wexit[0] + rnd7(-.8, .8), 0, R.wexit[1] + rnd7(-.8, .8)); else objPt10(o, R.exit[0] + (k % 2) * .5, 0, R.exit[1] - (k >> 1) * .5, _gp); g.x = _gp.x; g.z = _gp.z; g.y = 0; g.hide = false; g.ro = null; g.ti = R.gateTile != null ? R.gateTile : g.ti; g.tx = tX10(g.ti % GW10) + g.off * .5; g.tz = tZ10(Math.floor(g.ti / GW10)); g.st = 'walk'; g.goal = null; g.fkey = 't' + g.ti; g.ftg = [g.ti]; g.goal = { k: 'stroll' }; gRated10(g, o, inf); k++ } riders.length = 0 }
+function unload10(o, inf, riders, refund) { const R = o.rt; let k = 0; for (const g of riders) { if (R.wexit) _gp.set(R.wexit[0] + rnd7(-.8, .8), 0, R.wexit[1] + rnd7(-.8, .8)); else objPt10(o, R.exit[0] + (k % 2) * .5, 0, R.exit[1] - (k >> 1) * .5, _gp); g.x = _gp.x; g.z = _gp.z; g.y = 0; g.hide = false; g.ro = null; g.ti = R.gateTile != null ? R.gateTile : g.ti; g.tx = tX10(g.ti % GW10) + g.off * .5; g.tz = tZ10(Math.floor(g.ti / GW10)); g.st = 'walk'; g.goal = null; g.fkey = 't' + g.ti; g.ftg = [g.ti]; g.goal = { k: 'stroll' }; if (refund) { const f = g.fare || 0; if (f > 0) { pay10('refund', f); g.cash += f; g.spent -= f } g.happy -= 3; g.skip[o.id] = g.t + 60; if (k === 0) say10(g, '🔧', objName10(o) + ' broke down before we set off') } else gRated10(g, o, inf); g.fare = 0; k++ } riders.length = 0 }
+// a broken ride never keeps people on board: trains already out on the track come home and unload; people who paid but never set off get off with their money back
+function evac10(o, inf, dt) {
+  const R = o.rt;
+  if (inf.t === 'flat') { if (!R.riders.length) return; if (R.ph === 'run') { R.t += dt; R.animT += dt; if (R.t >= inf.dur) { R.ph = 'load'; R.t = 0; unload10(o, inf, R.riders) } } else unload10(o, inf, R.riders, true); return }
+  const p = inf.prof, T_ = p.lapT[p.lapT.length - 1], s0 = p.SL - .7;
+  for (const tr of R.trains) { if (!tr.riders.length) continue;
+    if (tr.ph === 'run' && tr.tau < T_) { tr.tau = Math.min(T_, tr.tau + dt / p.tk); tr.s = tr.tau >= T_ ? s0 - 6.2 : s0 + lapS10(p, tr.tau) * p.sc; continue }
+    unload10(o, inf, tr.riders, tr.ph === 'load') }
+}
 function ridesStep10(dt) {
   const P_ = TY.park, open = parkOpen10(), dh = dt * SIM10.minPerSec / 60;// park hours in this step
   for (const o of P_.objs) {
@@ -8832,7 +8843,7 @@ function ridesStep10(dt) {
     const runs = o.open !== false && open && R.linked;
     if (runs && !R.broken) { const c = (inf.t === 'coaster' ? 6 : inf.t === 'flat' ? 3 : inf.run) * dh; pay10(inf.t === 'shop' || inf.t === 'fac' ? 'run' : 'wages', c); o.st.run += c }
     if (inf.t === 'shop' || inf.t === 'fac') continue;
-    if (R.broken) { o.st.down += dt; continue }
+    if (R.broken) { o.st.down += dt; evac10(o, inf, dt); continue }
     if (R.insp > 0) { R.insp -= dt; if (R.insp <= 0) { o.rel = 100; pay10('repair', 40 + inf.cost * .004) } continue }
     const loadGap = .3 * (perk10('ops1') ? .75 : 1) * (1 - .12 * (o.up ? o.up.cap : 0));
     if (inf.t === 'flat') {
@@ -8844,7 +8855,8 @@ function ridesStep10(dt) {
       R.trains.forEach((tr, k) => {
         if (tr.ph === 'hold') { tr.s = s0 - 6.2; if (!busy && R.trains[0].ph === 'run' && R.trains[0].tau > p.lapT[p.lapT.length - 1] * .45) { tr.ph = 'load'; tr.wait = 0; busy = true } }
         else if (tr.ph === 'load') { tr.s = s0; tr.wait += dt; R.tmr -= dt; if (runs && tr.riders.length < p.seats && R.q.length && R.tmr <= 0 && nearSlot10(o, R.q[0])) { boardOne10(o, inf, tr.riders, p.yP); R.tmr = loadGap }
-          const full = tr.riders.length >= p.seats, ready = tr.riders.length && tr.riders.every(g => g.st === 'ride'); if (ready && (full || tr.wait > 9 && !R.q.length || tr.wait > 18)) { tr.ph = 'run'; tr.tau = 0; wear10(o, inf) } }
+          const full = tr.riders.length >= p.seats, ready = tr.riders.length && tr.riders.every(g => g.st === 'ride'), behind = R.trains.some(q => q !== tr && q.ph === 'run' && q.riders.length && q.tau >= p.lapT[p.lapT.length - 1]);
+          if (ready && (full || tr.wait > 9 && !R.q.length || tr.wait > 18 || behind && tr.wait > 4) || behind && !tr.riders.length && tr.wait > 1.5) { tr.ph = 'run'; tr.tau = 0; wear10(o, inf) } }
         else if (tr.ph === 'run') { tr.tau += dt / p.tk; const T_ = p.lapT[p.lapT.length - 1]; if (tr.tau >= T_) { if (busy) { tr.tau = T_; tr.s = s0 - 6.2 } else { tr.ph = 'unload'; tr.wait = 0; tr.s = s0; busy = true } } else tr.s = s0 + lapS10(p, tr.tau) * p.sc }
         else if (tr.ph === 'unload') { tr.wait += dt; if (tr.wait > 1.6) { unload10(o, inf, tr.riders); tr.ph = 'load'; tr.wait = 0; if (!breakMaybe10(o, inf)) xp10(.3) } }
       });
@@ -8873,7 +8885,7 @@ function staffStep10(dt) {
     if (!s_.job && s_.t <= 0) {// look for work
       if (s_.k === 'jan' && TY.litter.length) { let b = null, bd = 1e9; for (const l of TY.litter) { if (l.who && l.who !== s_) continue; const d = Math.hypot(l.x - s_.x, l.z - s_.z) * (l.v ? .5 : 1); if (d < bd) { bd = d; b = l } } if (b) { b.who = s_; s_.job = b; s_.goal = tI10(clamp(xT10(b.x), 0, GW10 - 1), clamp(zT10(b.z), 0, GH10 - 1)) } }
       else if (s_.k === 'mech') { const o = P_.objs.find(q => q.rt && q.rt.broken === 1 && q.rt.linked); if (o) { o.rt.broken = 2; s_.job = o; s_.goal = o.rt.gateTile } }
-      if (!s_.job) { const gate = field10('gate', [gateT10()]); for (let k = 0; k < 8; k++) { const t = Math.floor(Math.random() * GW10 * GH10); if (TY.path[t] && gate[t] >= 0) { s_.goal = t; break } } s_.t = 4 + Math.random() * 4 }
+      if (!s_.job) { const gate = field10('gate', [gateT10()]), PT = pathTiles10(); for (let k = 0; k < 4 && PT.length; k++) { const t = PT[Math.floor(Math.random() * PT.length)]; if (gate[t] >= 0) { s_.goal = t; break } } s_.t = 4 + Math.random() * 4 }
     }
     // walk: tile by tile towards the goal
     const dx = s_.tx - s_.x, dz = s_.tz - s_.z, d = Math.hypot(dx, dz), stp = (s_.k === 'jan' && perk10('tidy1') ? 2.5 : 1.9) * dt;
@@ -9402,7 +9414,7 @@ async function pack10(obj) {
 }
 async function unpack10(code) {
   const c = String(code || '').replace(/\s+/g, ''), m = /^(CL10[ZJ])([A-Za-z0-9_-]+)$/.exec(c); if (!m) return null;
-  try { const u = ub64u10(m[2]); let txt; if (m[1] === 'CL10Z') { if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot open compressed park codes'); const st = new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw')); txt = await new Response(st).text() } else txt = new TextDecoder().decode(u); return JSON.parse(txt) } catch (e) { console.warn('10.0 park code', e); return null }
+  try { const u = ub64u10(m[2]); let txt; if (m[1] === 'CL10Z') { if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot open compressed park codes'); const st = new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw')); txt = await new Response(st).text() } else txt = new TextDecoder().decode(u); return JSON.parse(txt) } catch (e) { return null }// a damaged code is an ordinary mistake: the caller explains it to the player
 }
 // ---- visiting (read only: you can look at everything, ride the coasters and watch its visitors, but not change it)
 function tyVisit10(P_, meta) {
@@ -9433,8 +9445,9 @@ function cloudWhy10(e) {
   CLOUD10.st = 'off'; return 'The park cloud cannot be reached from here (no internet, or this page is not allowed to connect). Park codes still work.';
 }
 async function cloudCheck10(force) {
-  if (!force && performance.now() - CLOUD10.checked < 20000) return; CLOUD10.checked = performance.now();
+  if (CLOUD10.loading || !force && performance.now() - CLOUD10.checked < 20000) return; CLOUD10.checked = performance.now(); CLOUD10.loading = true;
   try { CLOUD10.lists[CLOUD10.sort] = await rpc10('cl_list_parks', { p_sort: CLOUD10.sort, p_limit: 15 }); CLOUD10.my = await rpc10('cl_my_parks', { p_owner_key: dev10().key }); CLOUD10.why = '' } catch (e) { CLOUD10.why = cloudWhy10(e) }
+  CLOUD10.loading = false;
   if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false);
 }
 function stats10(P_) { const L = level10(P_), co = P_.objs.filter(o => o.k[1] === ':'); return { rating: Math.round(P_.rating), rep: Math.round(P_.rep), day: P_.day, guests: Math.round(P_.tot.guests), rides: Math.round(P_.tot.rides), coasters: co.length, attractions: P_.objs.filter(o => { const i = objInfo10(o); return i && (i.t === 'coaster' || i.t === 'flat') }).length, level: L.lv, mode: P_.mode, money: P_.mode === 'sandbox' ? null : Math.round(P_.money) } }
@@ -9482,7 +9495,7 @@ on72('ty10', ({ on }) => { if (!on) liveLeave10(); else if (!TY.visit && TY.park
 // ---- the Share & visit tab of the Park Office
 function shareHTML10() {
   const P_ = TY.park, d = dev10(), V_ = TY.visit, st = CLOUD10.st, live = LIVE10.joined, nOth = LIVE10.others.size; let h = '';
-  if (st === 'unknown' || performance.now() - CLOUD10.checked > 20000) cloudCheck10();
+  if (st === 'unknown' || performance.now() - CLOUD10.checked > 20000) cloudCheck10(); else if (st === 'ok' && !CLOUD10.lists[CLOUD10.sort] && !CLOUD10.loading) cloudCheck10(true);// e.g. after visiting by code: the cloud is known to work but the lists were never fetched
   if (V_) h += `<div class="tyLi now"><i>👀</i><div><b>Visiting ${html10(V_.name)}</b><small>${V_.by ? 'by ' + html10(V_.by) + ' · ' : ''}${V_.cloud ? '☁ ' + V_.code + ' · ' + V_.visits + ' visits · ' + (V_.votes ? '★ ' + (+V_.stars).toFixed(1) + ' (' + V_.votes + ' vote' + (V_.votes > 1 ? 's' : '') + ')' : 'no stars yet') : 'from a park code'}</small></div></div>
 ${V_.cloud ? `<h3>Rate this park</h3><div class="tySeg">${[1, 2, 3, 4, 5].map(n => `<button data-x="rate:${n}" class="${V_.mine === n ? 'on' : ''}">${'★'.repeat(n)}</button>`).join('')}</div>` : ''}
 <div class="tyRow">${pkBtn10('home', '🏠 Back to my park', 'primary')}</div>`;
@@ -9539,6 +9552,7 @@ DBG10.ty = {
   state: () => { const P_ = TY.park; if (!P_) return null; const L = ledSum10(P_.led); return { name: P_.name, mode: P_.mode, day: P_.day, min: Math.round(P_.min), money: Math.round(P_.money), guests: TY.guests.length, inQ: TY.guests.filter(g => g.st === 'queue').length, riding: TY.guests.filter(g => g.st === 'ride').length, staff: TY.staff.length, litter: TY.litter.length, clean: Math.round(TY.clean), rating: Math.round(P_.rating), rep: +P_.rep.toFixed(1), xp: P_.xp, lv: level10().lv, inc: Math.round(L.inc), exp: Math.round(L.exp), led: JSON.parse(JSON.stringify(P_.led)), tot: { ...P_.tot }, objs: P_.objs.length, goals: Object.keys(P_.goals), wx: P_.wx.k, open: parkOpen10(), happy: TY.guests.length ? Math.round(TY.guests.reduce((a, g) => a + g.happy, 0) / TY.guests.length) : null } },
   obj: id => { const o = TY.objById.get(id); if (!o) return null; const R = o.rt || {}; return { k: o.k, name: objName10(o), linked: !!R.linked, q: R.q ? R.q.length : 0, qCap: R.qCap, n: o.st.n, inc: Math.round(o.st.inc), run: Math.round(o.st.run), rel: Math.round(o.rel), broken: !!R.broken, insp: R.insp > 0, ph: R.trains ? R.trains.map(t => t.ph + ':' + t.riders.length) : R.ph + ':' + (R.riders || []).length, like: o.st.rated ? +(o.st.like / o.st.rated).toFixed(2) : null, price: o.price, up: { ...o.up }, col: o.col ? { ...o.col } : null } },
   objs: () => TY.park.objs.map(o => ({ id: o.id, k: o.k, x: o.x, z: o.z, r: o.r })), breakIt: id => { const o = TY.objById.get(id); if (!o || !o.rt) return false; o.rt.broken = 1; return true },
+  stuck: () => ({ min: Math.round(TY.park.min), open: TY.park.open, dayOpen: TY.dayOpen, auto: TY.park.clock.auto, speed: TY.speed, g: TY.guests.slice(0, 8).map(g => ({ id: g.id, st: g.st, goal: g.goal && g.goal.k, gid: g.goal && g.goal.id, leave: !!g.leave, ti: g.ti, x: Math.round(g.x), z: Math.round(g.z), useT: g.useT && +g.useT.toFixed(1), fkey: g.fkey })) }),
   guests: () => TY.guests.map(g => ({ id: g.id, ty: GT10[g.ty].k, st: g.st, happy: Math.round(g.happy), cash: Math.round(g.cash), spent: Math.round(g.spent), rides: g.rides, goal: g.goal && g.goal.k, say: g.say, th: g.th })), thoughts: () => ({ ...TY.thoughts }),
   sel: id => { TY.sel = { id }; TY.ui.cardTab = 'main'; tyUi10(); cardDraw10(); return !$ty10('tyCard').hidden }, act: (a, v_) => tyAct10(a, v_), cam: (x, z, d, pitch, yaw) => { camFocus10(x, z, d); if (pitch != null) camT10.pitch = pitch; if (yaw != null) camT10.yaw = yaw; Object.assign(TY.cam, camT10) },
   coasters: () => coasterList10().map(c => { const p = rideProf10(c.def); return { key: c.key, name: c.def.name, cost: p.cost, lv: p.lv, exc: p.exc, int: p.int, nau: p.nau, seats: p.seats, T: +p.T.toFixed(1), L: Math.round(p.L), H: +p.H.toFixed(1), sc: +p.sc.toFixed(2), fp: coasterCells10(p, 0).solid.length } }),
@@ -9592,12 +9606,13 @@ function genFit10(D_) {
 }
 // the tuner, sliced: the same search as tune10, a few inspections per frame
 async function tuneAsync10(D0, opts, onStep) {
-  const R = rng10(opts.seed), goal = opts.goal || {}, t0 = performance.now(), iters = opts.iters || 260; let best = clone(D0), bs = tuneScore10(best, goal), cur = best, cs = bs, since = 0, sl = performance.now();
+  const R = rng10(opts.seed), goal = opts.goal || {}, t0 = performance.now(), iters = opts.iters || 260; let best = clone(D0), bs = tuneScore10(best, goal), cur = best, cs = bs, since = 0, sl = performance.now(), work = 0;
   for (let i = 0; i < iters; i++) {
-    if (GEN10.run && GEN10.run.stop) break; if (performance.now() - t0 > (opts.budgetMs || 4000)) break; if (bs.pen < .5 && !bs.crit && !bs.warn) break;
+    // the budget counts thinking time only (not the frames drawn in between), so a slow phone gets the same number of tries
+    if (GEN10.run && GEN10.run.stop) break; if (work + performance.now() - sl > (opts.budgetMs || 4000) || performance.now() - t0 > 20000) break; if (bs.pen < .5 && !bs.crit && !bs.warn) break;
     const amt = (cs.crit ? .16 : .07) * (1 - .6 * i / iters) + .01, C = tuneMutate10(cur, R, amt, cs.hot, opts.lock), s_ = tuneScore10(C, goal);
     if (s_.pen <= cs.pen) { cur = C; cs = s_; since = 0; if (s_.pen < bs.pen) { best = C; bs = s_ } } else if (++since > 60) { cur = best; cs = bs; since = 0 }
-    if (performance.now() - sl > 45) { if (onStep) onStep(i / iters); await yield86(); sl = performance.now() }
+    if (performance.now() - sl > 45) { work += performance.now() - sl; if (onStep) onStep(i / iters); await yield86(); sl = performance.now() }
   }
   return { D: best, crit: bs.crit, warn: bs.warn, pen: bs.pen, m: bs.m };
 }

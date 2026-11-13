@@ -24,7 +24,7 @@ async function pack10(obj) {
 }
 async function unpack10(code) {
   const c = String(code || '').replace(/\s+/g, ''), m = /^(CL10[ZJ])([A-Za-z0-9_-]+)$/.exec(c); if (!m) return null;
-  try { const u = ub64u10(m[2]); let txt; if (m[1] === 'CL10Z') { if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot open compressed park codes'); const st = new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw')); txt = await new Response(st).text() } else txt = new TextDecoder().decode(u); return JSON.parse(txt) } catch (e) { console.warn('10.0 park code', e); return null }
+  try { const u = ub64u10(m[2]); let txt; if (m[1] === 'CL10Z') { if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot open compressed park codes'); const st = new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw')); txt = await new Response(st).text() } else txt = new TextDecoder().decode(u); return JSON.parse(txt) } catch (e) { return null }// a damaged code is an ordinary mistake: the caller explains it to the player
 }
 // ---- visiting (read only: you can look at everything, ride the coasters and watch its visitors, but not change it)
 function tyVisit10(P_, meta) {
@@ -55,8 +55,9 @@ function cloudWhy10(e) {
   CLOUD10.st = 'off'; return 'The park cloud cannot be reached from here (no internet, or this page is not allowed to connect). Park codes still work.';
 }
 async function cloudCheck10(force) {
-  if (!force && performance.now() - CLOUD10.checked < 20000) return; CLOUD10.checked = performance.now();
+  if (CLOUD10.loading || !force && performance.now() - CLOUD10.checked < 20000) return; CLOUD10.checked = performance.now(); CLOUD10.loading = true;
   try { CLOUD10.lists[CLOUD10.sort] = await rpc10('cl_list_parks', { p_sort: CLOUD10.sort, p_limit: 15 }); CLOUD10.my = await rpc10('cl_my_parks', { p_owner_key: dev10().key }); CLOUD10.why = '' } catch (e) { CLOUD10.why = cloudWhy10(e) }
+  CLOUD10.loading = false;
   if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false);
 }
 function stats10(P_) { const L = level10(P_), co = P_.objs.filter(o => o.k[1] === ':'); return { rating: Math.round(P_.rating), rep: Math.round(P_.rep), day: P_.day, guests: Math.round(P_.tot.guests), rides: Math.round(P_.tot.rides), coasters: co.length, attractions: P_.objs.filter(o => { const i = objInfo10(o); return i && (i.t === 'coaster' || i.t === 'flat') }).length, level: L.lv, mode: P_.mode, money: P_.mode === 'sandbox' ? null : Math.round(P_.money) } }
@@ -104,7 +105,7 @@ on72('ty10', ({ on }) => { if (!on) liveLeave10(); else if (!TY.visit && TY.park
 // ---- the Share & visit tab of the Park Office
 function shareHTML10() {
   const P_ = TY.park, d = dev10(), V_ = TY.visit, st = CLOUD10.st, live = LIVE10.joined, nOth = LIVE10.others.size; let h = '';
-  if (st === 'unknown' || performance.now() - CLOUD10.checked > 20000) cloudCheck10();
+  if (st === 'unknown' || performance.now() - CLOUD10.checked > 20000) cloudCheck10(); else if (st === 'ok' && !CLOUD10.lists[CLOUD10.sort] && !CLOUD10.loading) cloudCheck10(true);// e.g. after visiting by code: the cloud is known to work but the lists were never fetched
   if (V_) h += `<div class="tyLi now"><i>👀</i><div><b>Visiting ${html10(V_.name)}</b><small>${V_.by ? 'by ' + html10(V_.by) + ' · ' : ''}${V_.cloud ? '☁ ' + V_.code + ' · ' + V_.visits + ' visits · ' + (V_.votes ? '★ ' + (+V_.stars).toFixed(1) + ' (' + V_.votes + ' vote' + (V_.votes > 1 ? 's' : '') + ')' : 'no stars yet') : 'from a park code'}</small></div></div>
 ${V_.cloud ? `<h3>Rate this park</h3><div class="tySeg">${[1, 2, 3, 4, 5].map(n => `<button data-x="rate:${n}" class="${V_.mine === n ? 'on' : ''}">${'★'.repeat(n)}</button>`).join('')}</div>` : ''}
 <div class="tyRow">${pkBtn10('home', '🏠 Back to my park', 'primary')}</div>`;

@@ -64,7 +64,7 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
  #tyFeed{top:calc(104px + var(--sat))}#tyBadge{top:calc(100px + var(--sat))}#tyTut{top:calc(104px + var(--sat));width:calc(100vw - 76px);left:8px;transform:none}
  #tyCard{left:6px;right:6px;width:auto;max-height:46vh}.tyIt{width:102px}
 }
-@media (max-width:360px){#tyBar .tyB{min-width:38px}#tyBar .tyB span{font-size:8.5px}.tyStat{padding:0 5px;gap:2px;font-size:12px}.tyStat i{font-size:12px}.tySpd button{width:28px}}
+@media (max-width:360px){#tyBar .tyB{min-width:38px}#tyBar .tyB span{font-size:8.5px}.tyStat{padding:0 6px;gap:3px;font-size:12px;min-width:40px;justify-content:center}.tyStat i{font-size:12px}.tySpd button{width:38px}}
 @media (max-height:480px){
  #tyTut{top:calc(60px + var(--sat));left:calc(8px + var(--sal));transform:none;width:min(340px,44vw);font-size:12px;padding:8px 10px}#tyFeed{top:calc(60px + var(--sat))}
  #tyBar{left:auto;right:calc(8px + var(--sar));transform:none;bottom:calc(6px + var(--sab))}#tyBar .tyB{min-height:40px}#tyBar .tyB span{display:none}

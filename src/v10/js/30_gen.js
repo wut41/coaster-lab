@@ -29,12 +29,13 @@ function genFit10(D_) {
 }
 // the tuner, sliced: the same search as tune10, a few inspections per frame
 async function tuneAsync10(D0, opts, onStep) {
-  const R = rng10(opts.seed), goal = opts.goal || {}, t0 = performance.now(), iters = opts.iters || 260; let best = clone(D0), bs = tuneScore10(best, goal), cur = best, cs = bs, since = 0, sl = performance.now();
+  const R = rng10(opts.seed), goal = opts.goal || {}, t0 = performance.now(), iters = opts.iters || 260; let best = clone(D0), bs = tuneScore10(best, goal), cur = best, cs = bs, since = 0, sl = performance.now(), work = 0;
   for (let i = 0; i < iters; i++) {
-    if (GEN10.run && GEN10.run.stop) break; if (performance.now() - t0 > (opts.budgetMs || 4000)) break; if (bs.pen < .5 && !bs.crit && !bs.warn) break;
+    // the budget counts thinking time only (not the frames drawn in between), so a slow phone gets the same number of tries
+    if (GEN10.run && GEN10.run.stop) break; if (work + performance.now() - sl > (opts.budgetMs || 4000) || performance.now() - t0 > 20000) break; if (bs.pen < .5 && !bs.crit && !bs.warn) break;
     const amt = (cs.crit ? .16 : .07) * (1 - .6 * i / iters) + .01, C = tuneMutate10(cur, R, amt, cs.hot, opts.lock), s_ = tuneScore10(C, goal);
     if (s_.pen <= cs.pen) { cur = C; cs = s_; since = 0; if (s_.pen < bs.pen) { best = C; bs = s_ } } else if (++since > 60) { cur = best; cs = bs; since = 0 }
-    if (performance.now() - sl > 45) { if (onStep) onStep(i / iters); await yield86(); sl = performance.now() }
+    if (performance.now() - sl > 45) { work += performance.now() - sl; if (onStep) onStep(i / iters); await yield86(); sl = performance.now() }
   }
   return { D: best, crit: bs.crit, warn: bs.warn, pen: bs.pen, m: bs.m };
 }
