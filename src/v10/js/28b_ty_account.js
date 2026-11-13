@@ -136,6 +136,8 @@ async function syncDown10(slot) {
   if (liveSlot10(slot)) { TY.sel = null; tyEnter10(slot, loadPark10(slot)); toast10('☁ Loaded the newer park from your account', 'acct', true) }// the view stays where it was
   return true;
 }
+// the player started a park again from nothing: the copy in the account goes too (at the next sync if offline now)
+function acctWiped10(slot) { if (!AUTH10.s) return; const st = LS10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SS10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
 // bring this device and the account in line. Never overwrites a played park without asking.
 async function syncAll10() {
   if (!AUTH10.s || AUTH10.syncing || AUTH10.ask) return false; AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
@@ -144,7 +146,8 @@ async function syncAll10() {
     if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SS10('auth', AUTH10.s); acctChip10() }
     AUTH10.saves = {}; for (const sv of me.saves || []) AUTH10.saves[sv.slot] = sv;
     for (const slot of ['career', 'sandbox']) {
-      const cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
+      let cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
+      if (rec && rec.wiped) { if (cl) await rpc10('cl_save_delete', { p_slot: slot }); delete AUTH10.saves[slot]; cl = null; const st = LS10('sync', {}); delete st[slot]; SS10('sync', st); rec = null }
       if (!cl) { if (raw && !untouched10(raw)) await syncUp10(slot, null); continue }
       if (!raw) { await syncDown10(slot); continue }
       if (rec && rec.rev === cl.rev) { if (rec.h !== h) { const r = await syncUp10(slot, cl.rev); if (r && r.conflict) { AUTH10.ask = { slot, cloud: r, local: metaRaw10(raw) }; break } } continue }// only this device changed

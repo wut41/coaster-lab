@@ -1103,6 +1103,10 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 .cta.ty10cta{grid-column:1/-1;background:linear-gradient(135deg,rgba(255,178,56,.32),rgba(47,214,176,.22))!important;border-color:rgba(255,178,56,.7)!important}
 
 @media(max-height:500px){.cta.ty10cta{grid-column:auto}}
+/* Owner Control Center → My Park 10.0 */
+.ostat10{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}.ostat10>div{padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);min-width:0}
+.ostat10 small{display:block;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ostat10 b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#own7 .ob[disabled]{opacity:.4;cursor:default}
 
 /* ---- [20_acct.css] */
 /* ---- 10.0 account page (sign in / create account / your account) */
@@ -1175,7 +1179,7 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
  </div>
  <button class="btn" id="viewReset">◎ Reset view</button>
 </div>
-<div id="menu" hidden><div class="mHead"><div><h2>Choose your ride</h2><p>Twelve coasters across ten worlds, or build your own. Psst… four secret rides are hidden somewhere 🤫</p></div></div><div id="cards"></div><button class="btn primary" id="menuClose">Back to ride</button></div>
+<div id="menu" hidden><div class="mHead"><div><h2>Choose your ride</h2><p>Twenty-six coasters, each in its own world, or build your own. Psst… four secret rides are hidden somewhere 🤫</p></div></div><div id="cards"></div><button class="btn primary" id="menuClose">Back to ride</button></div>
 <div id="live" class="panel" hidden><canvas id="liveCv"></canvas><div id="liveTxt"><span>V <b id="lgV">1.0</b></span><span>Lat <b id="lgL">0.0</b></span><span>Long <b id="lgO">0.0</b></span><span id="lgN">—</span></div><div id="prog"><i></i></div></div>
 <div id="legend" class="panel" hidden><span id="legName"></span><span id="legLo"></span><i id="legBar"></i><span id="legHi"></span></div>
 <div id="lab" hidden><div class="labHead"><div class="labTop"><div><h2>📊 Research Lab</h2><small id="labRide"></small></div><button class="btn primary" id="labClose">Close</button></div>
@@ -1210,8 +1214,8 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 </div>
 <div id="tBanner" class="bPn" hidden>🧪 Test ride <button class="bBtn2 pri" id="tBack">✎ Back to editor</button><button class="bBtn2" id="tNotes" hidden></button></div>
 <div id="start" hidden><div class="stIn"><div class="stLogo"><span class="logoMark"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 36 H12 C17 36 16 14 24 14 C29 14 31 22 28 27 C25 32 18 29 20 23 C22 16 30 12 36 22 C39 28 40 36 44 36" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 41 H44" stroke="rgba(255,255,255,.55)" stroke-width="2.2" stroke-linecap="round"/></svg></span><h1>Coaster<span>Lab</span></h1></div>
-<p class="stTag">Ride twelve wild roller coasters, run your own theme park across six themed worlds, build your own rides, and grow a living park with new lands, guests, staff and events.</p>
-<div class="stCtas"><button class="cta go" data-go="ride"><b>▶ Ride now</b><small id="stNow">Looping Adventure</small></button><button class="cta" data-go="rides"><b>🎢 All rides</b><small>12 coasters · 10 worlds</small></button><button class="cta" data-go="build"><b>🏗 Build</b><small>Snap-together track builder</small></button><button class="cta sk85" data-go="sketch85"><b>✍️ Sketch it</b><small>Draw a coaster, ride it in 3D</small></button><button class="cta" data-go="lab"><b>📊 Ride Stats</b><small>Ratings, summary &amp; research</small></button><button class="cta" data-go="lands80"><b>🏞 Park Lands</b><small>Expand your park</small></button><button class="cta" data-go="cine"><b>🎬 Watch</b><small>Cinematic flyby</small></button><button class="cta" data-go="park72"><b>🏢 Park HQ</b><small>Run your whole park</small></button><button class="cta" data-go="map72"><b>🗺 Park Map</b><small>Live map & park plan</small></button><button class="cta" data-go="photo72"><b>📸 Photo Studio</b><small>Frame, filter, capture</small></button><button class="cta" data-go="credits72"><b>🙌 Credits</b><small>Jake & the AI crew</small></button></div>
+<p class="stTag">Ride 26 wild roller coasters, build and run your own park full of living visitors, design your own rides, and share your park with friends.</p>
+<div class="stCtas"><button class="cta go" data-go="ride"><b>▶ Ride now</b><small id="stNow">Looping Adventure</small></button><button class="cta" data-go="rides"><b>🎢 All rides</b><small>26 coasters to ride</small></button><button class="cta" data-go="build"><b>🏗 Build</b><small>Snap-together track builder</small></button><button class="cta sk85" data-go="sketch85"><b>✍️ Sketch it</b><small>Draw a coaster, ride it in 3D</small></button><button class="cta" data-go="lab"><b>📊 Ride Stats</b><small>Ratings, summary &amp; research</small></button><button class="cta" data-go="lands80"><b>🏞 Park Lands</b><small>Expand your park</small></button><button class="cta" data-go="cine"><b>🎬 Watch</b><small>Cinematic flyby</small></button><button class="cta" data-go="park72"><b>🏢 Park HQ</b><small>Run your whole park</small></button><button class="cta" data-go="map72"><b>🗺 Park Map</b><small>Live map & park plan</small></button><button class="cta" data-go="photo72"><b>📸 Photo Studio</b><small>Frame, filter, capture</small></button><button class="cta" data-go="credits72"><b>🙌 Credits</b><small>Jake & the AI crew</small></button></div>
 <div class="stLbl">Pick a coaster</div><div class="stRides" id="stRides"></div>
 <div class="stFoot"><label><input type="checkbox" id="stSkip"> Skip this screen next time</label><span>Tap the logo any time to come back here</span></div></div></div>
 <div id="spd7" aria-hidden="true"></div><div id="flash7" aria-hidden="true"></div><div id="intro7" aria-hidden="true"></div><div id="disp7" aria-live="polite"></div><div id="ach7" role="status"></div><div id="sum7" class="panel" hidden></div><div id="pop7" aria-live="polite"></div><div id="snap7" aria-hidden="true"></div><div id="score7" aria-label="Thrill score"><i>⭐ Thrill</i><b>0</b></div><button id="hands7" type="button" aria-label="Hold for hands up"><span>🙌</span><small>Hold</small></button><div id="sec7" hidden role="dialog" aria-label="Secret unlocked"></div>
@@ -8276,7 +8280,7 @@ const GT10 = [// visitor types: share of arrivals, intensity they like, minutes 
   { k: 'fan', n: 'Coaster enthusiast', ic: '🎢', share: .12, lo: 35, hi: 100, pat: 12, cash: [70, 130], nau: .6, coaster: 1.7 },
   { k: 'gentle', n: 'Gentle rider', ic: '🌷', share: .12, lo: 0, hi: 30, pat: 7, cash: [50, 90], nau: 1.5, coaster: .7 }
 ];
-const INC10 = [['gate', '🎟 Entrance tickets'], ['rides', '🎢 Ride tickets'], ['food', '🍔 Food & drink'], ['shops', '🎁 Shops & services'], ['prize', '🏆 Goal prizes'], ['sale', '♻️ Sold attractions'], ['loan', '🏦 Loan taken']];
+const INC10 = [['gate', '🎟 Entrance tickets'], ['rides', '🎢 Ride tickets'], ['food', '🍔 Food & drink'], ['shops', '🎁 Shops & services'], ['prize', '🏆 Goal prizes'], ['sale', '♻️ Sold attractions'], ['loan', '🏦 Loan taken'], ['grant', '♛ Owner grant (testing)']];
 const EXP10 = [['build', '🏗 Building & upgrades'], ['land', '🏞 Land'], ['run', '⚡ Power & running costs'], ['wages', '👷 Wages & ride operators'], ['repair', '🔧 Repairs & inspections'], ['refund', '↩ Ticket refunds'], ['stock', '📦 Stock for the shops'], ['loan', '🏦 Loan interest & repayments'], ['promo', '📣 Marketing']];
 const newLed10 = () => { const o = { inc: {}, exp: {} }; INC10.forEach(k => o.inc[k[0]] = 0); EXP10.forEach(k => o.exp[k[0]] = 0); return o };
 const ledSum10 = l => { let a = 0, b = 0; for (const k in l.inc) a += l.inc[k]; for (const k in l.exp) b += l.exp[k]; return { inc: a, exp: b, profit: a - b } };
@@ -9387,6 +9391,7 @@ ${ed ? `<h3>Park</h3><div class="tySeg">${pkSeg10('popen', [['1', '🟢 Open to 
     h = `<h3>Park name</h3><div style="display:flex;gap:8px"><input type="text" id="tyNameI" maxlength="32" value="${html10(P_.name)}" ${ed ? '' : 'disabled'}>${ed ? pkBtn10('name', 'Save', 'primary') : ''}</div>
 ${ed ? `<h3>Gate colours</h3><div class="tySw">${SW10.map(c => `<button data-x="gate:${c}" style="background:${c}" class="${P_.look.gate === c ? 'on' : ''}" aria-label="Gate ${c}"></button>`).join('')}</div><small style="color:var(--ink2);font-size:11px">Trim and name board</small><div class="tySw">${SW10.map(c => `<button data-x="sign:${c}" style="background:${c}" class="${P_.look.sign === c ? 'on' : ''}" aria-label="Trim ${c}"></button>`).join('')}</div>` : ''}
 <h3>Which park</h3><p class="tyNote">Career and Sandbox are two separate parks. Switching saves the one you are in; nothing is lost.</p><div class="tyRow">${pkBtn10('slot:career', '🏆 Career park' + (TY.slot === 'career' && !TY.visit ? ' ✓' : ''), TY.slot === 'career' && !TY.visit ? 'primary' : '')}${pkBtn10('slot:sandbox', '🧪 Sandbox park' + (TY.slot === 'sandbox' && !TY.visit ? ' ✓' : ''), TY.slot === 'sandbox' && !TY.visit ? 'primary' : '')}</div>
+<h3>Account <small>optional</small></h3><div class="tyRow">${pkBtn10('acct', AUTH10.s ? '👤 ' + html10(AUTH10.s.name || 'Account') : '👤 Sign in or create an account')}${pkBtn10('owner', '♛ Owner controls')}</div>
 ${ed ? `<h3>Start again</h3><p class="tyNote">Wipes this ${sb ? 'Sandbox' : 'Career'} park and starts a new one. The other park is not touched.</p><div class="tyRow">${pkBtn10('wipe', '🗑 Start this park again', 'danger7')}</div>` : ''}
 <div class="tyRow">${pkBtn10('leave', '🎢 Back to the rides')}</div>`;
   }
@@ -9417,7 +9422,8 @@ PANELS72.ty10 = {
     else if (k === 'popen') { P_.open = v_ === '1'; if (!P_.open) TY.guests.forEach(g => { g.leave = true }) }
     else if (k === 'name') { const i = document.getElementById('tyNameI'); if (i) { P_.name = cleanName(i.value).slice(0, 32) || P_.name; tyGate10() } }
     else if (k === 'gate' || k === 'sign') { P_.look[k] = v_; tyGate10() }
-    else if (k === 'wipe') { if (await ask7('Start this ' + (sb ? 'Sandbox' : 'Career') + ' park again from nothing? This cannot be undone.', 'Start again', 'Keep my park', true)) { const s_ = TY.slot; DEL10('park.' + s_); closePk72(); TY.on && (TY.park = null); TY.cam.set = false; tyEnter10(s_, newPark10(s_)); TY.cam.set = true; return false } }
+    else if (k === 'acct') { acctOpen10(); return false } else if (k === 'owner') { closePk72(); ownTab = 'own10'; openOwner(); return false }
+    else if (k === 'wipe') { if (await ask7('Start this ' + (sb ? 'Sandbox' : 'Career') + ' park again from nothing? This cannot be undone.', 'Start again', 'Keep my park', true)) { const s_ = TY.slot; DEL10('park.' + s_); acctWiped10(s_); closePk72(); TY.on && (TY.park = null); TY.cam.set = false; tyEnter10(s_, newPark10(s_)); TY.cam.set = true; return false } }
     savePark10(); tyUi10();
   }
 };
@@ -9721,6 +9727,8 @@ async function syncDown10(slot) {
   if (liveSlot10(slot)) { TY.sel = null; tyEnter10(slot, loadPark10(slot)); toast10('☁ Loaded the newer park from your account', 'acct', true) }// the view stays where it was
   return true;
 }
+// the player started a park again from nothing: the copy in the account goes too (at the next sync if offline now)
+function acctWiped10(slot) { if (!AUTH10.s) return; const st = LS10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SS10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
 // bring this device and the account in line. Never overwrites a played park without asking.
 async function syncAll10() {
   if (!AUTH10.s || AUTH10.syncing || AUTH10.ask) return false; AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
@@ -9729,7 +9737,8 @@ async function syncAll10() {
     if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SS10('auth', AUTH10.s); acctChip10() }
     AUTH10.saves = {}; for (const sv of me.saves || []) AUTH10.saves[sv.slot] = sv;
     for (const slot of ['career', 'sandbox']) {
-      const cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
+      let cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
+      if (rec && rec.wiped) { if (cl) await rpc10('cl_save_delete', { p_slot: slot }); delete AUTH10.saves[slot]; cl = null; const st = LS10('sync', {}); delete st[slot]; SS10('sync', st); rec = null }
       if (!cl) { if (raw && !untouched10(raw)) await syncUp10(slot, null); continue }
       if (!raw) { await syncDown10(slot); continue }
       if (rec && rec.rev === cl.rev) { if (rec.h !== h) { const r = await syncUp10(slot, cl.rev); if (r && r.conflict) { AUTH10.ask = { slot, cloud: r, local: metaRaw10(raw) }; break } } continue }// only this device changed
@@ -9945,6 +9954,67 @@ LIB80.push(['gen10', '🎲', 'Generate', null]); LIBK80.gen10 = LIB80[LIB80.leng
 b8.addEventListener('click', e => { const t = e.target.closest('[data-gen10]'); if (!t || t.disabled) return; const a = t.dataset.gen10, v_ = t.dataset.v; if (a === 'style') { GEN10.style = v_; b8LibR() } else if (a === 'size') { GEN10.size = v_; b8LibR() } else if (a === 'go') genGo10(); else if (a === 'stop') { if (GEN10.run) GEN10.run.stop = true } else if (a === 'pv') genPreview10(+v_) });
 { const f0 = exitEditor; exitEditor = function () { if (GEN10.run) GEN10.run.stop = true; return f0.apply(this, arguments) } }
 Object.assign(DBG10, { gen: () => ({ run: !!GEN10.run, res: GEN10.res.map(e => ({ style: e.style, m: e.m, warn: e.warn })), last: GEN10.last }), genSet: o => Object.assign(GEN10, o), genGo: async () => { await genGo10(); return GEN10.res.length }, genPv: i => genPreview10(i), genEls: (style, seed, k) => genEls10(style, rng10(seed), k || 1), genFit: els => genFit10(mkD('Generated', els)).els.map(e => [e.t, e.p]), genCheck: () => GEN10.res.map(e => { const r = inspect(clone(e.D)); return { crit: crits(r), san: sanDesign(clone(e.D)).ok } }) });
+
+// ---- [31_owner.js]
+// ---- 10.0 OWNER CONTROL CENTER: a "My Park" tab. Real numbers read from the running park (nothing made up), and
+// testing controls. Everything here only changes this browser; money given by the owner is booked in the park's
+// ledger as "Owner grant" so the books still add up.
+OSEC72.push(['v10', '🏗', 'My Park 10.0', ['own10']]); OSUBN72.own10 = 'My Park';
+{ const nav = $('#own7 .ownT'); if (nav) nav.insertAdjacentHTML('beforeend', '<button data-tab="own10" data-sec="v10">🏗 My Park 10.0</button>') }
+function own10HTML() {
+  const P_ = TY.park, on = TY.on && !!P_, mine = on && !TY.visit, ob = (a, l, o = {}) => `<button class="ob ${o.cls || ''}" data-a="x10:${a}" ${o.v != null ? `data-v="${esc(String(o.v))}"` : ''}${o.off ? ' disabled' : ''}>${l}</button>`;
+  const cell = (k, v_) => `<div><small>${k}</small><b>${v_}</b></div>`, tbl = (head, rows) => `<div class="ostat72"><table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  let h = `<h3>Mode</h3><div class="ogrid">${ob('open', '🏆 Open Career park', { v: 'career', cls: on && TY.slot === 'career' && !TY.visit ? 'on' : '' })}${ob('open', '🧪 Open Sandbox park', { v: 'sandbox', cls: on && TY.slot === 'sandbox' && !TY.visit ? 'on' : '' })}${ob('acct', AUTH10.s ? '👤 ' + html10(AUTH10.s.name || 'Account') : '👤 Account page')}${on ? ob('exit', '🎢 Back to the rides') : ''}</div>`;
+  if (!on) { const sv = ['career', 'sandbox'].map(s_ => [s_, loadPark10(s_)]).filter(q => q[1]);
+    return h + `<p class="on7">My Park is not open. Open it to see live numbers and use the testing controls.</p>` + (sv.length ? `<h3>Saved on this device</h3>` + tbl(['Park', 'Mode', 'Day', 'Money', 'Things', 'Rating'], sv.map(([s_, p]) => [html10(p.name), s_, p.day, p.mode === 'sandbox' ? '—' : money10(p.money), p.objs.length, Math.round(p.rating)])) : '') + own10Cloud() }
+  const L = ledSum10(P_.led), lv = level10(), G_ = TY.guests, n = G_.length, avg = k => n ? Math.round(G_.reduce((a, g) => a + g[k], 0) / n) : 0, rides = P_.objs.filter(o => { const i = objInfo10(o); return i && (i.t === 'coaster' || i.t === 'flat') });
+  h += `<h3>${html10(P_.name)} <small>${TY.visit ? 'visiting · read only' : P_.mode} · day ${P_.day} · ${clock72(P_.min)} · ${WX10[P_.wx.k].ic} ${WX10[P_.wx.k].n}</small></h3>
+<div class="ostat10">${cell('Money', P_.mode === 'sandbox' ? '∞' : money10(P_.money))}${cell('Today in', money10(L.inc))}${cell('Today out', money10(L.exp))}${cell('Today profit', money10(L.inc - L.exp))}${cell('All-time in', money10(P_.tot.inc))}${cell('All-time out', money10(P_.tot.exp))}${cell('Loan', money10(P_.loan || 0))}${cell('Rating', Math.round(P_.rating))}${cell('Reputation', Math.round(P_.rep))}${cell('Level', lv.lv + (P_.mode === 'sandbox' ? '' : ' · ' + Math.round(lv.into) + '/' + lv.need + ' xp'))}${cell('Land plots', landCount10(P_) + ' / ' + NPL10 * NPL10)}${cell('Things built', P_.objs.length)}</div>
+<h3>Visitors <small>${n} in the park now · ${Math.round(P_.tot.guests)} in all</small></h3>
+<div class="ostat10">${cell('Walking', G_.filter(g => g.st === 'walk').length)}${cell('Queueing', G_.filter(g => g.st === 'queue').length)}${cell('Riding', G_.filter(g => g.st === 'ride' || g.st === 'board').length)}${cell('Leaving', G_.filter(g => g.leave).length)}${cell('Happiness', n ? avg('happy') + '%' : '—')}${cell('Hunger', n ? avg('hunger') + '%' : '—')}${cell('Thirst', n ? avg('thirst') + '%' : '—')}${cell('Energy', n ? avg('energy') + '%' : '—')}${GT10.map((T_, i) => cell(T_.ic + ' ' + T_.n, G_.filter(g => g.ty === i).length)).join('')}${cell('Litter', TY.litter.length)}${cell('Cleanliness', Math.round(TY.clean) + '%')}${cell('Staff', TY.staff.length)}</div>`;
+  const th = Object.entries(TY.thoughts).filter(q => q[1] >= 1 && q[0].length > 2).sort((a, b) => b[1] - a[1]).slice(0, 5); if (th.length) h += `<p class="on7">Said most right now: ${th.map(q => '“' + html10(q[0]) + '” ×' + Math.round(q[1])).join(' · ')}</p>`;
+  h += `<h3>Rides <small>${rides.length}</small></h3>` + (rides.length ? tbl(['Ride', 'State', 'Queue', 'Riders', 'Tickets', 'Running cost', 'Reliability', 'Verdict'], rides.map(o => { const R = o.rt || {}, i = objInfo10(o), stt = !R.linked ? '⚠ no path' : R.broken ? '🔧 broken' : R.insp > 0 ? '🛠 inspection' : o.open === false ? '⛔ closed' : '✅ open'; return [html10(objName10(o)), stt, R.q ? R.q.length : 0, o.st.n, money10(o.st.inc), money10(o.st.run), Math.round(o.rel) + '%', o.st.rated ? '★ ' + (o.st.like / o.st.rated).toFixed(1) : '—'] })) : '<p class="on7">No rides yet.</p>');
+  const ri = renderer.info; h += `<h3>Performance <small>this device, right now</small></h3><div class="ostat10">${cell('Frames / s', Math.round(fps7))}${cell('Draw calls', ri.render.calls)}${cell('Triangles', ri.render.triangles.toLocaleString('en-US'))}${cell('Geometries', ri.memory.geometries)}${cell('Textures', ri.memory.textures)}${cell('Visitors drawn', n)}</div>`;
+  if (mine) h += `<h3>Testing controls <small>this browser only</small></h3>
+<div class="ogrid">${ob('cash', '💰 +$10,000', { v: 1e4, cls: 'gold', off: P_.mode === 'sandbox' })}${ob('cash', '💰 +$100,000', { v: 1e5, cls: 'gold', off: P_.mode === 'sandbox' })}${ob('level', '⭐ +1 park level', { off: P_.mode === 'sandbox' || lv.lv >= 30 })}${ob('spawn', '👥 +10 visitors', { v: 10 })}${ob('spawn', '👥 +50 visitors', { v: 50 })}${ob('cheer', '😃 Cheer everyone up')}${ob('home', '🚪 Send everyone home', { cls: 'dang' })}${ob('sweep', '🧹 Clear all litter')}</div>
+<h3>Time <small>${clock72(P_.min)}</small></h3><div class="ogrid">${[[540, '🌅 09:00 opening'], [720, '☀️ 12:00 noon'], [1080, '🌇 18:00 evening'], [1245, '🌆 20:45 last rides'], [1290, '🌙 21:30 night']].map(q => ob('time', q[1], { v: q[0] })).join('')}${ob('endDay', '⏭ End the day now', { cls: 'gold' })}${[1, 2, 4, 8].map(v_ => ob('speed', '×' + v_ + ' speed', { v: v_, cls: P_.speed === v_ ? 'on' : '' })).join('')}</div>
+<h3>Weather</h3><div class="ogrid">${Object.keys(WX10).map(k => ob('wx', WX10[k].ic + ' ' + WX10[k].n, { v: k, cls: P_.wx.k === k ? 'on' : '' })).join('')}${ob('wxAuto', P_.wx.auto === false ? '⏸ Weather is held' : '🔄 Weather changes by itself', { cls: P_.wx.auto === false ? '' : 'on' })}</div>
+<h3>Rides</h3><div class="ogrid">${ob('break', '🔧 Break a random ride', { off: !rides.some(o => o.rt && o.rt.linked && !o.rt.broken), cls: 'dang' })}${ob('fix', '✅ Repair and service every ride')}${ob('wear', '📉 Wear every ride to 40%')}${ob('tut', '🎓 Show the tutorial again')}</div>
+<p class="on7">Money given here is booked in today’s books as “Owner grant”, so income, costs and the balance still add up. Extra visitors pay the entrance fee like everyone else.</p>`;
+  else h += `<p class="on7">You are visiting someone else’s park: testing controls are off here.</p>`;
+  return h + own10Cloud();
+}
+function own10Cloud() {
+  const st = CLOUD10.st, sv = Object.values(AUTH10.saves || {});
+  return `<h3>Accounts &amp; cloud</h3><div class="ostat10">${[['Account', AUTH10.s ? html10(AUTH10.s.name || 'signed in') : 'signed out'], ['Cloud saves', AUTH10.s ? (AUTH10.syncErr ? '⚠ see below' : sv.length + ' in the account') : '—'], ['Park cloud', st === 'ok' ? '✅ connected' : st === 'missing' ? '⚠ database not set up' : st === 'off' ? '⚠ not reachable' : 'not checked yet'], ['Live presence', LIVE10.joined ? LIVE10.others.size + ' other(s) here' : 'off'], ['Published code', TY.park && TY.park.seen && TY.park.seen.cloud || '—'], ['Game version', TY10.version]].map(q => `<div><small>${q[0]}</small><b>${q[1]}</b></div>`).join('')}</div>${AUTH10.syncErr ? `<p class="on7">⚠ ${html10(AUTH10.syncErr)}</p>` : ''}${CLOUD10.why ? `<p class="on7">⚠ ${html10(CLOUD10.why)}</p>` : ''}
+<div class="ogrid"><button class="ob" data-a="x10:cloud">🔄 Check the cloud now</button></div><p class="on7">The park cloud and accounts use the game’s Supabase project. Set-up steps are in the README (“Cloud &amp; accounts”).</p>`;
+}
+{ const f0 = renderOwn; renderOwn = function () { if (ownTab !== 'own10') return f0(); const b = $('#own7B'), y = b.scrollTop; clearInterval(perfTimer); b.innerHTML = `<div class="osub72"><b>🏗 My Park 10.0</b></div>` + own10HTML(); b.scrollTop = y; document.querySelectorAll('#own7 .ownT [data-sec]').forEach(x => x.classList.toggle('on', x.dataset.sec === 'v10')); perfTimer = setInterval(() => { if ($('#own7').hidden || ownTab !== 'own10') { clearInterval(perfTimer); return } if (!document.querySelector('#own7B :focus') && TY.on) renderOwn() }, 2500) } }
+$('#own7').addEventListener('click', async e => {
+  const t = e.target.closest('[data-a^="x10:"]'); if (!t) return; e.stopImmediatePropagation(); if (t.disabled) return; const a = t.dataset.a.slice(4), v_ = t.dataset.v, P_ = TY.park, mine = TY.on && P_ && !TY.visit;
+  if (a === 'open') { closeOwner(); tyOpen10(v_ === 'sandbox' ? 'sandbox' : 'career'); ownTab = 'own10'; openOwner(); return }
+  if (a === 'acct') { acctOpen10(); return } if (a === 'exit') { tyExit10(); renderOwn(); return } if (a === 'cloud') { CLOUD10.checked = 0; await cloudCheck10(true); if (AUTH10.s) await syncAll10(); renderOwn(); return }
+  if (!mine) return;
+  switch (a) {
+    case 'cash': earn10('grant', +v_ || 0); sfx('coin'); break;
+    case 'level': { const l = level10(); xp10(l.need - l.into + .01); break }
+    case 'spawn': { const k = Math.min(+v_ || 0, SIM10.maxG - TY.guests.length); for (let i = 0; i < k; i++) guestSpawn10(); break }
+    case 'cheer': TY.guests.forEach(g => { g.happy = Math.max(g.happy, 92); g.hunger = Math.min(g.hunger, 20); g.thirst = Math.min(g.thirst, 20); g.energy = Math.max(g.energy, 80); g.nausea = 0 }); break;
+    case 'home': TY.guests.forEach(g => { g.leave = true }); break;
+    case 'sweep': TY.litter.length = 0; break;
+    case 'time': P_.min = +v_ || 540; break;
+    case 'endDay': P_.min = Math.max(P_.min, SIM10.close - .05); break;
+    case 'speed': P_.speed = +v_ || 1; tyUi10(); break;
+    case 'wx': setWx10(v_, true); P_.wx.auto = false; break;
+    case 'wxAuto': P_.wx.auto = P_.wx.auto === false; break;
+    case 'break': { const c = P_.objs.filter(o => { const i = objInfo10(o); return i && (i.t === 'coaster' || i.t === 'flat') && o.rt && o.rt.linked && !o.rt.broken }); if (c.length) { const o = pickR10(c); o.rt.broken = 1; o.rt.fix = 0; toast10('🔧 ' + objName10(o) + ' has broken down (owner test)', 'brk' + o.id, true) } break }
+    case 'fix': P_.objs.forEach(o => { if (o.rt) { o.rt.broken = 0; o.rt.insp = 0 } if (o.rel != null) o.rel = 100 }); TY.staff.forEach(s_ => { if (s_.k === 'mech') { s_.job = null; s_.st = 'idle' } }); break;
+    case 'wear': P_.objs.forEach(o => { if (o.rel != null) o.rel = Math.min(o.rel, 40) }); break;
+    case 'tut': P_.tut = 0; tut10(); break;
+  }
+  savePark10(); renderOwn();
+});
+DBG10.owner = { html: () => own10HTML(), open: () => { ownTab = 'own10'; openOwner() }, act: (a, v_) => { const b = document.createElement('button'); b.dataset.a = 'x10:' + a; if (v_ != null) b.dataset.v = v_; $('#own7B').appendChild(b); b.click(); b.remove() } };
 
 }
 

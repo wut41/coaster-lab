@@ -5,7 +5,7 @@ const { open } = require('./harness'), L = require('./tools/park_lib');
 const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
-const ONLY = process.env.T8 || 'ABCD';// run some sections only: T8=C node t8_v10_park.js
+const ONLY = process.env.T8 || 'ABCDE';// run some sections only: T8=C node t8_v10_park.js
 const near = (a, b, e = 1.5) => Math.abs(a - b) <= e, INCSUM = st => Object.values(st.led.inc).reduce((a, b) => a + b, 0);
 (async () => {
   // ---------- A. building, money, visitors (career)
@@ -191,6 +191,28 @@ const near = (a, b, e = 1.5) => Math.abs(a - b) <= e, INCSUM = st => Object.valu
     const cd = await XD(() => window.__coasterDebug.v80.v10.ty.cloud()); ok(cd.st === 'missing' && /not switched on/.test(cd.why), 'if the database functions are not installed the Share tab says the cloud is not switched on yet'); await Dn.browser.close();
     // a link with #park=CODE opens that park
     const E = await open(F, { w: 390, h: 844, cloud, init: sock, hash: '#park=' + pub.code }); await E.page.waitForTimeout(2500); const ve = await E.page.evaluate(() => window.__coasterDebug.v80.v10.ty.visiting()); ok(ve && ve.code === pub.code, 'opening the game with #park=' + pub.code + ' goes straight to that park'); await E.browser.close();
+  }
+  // ---------- E. Owner Control Center → My Park 10.0: real numbers and testing controls
+  if (ONLY.includes('E')) {
+    const { browser, page, errors } = await open(F, { w: 1200, h: 800, mobile: false }); const X = (f, a) => page.evaluate(f, a), S = () => X(() => window.__coasterDebug.v80.v10.ty.state()), O = (a, v) => X(([a, v]) => window.__coasterDebug.v80.v10.owner.act(a, v), [a, v]);
+    await X(() => window.__coasterDebug.v80.v10.owner.open()); await page.waitForTimeout(400);
+    ok(await X(() => !document.querySelector('#own7').hidden && !!document.querySelector('#own7 .ownT [data-tab="own10"].on') && /My Park is not open/.test(document.querySelector('#own7B').textContent)), 'the Owner Control Center has a “My Park 10.0” tab; with no park open it says so');
+    await O('open', 'career'); await page.waitForTimeout(900); await X(() => window.__coasterDebug.v80.v10.ty.speed(0)); await X(L.place, ['carousel', 21, 41, 3]).then(b => X(L.connect, [b.id])); await X(() => window.__coasterDebug.v80.v10.owner.open()); await page.waitForTimeout(300);
+    let s = await S(); const txt = () => X(() => document.querySelector('#own7B').textContent);
+    ok(await X(() => !document.querySelector('#own7').hidden && document.body.classList.contains('ty10')), 'it opens on top of My Park');
+    ok((await txt()).includes('$' + s.money.toLocaleString('en-US')) && /Things built1\b/.test(await txt()) && /Carousel/.test(await txt()), 'it shows the park’s real numbers (balance $' + s.money.toLocaleString('en-US') + ', 1 thing built, the Carousel in the ride table)');
+    const m0 = s.money, inc0 = s.tot.inc; await O('cash', 10000); s = await S();
+    ok(s.money === m0 + 10000 && s.led.inc.grant === 10000 && near(s.tot.inc, inc0 + 10000, .01), '+$10,000 raises the balance by exactly $10,000 and is booked as “Owner grant”');
+    const g0 = s.guests, gate0 = s.led.inc.gate; await O('spawn', 10); s = await S(); ok(s.guests === g0 + 10 && near(s.led.inc.gate - gate0, 100, .01), '+10 visitors: ten real visitors walk in and each pays the $10 entrance fee');
+    await O('time', 1290); await page.waitForTimeout(300); ok(Math.abs((await S()).min - 1290) <= 1, 'time can be set (21:30)'); await O('time', 720);
+    await O('wx', 'fog'); ok((await S()).wx === 'fog', 'weather can be set (fog)'); await O('wx', 'sunny');
+    await O('break'); ok((await X(() => window.__coasterDebug.v80.v10.ty.obj(1))).broken, 'a ride can be broken for testing'); await O('fix'); ok(!(await X(() => window.__coasterDebug.v80.v10.ty.obj(1))).broken, 'and repaired');
+    const lv0 = (await S()).lv; await O('level'); ok((await S()).lv === lv0 + 1, '+1 park level (level ' + lv0 + ' → ' + (lv0 + 1) + ')');
+    const ids = (await X(() => window.__coasterDebug.v80.v10.ty.guests())).map(g => g.id); await O('home'); await X(() => window.__coasterDebug.v80.v10.ty.speed(1)); await X(() => window.__coasterDebug.v80.v10.ty.ff(90)); const left = (await X(() => window.__coasterDebug.v80.v10.ty.guests())).filter(g => ids.includes(g.id)).length;
+    ok(ids.length >= 10 && left === 0, 'Send everyone home: all ' + ids.length + ' visitors who were in the park walk out (new ones keep arriving while it is open)');
+    s = await S(); ok(near(s.money, 25000 + s.tot.inc - s.tot.exp, 1.5), 'after all of that the books still add up: balance = $25,000 + everything in − everything out');
+    await page.screenshot({ path: SH + 'v10_owner_tab.png' });
+    ok(errors.length === 0, 'no errors in the Owner tab' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : '')); await browser.close();
   }
   // ---------- D. four screen sizes: nothing off screen, the main controls reachable
   for (const [w, h] of ONLY.includes('D') ? [[320, 568], [390, 844], [844, 390], [1200, 800]] : []) {

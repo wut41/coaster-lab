@@ -1,7 +1,7 @@
 // Coaster Lab 9.0: builder levels, one-card-per-cause diagnostics, shape-preserving repairs + undo, starter blueprints,
 // closed-circuit sketches, ride fares, guest speech bubbles, save compatibility with 8.6, and four screen sizes.
 const { open } = require('./harness');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v9_0.html', OLD = ROOT + 'coaster_lab_v8_6.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', OLD = ROOT + 'coaster_lab_v8_6.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
 const until = async (page, f, ms = 60000) => { const t = Date.now(); while (Date.now() - t < ms) { if (await page.evaluate(f)) return true; await page.waitForTimeout(250) } return false };

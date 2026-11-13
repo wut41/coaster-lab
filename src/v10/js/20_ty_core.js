@@ -62,7 +62,7 @@ const GT10 = [// visitor types: share of arrivals, intensity they like, minutes 
   { k: 'fan', n: 'Coaster enthusiast', ic: '🎢', share: .12, lo: 35, hi: 100, pat: 12, cash: [70, 130], nau: .6, coaster: 1.7 },
   { k: 'gentle', n: 'Gentle rider', ic: '🌷', share: .12, lo: 0, hi: 30, pat: 7, cash: [50, 90], nau: 1.5, coaster: .7 }
 ];
-const INC10 = [['gate', '🎟 Entrance tickets'], ['rides', '🎢 Ride tickets'], ['food', '🍔 Food & drink'], ['shops', '🎁 Shops & services'], ['prize', '🏆 Goal prizes'], ['sale', '♻️ Sold attractions'], ['loan', '🏦 Loan taken']];
+const INC10 = [['gate', '🎟 Entrance tickets'], ['rides', '🎢 Ride tickets'], ['food', '🍔 Food & drink'], ['shops', '🎁 Shops & services'], ['prize', '🏆 Goal prizes'], ['sale', '♻️ Sold attractions'], ['loan', '🏦 Loan taken'], ['grant', '♛ Owner grant (testing)']];
 const EXP10 = [['build', '🏗 Building & upgrades'], ['land', '🏞 Land'], ['run', '⚡ Power & running costs'], ['wages', '👷 Wages & ride operators'], ['repair', '🔧 Repairs & inspections'], ['refund', '↩ Ticket refunds'], ['stock', '📦 Stock for the shops'], ['loan', '🏦 Loan interest & repayments'], ['promo', '📣 Marketing']];
 const newLed10 = () => { const o = { inc: {}, exp: {} }; INC10.forEach(k => o.inc[k[0]] = 0); EXP10.forEach(k => o.exp[k[0]] = 0); return o };
 const ledSum10 = l => { let a = 0, b = 0; for (const k in l.inc) a += l.inc[k]; for (const k in l.exp) b += l.exp[k]; return { inc: a, exp: b, profit: a - b } };

@@ -1,5 +1,6 @@
 -- Coaster Lab 10.0: shared parks (publish, visit, rate, leaderboards) and player accounts (cloud saves).
--- Additive only: three new tables and thirteen functions. Nothing that exists (profiles, coasters, auth, the
+-- Additive only: three new tables and fourteen functions (six for shared parks, six for
+-- accounts, two helpers). Nothing that exists (profiles, coasters, auth, the
 -- handle_new_user trigger) is changed.
 --
 -- WHO CAN DO WHAT

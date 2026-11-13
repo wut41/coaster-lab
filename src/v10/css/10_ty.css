@@ -78,3 +78,7 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 .cta.ty10cta{grid-column:1/-1;background:linear-gradient(135deg,rgba(255,178,56,.32),rgba(47,214,176,.22))!important;border-color:rgba(255,178,56,.7)!important}
 
 @media(max-height:500px){.cta.ty10cta{grid-column:auto}}
+/* Owner Control Center → My Park 10.0 */
+.ostat10{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}.ostat10>div{padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);min-width:0}
+.ostat10 small{display:block;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ostat10 b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#own7 .ob[disabled]{opacity:.4;cursor:default}

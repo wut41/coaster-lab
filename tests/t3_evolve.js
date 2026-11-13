@@ -1,7 +1,7 @@
 const { open } = require('./harness');
 const ROOT = require('path').join(__dirname, '..') + '/';
 require('fs').mkdirSync(__dirname + '/shots', { recursive: true });
-const F = ROOT + 'coaster_lab_v9_0.html', SH = __dirname + '/shots/';
+const F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
 const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
 (async () => {
   for (const [w, h] of [[390, 844], [844, 390]]) {
