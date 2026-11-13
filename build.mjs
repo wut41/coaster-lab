@@ -58,6 +58,16 @@ patch('styles', '</style>\n</head>', `/* ===== COASTER LAB 10.0 — MY PARK ====
 const markup = files('html', '.html').map(([f, t]) => t.trim()).join('\n');
 patch('markup', '<div id="toast"></div>', `${markup}\n<div id="toast"></div>`);
 
+// ---------- 3b · art made with Higgsfield (src/v10/art): inlined as data URLs so the game stays ONE file
+const MIME = { '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png' };
+const ARTDIR = path.join(SRC, 'art');
+const ART = fs.existsSync(ARTDIR) ? Object.fromEntries(fs.readdirSync(ARTDIR).filter(f => MIME[path.extname(f)]).sort()
+  .map(f => [path.basename(f, path.extname(f)), `data:${MIME[path.extname(f)]};base64,${fs.readFileSync(path.join(ARTDIR, f)).toString('base64')}`])) : {};
+// sky + ground hooks for 31_art.js (each falls back to the 9.0 behaviour when the art module is missing)
+patch('art: sky size', 'function setSky(a,b,c,fog,far,gc=\'255,244,214\'){const W=512,Hh=256,', 'function setSky(a,b,c,fog,far,gc=\'255,244,214\'){const W=window.CLART?CLART.skyW:512,Hh=W/2,');
+patch('art: sky clouds', 'gl(70,.35);gl(14,.95);', 'gl(70*W/512,.35);gl(14*W/512,.95);if(window.CLART)CLART.sky(g,W,Hh,a,b,c,fc);');
+patch('art: ground detail', 'function grainTex(){const c=', 'function grainTex(){if(window.CLART){const t=CLART.grain();if(t)return t}const c=');
+
 const pre = files('js', '.js').map(([f, t]) => banner(f, t)).join('\n');
 const post = files('post', '.js').map(([f, t]) => banner(f, t)).join('\n');
 const HEAD = `// =====================================================================================================
@@ -67,6 +77,7 @@ const HEAD = `// ===============================================================
 // 10.0 data is stored under coasterlab.v10.* only.
 // =====================================================================================================
 const TY10={version:'${VERSION}'};
+const ART10_DATA=${JSON.stringify(ART)};
 {
 `;
 patch('modules (before boot)', "\nCI=RIDES.length;addEventListener('blur',", `\n${HEAD}${pre}\n}\n\nCI=RIDES.length;addEventListener('blur',`);
