@@ -11,8 +11,8 @@ const probe = async (file, w, h) => {
   r.hub = await X(() => [...document.querySelectorAll('#hub72 [data-hub]')].map(b => b.dataset.hub)); r.groups = await X(() => [...document.querySelectorAll('#hub72 .hubS82')].map(e => e.textContent));
   await page.click('#hub72 [data-hx="close"]'); await page.waitForTimeout(200);
   await page.click('#labBtn'); await page.waitForTimeout(600); r.lab = await X(() => !document.querySelector('#lab').hidden && document.querySelector('#labSec').textContent.length > 100); await page.click('#labClose'); await page.waitForTimeout(200);
-  await page.click('#goalBtn'); await page.waitForTimeout(300); r.goals = await X(() => document.querySelector('#ov7B .n7').textContent); await X(() => document.querySelector('#ov7X').click());
-  await page.click('#setBtn'); await page.waitForTimeout(300); r.settings = await X(() => [...document.querySelectorAll('#ov7B .h7')].map(e => e.textContent)); await X(() => document.querySelector('#ov7X').click());
+  await page.click('#goalBtn'); await page.waitForSelector('#ov7B .n7', { timeout: 15000 }); r.goals = await X(() => document.querySelector('#ov7B .n7').textContent); await X(() => document.querySelector('#ov7X').click());
+  await page.click('#setBtn'); await page.waitForSelector('#ov7B .h7', { timeout: 15000 }); r.settings = await X(() => [...document.querySelectorAll('#ov7B .h7')].map(e => e.textContent)); await X(() => document.querySelector('#ov7X').click());
   await X(() => window.__coasterDebug.v80.openPk('hq')); await page.waitForTimeout(500); r.hq = await X(() => window.__coasterDebug.v80.hq().open); await X(() => document.querySelector('#pk72 [data-x="close"]').click());
   await page.click('#layout'); await page.waitForTimeout(400); r.menu = await X(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length); await page.click('#menuClose');
   await X(() => window.__coasterDebug.select(5)); await page.waitForTimeout(300); r.ride5 = await X(() => window.__coasterDebug.state().cur);

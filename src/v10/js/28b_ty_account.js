@@ -140,7 +140,10 @@ async function syncDown10(slot) {
 function acctWiped10(slot) { if (!AUTH10.s) return; const st = LSP10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SSP10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
 // bring this device and the account in line. Never overwrites a played park without asking.
 async function syncAll10() {
-  if (!AUTH10.s || AUTH10.syncing || AUTH10.ask) return false; AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
+  if (!AUTH10.s || AUTH10.syncing) return false;
+  if (AUTH10.ask) {// a choice is waiting: nothing is sent or fetched, but what the page shows about both parks is brought up to date
+    AUTH10.syncing = true; try { const a = AUTH10.ask, me = await rpc10('cl_me', {}), cl = me && (me.saves || []).find(q => q.slot === a.slot); if (AUTH10.ask === a) { if (cl) a.cloud = cl; if (liveSlot10(a.slot)) savePark10(); const raw = rawPark10(a.slot); if (raw) a.local = metaRaw10(raw) } } catch (e) {} AUTH10.syncing = false; if (AUTH10.open) acctDraw10(); return false }
+  AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
   try {
     const me = await rpc10('cl_me', {}); if (!me) throw { status: 401 }; if (!AUTH10.s) return false;
     if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SSP10('auth', AUTH10.s); acctChip10() }
@@ -177,7 +180,7 @@ function bakSwap10(slot) {
   if (liveSlot10(slot)) { TY.sel = null; tyEnter10(slot, loadPark10(slot)) } AUTH10.dirty = true; AUTH10.t = 3; return true;
 }
 // quiet saving while you play: a few minutes apart, at the end of each day, and when you leave the park
-TICKS72.push((dt, raw) => { if (!AUTH10.s) return; AUTH10.t -= raw; if (AUTH10.t > 0) return; AUTH10.t = AUTH10.dirty ? 20 : 180; if (AUTH10.syncing || AUTH10.ask || !TY10.booted) return; if (TY.on && !TY.visit || AUTH10.dirty) syncAll10().then(ok => { if (!ok && AUTH10.s) AUTH10.t = 90 }) });
+TICKS72.push((dt, raw) => { if (!AUTH10.s) return; AUTH10.t -= raw; if (AUTH10.t > 0) return; AUTH10.t = 180; if (AUTH10.syncing || AUTH10.ask || !TY10.booted) return; if (TY.on && !TY.visit || AUTH10.dirty) syncAll10().then(ok => { if (AUTH10.s) AUTH10.t = Math.min(AUTH10.t, ok ? 180 : 90) }) });
 on72('ty10', ({ on }) => { if (AUTH10.s) { AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, on ? 2 : .5) } });
 { const f0 = endDay10; endDay10 = function () { const r = f0.apply(this, arguments); if (AUTH10.s) { AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 4) } return r } }
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && AUTH10.s && TY.on && !TY.visit && !AUTH10.syncing && !AUTH10.ask) syncUp10(TY.slot).catch(() => {}) });
@@ -221,7 +224,7 @@ function acctDraw10() {
   if (fid) { const n = $ty10(fid); if (n) { try { n.focus({ preventScroll: true }); if (pos && n.type !== 'email') n.setSelectionRange(pos[0], pos[1]) } catch (e) {} } }
 }
 function acctChip10() { const c = document.querySelector('#start .acChip'); if (c) c.innerHTML = AUTH10.s ? '👤 <b>' + html10(AUTH10.s.name || 'Account') + '</b>' : '👤 <b>Sign in</b>' }
-function acctOpen10(mode) { const el = $ty10('acct10'); if (!el) return false; if (mode && !AUTH10.s) AUTH10.mode = mode; AUTH10.open = true; el.hidden = false; acctDraw10(); if (AUTH10.s && !AUTH10.syncing && !AUTH10.ask && Date.now() - AUTH10.syncAt > 30000) syncAll10(); if (!AUTH10.s && !mobile) { const i = $ty10(AUTH10.mode === 'up' ? 'acName' : 'acEmail'); if (i) try { i.focus() } catch (e) {} } return true }
+function acctOpen10(mode) { const el = $ty10('acct10'); if (!el) return false; if (mode && !AUTH10.s) AUTH10.mode = mode; AUTH10.open = true; el.hidden = false; acctDraw10(); if (AUTH10.s && !AUTH10.syncing && (AUTH10.ask || Date.now() - AUTH10.syncAt > 30000)) syncAll10(); if (!AUTH10.s && !mobile) { const i = $ty10(AUTH10.mode === 'up' ? 'acName' : 'acEmail'); if (i) try { i.focus() } catch (e) {} } return true }
 function acctClose10() { const el = $ty10('acct10'); if (!el) return; AUTH10.open = false; el.hidden = true; AUTH10.err = ''; AUTH10.msg = ''; AUTH10.ui.pw = ''; AUTH10.ui.pw2 = ''; AUTH10.ui.show = false; if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
 function acctAct10(a) {
   const [k, v_] = String(a).split(':'), A = AUTH10;

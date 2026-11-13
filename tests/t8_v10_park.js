@@ -74,8 +74,9 @@ const near = (a, b, e = 1.5) => Math.abs(a - b) <= e, INCSUM = st => Object.valu
     // litter and janitors
     const lt0 = await X(() => window.__coasterDebug.v80.v10.ty.litterAdd(8)); await FF(60); ok((await S()).litter < lt0, 'the janitor sweeps litter (' + lt0 + ' → ' + (await S()).litter + ')');
     // weather and time
+    await X(() => window.__coasterDebug.v80.v10.ty.wx('sunny'));// compare with a sunny moment (the weather changes by itself during the minutes played above)
     const a0 = await X(() => window.__coasterDebug.v80.v10.ty.arrival()); await X(() => window.__coasterDebug.v80.v10.ty.wx('storm')); const a1 = await X(() => window.__coasterDebug.v80.v10.ty.arrival()); await page.waitForTimeout(900);
-    const wf = await X(() => window.__coasterDebug.v80.v10.ty.weatherFlags()); ok(a1 < a0 * .45 && wf.storm, 'a thunderstorm cuts arrivals to about a quarter and switches on rain and lightning');
+    const wf = await X(() => window.__coasterDebug.v80.v10.ty.weatherFlags()); ok(a1 < a0 * .45 && wf.storm, 'a thunderstorm cuts arrivals to about a quarter and switches on rain and lightning' + (a1 < a0 * .45 && wf.storm ? '' : ' — arrivals ' + a0.toFixed(3) + ' → ' + a1.toFixed(3) + ', flags ' + JSON.stringify(wf)));
     await page.screenshot({ path: SH + 'v10_park_storm.png' }); await X(() => window.__coasterDebug.v80.v10.ty.wx('sunny'));
     await X(() => window.__coasterDebug.v80.v10.ty.time(1290)); await page.waitForTimeout(1200); const wn = await X(() => window.__coasterDebug.v80.v10.ty.weatherFlags()); ok(wn.night > .9 && wn.sunI < 1 && wn.dark, 'at 21:30 it is night: dim blue light, lamps and station lights on');
     await page.screenshot({ path: SH + 'v10_park_night.png' }); await X(() => window.__coasterDebug.v80.v10.ty.time(720)); await page.waitForTimeout(700); const wd = await X(() => window.__coasterDebug.v80.v10.ty.weatherFlags()); ok(wd.night < .05 && wd.sunI > 2, 'at noon it is bright day');
