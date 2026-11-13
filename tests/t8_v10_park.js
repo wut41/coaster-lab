@@ -116,7 +116,8 @@ const near = (a, b, e = 1.5) => Math.abs(a - b) <= e, INCSUM = st => Object.valu
     ok(await X(() => !document.querySelector('#tyBadge').hidden && /Sandbox/.test(document.querySelector('#tyBadge').textContent)), 'a badge says you are in the Sandbox');
     const own = await X(() => window.__coasterDebug.v80.v10.ty.custom([['station', {}], ['lift', { h: 22, a: 45 }], ['drop', { h: 21, a: 55 }], ['turn', { dir: 'R', ang: 180, r: 16 }], ['airtime', { h: 6, len: 44 }], ['hill', { h: 4, len: 32 }]], 'Test Flyer'));
     const mine = own ? await X(L.place, [own, 8, 8, 10]) : { ok: false }; ok(mine.ok, 'a coaster made of Track Builder pieces can be placed in the park as “' + own + '”');
-    await X(() => window.__coasterDebug.v80.v10.ty.ff(80)); const oh = await X(i => window.__coasterDebug.v80.v10.ty.obj(i), big.id); ok(oh.n > 0 && /16|:/.test(String(oh.ph)), 'Hydra runs with riders in the Sandbox (' + oh.n + ' so far)');
+    let oh; for (let k = 0; k < 6; k++) { await X(() => window.__coasterDebug.v80.v10.ty.ff(50)); oh = await X(i => window.__coasterDebug.v80.v10.ty.obj(i), big.id); if (oh.n > 0) break }// the first visitors need a while to walk to a coaster far from the gate
+    ok(oh.n > 0 && /16|:/.test(String(oh.ph)), 'Hydra runs with riders in the Sandbox (' + oh.n + ' so far)');
     // look: name, colours, station, train
     await X(i => { const T = window.__coasterDebug.v80.v10.ty; T.sel(i); T.act('col', 'rail:#ff4fd8'); T.act('stn', 2) }, big.id); const oc = await X(i => window.__coasterDebug.v80.v10.ty.obj(i), big.id);
     ok(oc.col && oc.col.rail === '#ff4fd8' && oc.col.stn === 2, 'track colour and station style are stored with the ride and rebuilt in 3D');
@@ -138,16 +139,7 @@ const near = (a, b, e = 1.5) => Math.abs(a - b) <= e, INCSUM = st => Object.valu
   }
   // ---------- C. park codes, the park cloud and live presence
   if (ONLY.includes('C')) {
-    const db = { parks: [], ratings: [] }, code6 = () => { let c = ''; for (let i = 0; i < 6; i++) c += '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 32)]; return c };
-    const cloud = (fn, a) => {// a stand-in for the seven database functions, with the same rules
-      if (fn === 'cl_publish_park') { if (!a.p_owner_key || a.p_owner_key.length < 32) return { status: 400, json: { message: 'bad owner key' } }; let p = db.parks.find(q => q.owner === a.p_owner_key && q.key === a.p_park_key); if (p) { Object.assign(p, { name: a.p_name, author: a.p_author, data: a.p_data, stats: a.p_stats }); return { json: { code: p.code, updated: true } } } p = { code: code6(), owner: a.p_owner_key, key: a.p_park_key, name: a.p_name, author: a.p_author, data: a.p_data, stats: a.p_stats, visits: 0 }; db.parks.push(p); return { json: { code: p.code, updated: false } } }
-      if (fn === 'cl_get_park') { const p = db.parks.find(q => q.code === String(a.p_code).toUpperCase()); if (!p) return { json: null }; p.visits++; const r = db.ratings.filter(q => q.code === p.code); return { json: { code: p.code, name: p.name, author: p.author, data: p.data, stats: p.stats, visits: p.visits, stars: r.length ? r.reduce((x, q) => x + q.stars, 0) / r.length : 0, votes: r.length } } }
-      if (fn === 'cl_rate_park') { const p = db.parks.find(q => q.code === a.p_code); if (!p) return { status: 400, json: { message: 'no park with that code' } }; if (p.owner === a.p_rater_key) return { status: 400, json: { message: 'you cannot rate your own park' } }; db.ratings = db.ratings.filter(q => !(q.code === p.code && q.by === a.p_rater_key)); db.ratings.push({ code: p.code, by: a.p_rater_key, stars: a.p_stars }); const r = db.ratings.filter(q => q.code === p.code); return { json: { stars: r.reduce((x, q) => x + q.stars, 0) / r.length, votes: r.length } } }
-      if (fn === 'cl_list_parks') return { json: db.parks.map(p => { const r = db.ratings.filter(q => q.code === p.code); return { code: p.code, name: p.name, author: p.author, stats: p.stats, visits: p.visits, stars: r.length ? r.reduce((x, q) => x + q.stars, 0) / r.length : 0, votes: r.length } }) };
-      if (fn === 'cl_my_parks') return { json: db.parks.filter(p => p.owner === a.p_owner_key).map(p => ({ code: p.code, name: p.name, park_key: p.key, visits: p.visits })) };
-      if (fn === 'cl_unpublish_park') { const n = db.parks.length; db.parks = db.parks.filter(p => !(p.code === a.p_code && p.owner === a.p_owner_key)); return { json: db.parks.length < n } }
-      return null;
-    };
+    const { cloud, db } = require('./tools/cloud_mock')();// a stand-in for the park cloud, with the same rules as the database functions
     // a stand-in for the realtime socket: it answers the join, reports one other person in the park and moves them
     const sock = `window.__ws=[];window.WebSocket=class{constructor(u){this.url=u;this.readyState=0;this.sent=[];window.__ws.push(this);setTimeout(()=>{this.readyState=1;this.onopen&&this.onopen()},30)}
       send(t){const m=JSON.parse(t);this.sent.push(m);if(m.event==='phx_join'){this.topic=m.topic;setTimeout(()=>{this.emit({topic:m.topic,event:'phx_reply',ref:m.ref,payload:{status:'ok',response:{}}});this.emit({topic:m.topic,event:'presence_state',payload:{peer1:{metas:[{name:'Robin',col:'#22e0ff',x:10,z:60,owner:false}]}}})},20)}}
