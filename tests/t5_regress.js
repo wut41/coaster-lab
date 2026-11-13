@@ -14,7 +14,7 @@ const probe = async (file, w, h) => {
   await page.click('#goalBtn'); await page.waitForSelector('#ov7B .n7', { timeout: 15000 }); r.goals = await X(() => document.querySelector('#ov7B .n7').textContent); await X(() => document.querySelector('#ov7X').click());
   await page.click('#setBtn'); await page.waitForSelector('#ov7B .h7', { timeout: 15000 }); r.settings = await X(() => [...document.querySelectorAll('#ov7B .h7')].map(e => e.textContent)); await X(() => document.querySelector('#ov7X').click());
   await X(() => window.__coasterDebug.v80.openPk('hq')); await page.waitForTimeout(500); r.hq = await X(() => window.__coasterDebug.v80.hq().open); await X(() => document.querySelector('#pk72 [data-x="close"]').click());
-  await page.click('#layout'); await page.waitForTimeout(400); r.menu = await X(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length); await page.click('#menuClose');
+  await page.click('#layout'); await page.waitForFunction(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length > 0, null, { timeout: 15000 }).catch(() => {}); r.menu = await X(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length); await page.click('#menuClose');
   await X(() => window.__coasterDebug.select(5)); await page.waitForTimeout(300); r.ride5 = await X(() => window.__coasterDebug.state().cur);
   // owner lock: five quick taps on Rides opens the password box (we never type a password)
   await X(() => { const b = document.querySelector('#layout'); for (let i = 0; i < 5; i++) b.click() }); await page.waitForTimeout(400); r.owner = await X(() => window.__coasterDebug.v7.owner().pw);
