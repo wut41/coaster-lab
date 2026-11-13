@@ -203,6 +203,8 @@ Supabase; see "What is left").
 * Coasters in the park are scaled-down copies so several fit on the lawn (builder coasters to about 40% size); the
   on-ride camera in the park rides the scaled copy.
 * Visitors walk only on paths and queue in straight lines; there are no groups or families walking together.
+* A neglected park stagnates instead of going bankrupt: with no staff it has almost no costs, and entrance tickets
+  still bring in about $300 a day. There is no fixed upkeep cost yet.
 * The page grew from 1.44 MB to 2.4 MB (about 0.6 MB of that are the four pictures built into the file).
 
 ## What is left

@@ -10,7 +10,8 @@ in a browser (made for iPhone, works on desktop). No install, no build step need
 | `coaster_lab_v8_6.html`, `coaster_lab_v8_5.html` | Older versions, also untouched |
 | `src/v10/` + `build.mjs` | The source of everything 10.0 adds, and the script that puts it into one HTML file |
 | `supabase/migrations/` | The database set-up for the park cloud and accounts |
-| `CHANGES-10.0.md` | What 10.0 adds, how it is built, what was tested, known limits, what is left |
+| `REPORT-10.0.md` | The development report for the 10.0 upgrade: what is playable, what is partial, test results, what the owner still has to do (screenshots in `docs/report-10.0/`) |
+| `CHANGES-10.0.md` | What 10.0 adds, how it is built, known limits, what is left |
 | `CHANGES-9.0.md`, `CHANGES-8.6.md`, `PLAN-8.6.md` | Notes for the older versions |
 | `tests/` | Headless browser tests (see `tests/README.md`) |
 

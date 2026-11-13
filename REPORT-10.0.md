@@ -81,7 +81,7 @@ track and speed effects (PR #3), rider screams and the My Park soundscape (PR #4
 
 | File | Change |
 |---|---|
-| `coaster_lab_v10_0.html` | **new** — the game (generated; {SIZE} MB, 9.0 was 1.44 MB; the four inlined pictures are about 0.6 MB of that) |
+| `coaster_lab_v10_0.html` | **new** — the game (generated; 2.4 MB, 9.0 was 1.44 MB; the four inlined pictures are about 0.6 MB of that) |
 | `coaster_lab_v9_0.html`, `v8_6`, `v8_5` | **untouched** (backups) |
 | `build.mjs` | new — the build script |
 | `src/v10/js/*.js` (21), `css/*.css` (4), `html/*.html` (3), `post/*.js` (1), `art/*` (4) | new — all 10.0 source |
@@ -105,7 +105,14 @@ The game uses your existing Supabase project "Coaster lab". **No new service, no
 
 **Status — please read:**
 
-1. **{MIGRATION}**
+1. **The database migration is written and reviewed but NOT applied to the live project.** Two attempts from this
+   work session waited for your approval in Supabase and timed out (the second around 02:01 UTC on 13 Nov). I then
+   checked the project: no `cl_` tables or functions existed. After you said you were ready to approve, this session
+   had restarted and its Supabase connection did not come back (seven retries), so I could neither retry nor check
+   again. The quickest way: Supabase dashboard → SQL Editor → paste
+   `supabase/migrations/20261113000000_coaster_lab_10_parks_and_accounts.sql` → Run (it only adds things), or ask me
+   to retry when the connection is back. Until then publishing, leaderboards and cloud saves say "not switched on
+   yet"; park codes, accounts and everything offline work. ****
 2. **"Confirm email" is still on** in the project (2 of the 3 existing users were sent confirmation emails). For
    email + password sign-up without emails it has to be switched off: Dashboard → Authentication → Sign In /
    Providers → Email → Confirm email → off. I cannot change that setting from here. Until then new players see
@@ -135,9 +142,67 @@ that has not seen the latest revision. The file starts with a "who can do what" 
 Everything below ran in **headless Chromium with a software graphics card** on the build that is in the repository.
 **No physical device was used.** Screen sizes covered: 320×568, 390×844, 844×390, 1200×800.
 
-{TESTS}
+| Suite | Result | What it covers |
+|---|---|---|
+| `t0_baseline` | 0 console errors at 390×844 and 844×390; all 30 rides measured | every ride loads and runs |
+| `t1_gravity` | 32 / 32 | Gravity Lab (9.0 feature, unchanged) |
+| `t2a_same` | identical | six rides give the same position and speed to 6 decimals as in 8.5 |
+| `t2b_disaster` | 30 / 30 | Disaster Mode |
+| `t3_evolve` | 36 / 36 | Evolve |
+| `t4_daily` | 31 / 31 | Daily Challenge |
+| `t5_regress` | 27 / 27 | older features next to 8.5: start screen, Lab, Goals, Settings, Park & tools, builder, sketch studio, owner prompt |
+| `t6_v90` | 82 / 82 | Track Builder 5.0, sketches, fares, speech bubbles, 8.6 saves, four screen sizes |
+| `t7_v10_rides` | 35 / 35 | the 12 new / rebuilt rides (full check clean, all different, no errors), 8 train types, ride camera, 🎲 Generate |
+| `t8_v10_park` | 135 / 135 | My Park: building rules, every dollar in the ledger, visitors, queues, prices, upgrades, breakdowns, weather, days, goals, saving, Sandbox, park codes, cloud and live presence (stand-ins), Owner tab, four screen sizes |
+| `t9_sound` | 29 / 29 | sound upgrade |
+| `t10_v10_gfx` | 20 / 20 | graphics extras |
+| `t11_v10_account` | 82 / 82 | sign-in page, accounts, cloud saves on two devices, account-owned parks, email confirmation still on, password reset, offline, database not set up, four screen sizes |
 
-Screenshots from these runs are in `docs/report-10.0/`.
+All 13 suites pass on the final build. During the work these suites caught real bugs that were then fixed: riders
+trapped behind an empty second train, riders stuck on a broken ride, visitors standing about in small parks, a
+leaderboard that stayed on "Loading…", the sign-in session being included in "Save a copy" files, and a cloud-sync
+timer that fired every 20 seconds instead of every 3 minutes.
+
+**Measured rides** (the game's own inspection, `tests/tools/shot_rides.js`):
+
+| Ride | Train | Length | Height | Top speed | Inversions | Max G | Lap |
+|---|---|---|---|---|---|---|---|
+| Thunder Comet | bullet (launch) | 897 m | 48 m | 37.7 m/s | 2 | 4.1 | 55 s |
+| Nova Giant | hyper | 930 m | 62 m | 31.6 m/s | 2 | 4.7 | 104 s |
+| Talon Strike | dive | 703 m | 60 m | 31.1 m/s | 1 | 5.1 | 71 s |
+| Aurora Wing | wing (launch) | 897 m | 25 m | 26.8 m/s | 4 | 4.3 | 76 s |
+| Nightshade | inverted | 771 m | 36 m | 22.1 m/s | 5 | 3.8 | 87 s |
+| Sky Manta | flying | 701 m | 34 m | 21.8 m/s | 1 | 3.8 | 77 s |
+| Turbo Circuit | motorbike (launch) | 620 m | 12 m | 23.0 m/s | 0 | 3.4 | 47 s |
+| Timberwolf | wooden | 734 m | 32 m | 21.6 m/s | 0 | 3.9 | 85 s |
+| Hydra | floorless | 707 m | 52 m | 28.3 m/s | 7 | 4.9 | 68 s |
+| Cheddar Chase | spinning | 411 m | 15 m | 12.4 m/s | 0 | 2.7 | 67 s |
+| Little Dipper | family | 296 m | 11 m | 10.2 m/s | 0 | 1.6 | 44 s |
+| Pendulum Pass | swinging | 659 m | 32 m | 19.0 m/s | 0 | 3.4 | 70 s |
+
+**Economy** (`tests/tools/balance.js`, whole days played at normal speed):
+
+| Park | Result |
+|---|---|
+| Starter: two flat rides, burger bar, drinks, restrooms ($7,500 spent) | profit $265 on day 2, $617 on day 3, $940 on day 4 as reputation builds (65 → 115 visitors a day) |
+| The same park after reinvesting $9,600 at level 3 (two more rides, ice cream, scenery, two plots) | about $1,740 a day, about 145 visitors a day, rating 70, reputation 76 |
+| Neglected: one ride priced at $28, no staff | sells no ride tickets, visitors leave unhappy, reputation stays at the starting 18, about 35 visitors a day |
+
+**Simulation cost:** about 1.1 ms per frame with about 130 visitors, 69 draw calls and 36,000 triangles in the park
+view, measured on the test machine's software renderer (not a phone).
+
+Screenshots from these runs are in `docs/report-10.0/`:
+
+| | |
+|---|---|
+| ![My Park](docs/report-10.0/v10_park_career.jpg) My Park with a ride card | ![End of day](docs/report-10.0/v10_park_daycard.jpg) The end-of-day books |
+| ![Night](docs/report-10.0/v10_park_night.jpg) Night | ![Storm](docs/report-10.0/v10_park_storm.jpg) Thunderstorm |
+| ![On-ride](docs/report-10.0/v10_park_pov.jpg) Riding a park coaster | ![Live](docs/report-10.0/v10_park_live.jpg) Live presence (stand-in socket) |
+| ![Nova Giant](docs/report-10.0/v10_nova_giant.jpg) Nova Giant | ![Hydra](docs/report-10.0/ride_Hydra_orbit.jpg) Hydra |
+| ![Timberwolf](docs/report-10.0/ride_Timberwolf_orbit.jpg) Timberwolf | ![Generate](docs/report-10.0/v10_generate.jpg) 🎲 Generate |
+| ![Sign in](docs/report-10.0/v10_account_signin_phone.jpg) Sign-in page (phone) | ![Signed in](docs/report-10.0/v10_account_signed_in_phone.jpg) Your account |
+| ![Choose](docs/report-10.0/v10_account_choose_park.jpg) Two different parks: choose | ![Share](docs/report-10.0/v10_account_share_tab.jpg) Park Office → Share |
+| ![Owner](docs/report-10.0/v10_owner_tab.jpg) Owner Control Center → My Park | ![320](docs/report-10.0/v10_size_320x568.jpg) 320×568 |
 
 **Not verified:** real iPhone or Android frame rates and touch feel; Safari; the on-screen keyboard over the sign-in
 form; password-manager autofill; and anything against the live Supabase project (the test machine cannot reach
@@ -145,7 +210,22 @@ supabase.co, so the account server and database were played by a stand-in that f
 
 ## 9. Known bugs and limits
 
-{BUGS}
+No failing check and no console error is left in the automated runs. What I know is imperfect:
+
+* **A neglected park stagnates instead of going bankrupt.** With no staff it has almost no costs, so entrance
+  tickets still bring in about $300 a day. There is no fixed upkeep cost yet.
+* **The same park open and visible on two devices at once** counts as two different parks (each one's clock keeps
+  running), so the second device is asked which one to keep. Nothing is lost, but it is a question a player may not
+  expect.
+* **Park HQ (the older park mode) got richer.** It counts every ride in the game, so with ten more coasters the same
+  day brings about a third more visitors and income than in 9.0.
+* **Coasters in My Park are scaled-down copies** so several fit on the lawn; the on-ride camera there rides the copy.
+* **Frame-rate-dependent behaviour is unproven on real hardware.** On this machine's software renderer several
+  timing checks needed longer waits. The game has a frame-rate watch that turns effects down, but how a busy park
+  runs on an older iPhone is unknown.
+* **The file is 2.4 MB** (9.0 was 1.44 MB); about 0.6 MB is the four built-in pictures.
+* **Visiting a park by a long code** does not count visits or allow rating (those need the cloud code).
+* **"Forgot password?"** depends on Supabase email; see section 6.
 
 ## 10. Remaining work
 
