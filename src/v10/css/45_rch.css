@@ -1,0 +1,24 @@
+/* 10.0 🎯 Ride challenges: lap-card block, Goals tab cards, milestones */
+#sum7 .rch10L{margin:8px 0 0;padding:8px 10px;border-radius:12px;background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.3);display:grid;gap:4px}
+#sum7 .rch10L p{margin:0;font-size:13px;line-height:1.4;color:var(--ink2,#cfd8e8)}
+#sum7 .rch10L p.got{color:#ffd23f}
+#sum7 .rch10L p small{opacity:.8;font-weight:700}
+#sum7 .rch10L .btn{justify-self:start;min-height:36px;margin-top:2px}
+.rch10H{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 12px;border-radius:14px;background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.3)}
+.rch10H b{font-size:16px}.rch10H small{color:var(--ink2,#cfd8e8)}
+.rch10G{display:grid;gap:8px;margin-top:8px}
+@media (min-width:700px){.rch10G{grid-template-columns:1fr 1fr}}
+.rch10c{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);min-width:0}
+.rch10c.gold{border-color:#ffd23f;box-shadow:0 0 0 1px rgba(255,210,63,.35) inset}
+.rch10c>.ic{font-size:24px;flex:none;width:32px;text-align:center}
+.rch10c>div{flex:1;min-width:0;display:grid;gap:3px}
+.rch10c b{font-size:14px}
+.rch10c small{font-size:12px;color:var(--ink2,#cfd8e8);overflow-wrap:anywhere}
+.rch10c small.nx{color:#fff}
+.rch10c .md{display:flex;gap:2px;flex:none}
+.rch10c .md span{font-size:18px;filter:grayscale(1);opacity:.3}
+.rch10c .md span.on{filter:none;opacity:1}
+.rch10M{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:6px 0 8px}
+.rch10M>div{display:grid;gap:2px;padding:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.16)}
+.rch10M>div.on{border-style:solid;border-color:#ffd23f;background:rgba(255,210,63,.08)}
+.rch10M span{font-size:22px}.rch10M b{font-size:13px}.rch10M small{font-size:12px;color:var(--ink2,#cfd8e8)}
