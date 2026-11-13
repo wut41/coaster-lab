@@ -10173,9 +10173,13 @@ DBG10.snd = {
 // How it hooks in: renderer.render is wrapped (the original still draws the scene, into an off-screen picture that
 // is tone-mapped exactly like the screen), then the glow and blur passes run and the result is drawn to the screen.
 // If anything goes wrong the pack switches itself off and the game draws the plain way again.
+// Sharpness (10.0.1): the picture is kept crisp first. Each quality draws at a higher pixel ratio than 9.0 did, the
+// resolution is not lowered while the extras can still be turned down instead, a light sharpen runs on Medium and up,
+// textures are filtered more steeply at an angle, daytime glow only catches really bright things, and motion blur and
+// shake are light and only on steep drops and launches (each has its own switch).
 // Settings live in coasterlab.v10.gfx. Test hooks: DBG10.gfx (test harness only).
 const GFX10 = {
-  set: Object.assign({ glow: true, speed: !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) }, LS10('gfx', {})),
+  set: Object.assign({ glow: true, speed: !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), blur: true }, LS10('gfx', {})),
   auto: 0,        // 0 full · 1 lighter (no motion blur, fewer glow levels) · 2 glow off; set by the frame-rate watch
   ok: null,       // null not checked yet · true this device can draw the extras · false plain drawing only
   busy: false, rt: null, down: [], up: [], w: 0, h: 0, lv: -1, samples: 0, mats: null, quad: null, qcam: null,
@@ -10183,22 +10187,26 @@ const GFX10 = {
 };
 // per-quality amounts: glow levels, motion blur samples, metal shine multiplier, sun disc
 const GFXQ10 = {
-  low: { glow: 0, lv: 0, blurN: 0, shine: 1, sun: 0 },
-  medium: { glow: 1, lv: 3, blurN: 4, shine: 1.2, sun: 1 },
-  high: { glow: 1, lv: 5, blurN: 8, shine: 1.45, sun: 1 },
-  ultra: { glow: 1, lv: 6, blurN: 10, shine: 1.6, sun: 1 }
+  low: { glow: 0, lv: 0, blurN: 0, shine: 1, sun: 0, sharp: 0, aniso: 4, pr: 1 },
+  medium: { glow: 1, lv: 3, blurN: 4, shine: 1.2, sun: 1, sharp: .22, aniso: 8, pr: 1.5 },
+  high: { glow: 1, lv: 5, blurN: 8, shine: 1.45, sun: 1, sharp: .28, aniso: 16, pr: 2 },
+  ultra: { glow: 1, lv: 6, blurN: 10, shine: 1.6, sun: 1, sharp: .3, aniso: 16, pr: 2.5 }
 };
+// sharper pixel ratios than 9.0 (Low .8, Medium 1.25, High 1.75): Low no longer draws below the screen's own size,
+// and a phone on Medium draws 1.5 pixels per screen point. The screen itself still caps it (devicePixelRatio).
+for (const k in GFXQ10) if (QUAL[k]) QUAL[k].pr = GFXQ10[k].pr;
 function gfxProfile10() {
   const Q = GFXQ10[gq] || GFXQ10.medium, s = GFX10.set, a = GFX10.auto, can = GFX10.ok !== false;
   const glow = !!(s.glow && Q.glow && a < 2 && can);
   // motion blur rides on the glow picture, so it needs Glow on (switching the off-screen picture on mid-drop would stutter)
-  return { glow, lv: a >= 1 ? Math.max(2, Q.lv - 2) : Q.lv, blurN: glow && s.speed && a < 1 ? Q.blurN : 0, shake: !!s.speed, shine: Q.shine, sun: !!(Q.sun && s.glow) };
+  return { glow, lv: a >= 1 ? Math.max(2, Q.lv - 2) : Q.lv, blurN: glow && s.blur && a < 1 ? Q.blurN : 0, shake: !!s.speed, shine: Q.shine, sun: !!(Q.sun && s.glow), sharp: glow ? Q.sharp : 0, aniso: Q.aniso };
 }
 function gfxCheck10() {
   if (GFX10.ok !== null) return GFX10.ok;
   const c = renderer.capabilities, ex = renderer.extensions;
   GFX10.ok = !!(c.isWebGL2 && (ex.has('EXT_color_buffer_float') || ex.has('EXT_color_buffer_half_float')));
   GFX10.samples = GFX10.ok ? Math.min(4, c.maxSamples || 0) : 0;
+  if (!GFX10.ok) gfxPrApply10();
   return GFX10.ok;
 }
 function gfxFree10() {
@@ -10237,11 +10245,14 @@ vec3 s(vec2 o){return texture2D(tLow,vUv+o*uTexel).rgb;}
 void main(){vec3 c=s(vec2(0.))*4.+(s(vec2(-1.,0.))+s(vec2(1.,0.))+s(vec2(0.,-1.))+s(vec2(0.,1.)))*2.+s(vec2(-1.,-1.))+s(vec2(1.,-1.))+s(vec2(-1.,1.))+s(vec2(1.,1.));
 gl_FragColor=vec4(texture2D(tHigh,vUv).rgb+c/16.,1.);}`;
   // final picture: zoom blur toward the middle (edges only), screen-blended glow, a gentle grade, then sRGB for the screen
-  const OUT = `uniform sampler2D tScene,tBloom;uniform float uBloom,uBlur,uVig,uSat;uniform vec2 uCenter;varying vec2 vUv;
+  // the sharpen is contrast-limited (it never goes past the brightest or darkest neighbour), so edges get crisper without halos
+  const OUT = `uniform sampler2D tScene,tBloom;uniform float uBloom,uBlur,uVig,uSat,uSharp;uniform vec2 uCenter,uTexel;varying vec2 vUv;
 vec3 enc(vec3 c){c=clamp(c,0.,1.);return mix(pow(c,vec3(.41666))*1.055-vec3(.055),c*12.92,vec3(lessThanEqual(c,vec3(.0031308))));}
 void main(){vec3 c=texture2D(tScene,vUv).rgb;
+if(uSharp>0.){vec3 n=texture2D(tScene,vUv+vec2(0.,uTexel.y)).rgb,s=texture2D(tScene,vUv-vec2(0.,uTexel.y)).rgb,e=texture2D(tScene,vUv+vec2(uTexel.x,0.)).rgb,w=texture2D(tScene,vUv-vec2(uTexel.x,0.)).rgb;
+vec3 mn=min(c,min(min(n,s),min(e,w))),mx=max(c,max(max(n,s),max(e,w)));c=clamp(c+(4.*c-n-s-e-w)*uSharp,mn,mx);}
 #if BLUR_N > 0
-if(uBlur>.0005){vec2 d=vUv-uCenter;float m=smoothstep(.1,.7,length(d*vec2(1.,.85)));vec3 a=c;
+if(uBlur>.0005){vec2 d=vUv-uCenter;float m=smoothstep(.32,.85,length(d*vec2(1.,.85)));vec3 a=c;
 for(int i=1;i<=BLUR_N;i++){a+=texture2D(tScene,vUv-d*(uBlur*m*float(i)/float(BLUR_N))).rgb;}c=a/float(BLUR_N+1);}
 #endif
 if(uBloom>0.){vec3 b=min(texture2D(tBloom,vUv).rgb*uBloom,vec3(1.));c=1.-(1.-c)*(1.-b);}
@@ -10254,7 +10265,7 @@ gl_FragColor=vec4(enc(c),1.);}`;
     bright: M({ BRIGHT: 1 }, { tSrc: tx(), uTexel: v2(), uThr: { value: .75 }, uKnee: { value: .2 } }, DOWN),
     down: M({}, { tSrc: tx(), uTexel: v2(), uThr: { value: 0 }, uKnee: { value: 0 } }, DOWN),
     up: M({}, { tLow: tx(), tHigh: tx(), uTexel: v2() }, UP),
-    out: M({ BLUR_N: blurN }, { tScene: tx(), tBloom: tx(), uBloom: { value: 0 }, uBlur: { value: 0 }, uVig: { value: 0 }, uSat: { value: 1 }, uCenter: { value: new T.Vector2(.5, .5) } }, OUT)
+    out: M({ BLUR_N: blurN }, { tScene: tx(), tBloom: tx(), uBloom: { value: 0 }, uBlur: { value: 0 }, uVig: { value: 0 }, uSat: { value: 1 }, uSharp: { value: 0 }, uTexel: v2(), uCenter: { value: new T.Vector2(.5, .5) } }, OUT)
   };
   if (!GFX10.quad) {
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3)); g.setAttribute('uv', new T.Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2));
@@ -10264,9 +10275,10 @@ gl_FragColor=vec4(enc(c),1.);}`;
 }
 // glow amounts by time of day: night lights and sunsets glow more than a bright noon
 function gfxLook10() {
-  if (tod === 'night') return { thr: .42, str: 1.9, vig: .22, sat: 1.04 };
-  if (tod === 'sunset') return { thr: .6, str: 1.5, vig: .18, sat: 1.07 };
-  return { thr: .72, str: 1.15, vig: .14, sat: 1.06 };
+  // 10.0.1: the daytime threshold sits above the sky and clouds, so a sunny day stays crisp instead of hazy
+  if (tod === 'night') return { thr: .5, knee: .2, str: 1.35, vig: .18, sat: 1.04 };
+  if (tod === 'sunset') return { thr: .74, knee: .16, str: .95, vig: .14, sat: 1.06 };
+  return { thr: .93, knee: .12, str: .5, vig: .1, sat: 1.05 };
 }
 // the sun as a bright disc where the sky already paints its glow (the same direction the shadows come from)
 function gfxSun10() {
@@ -10289,7 +10301,7 @@ function gfxSunTick10(pf, cam) {
 // metal (rails, supports, lap bars, chrome trains) reflects more of the sky on higher quality settings
 function gfxShine10(pf, now) {
   if (pf.shine === GFX10.shineK && now < GFX10.shineT) return;
-  GFX10.shineT = now + 2000; GFX10.shineK = pf.shine; const k = pf.shine;
+  GFX10.shineT = now + 2000; GFX10.shineK = pf.shine; const k = pf.shine; gfxAniso10(pf);
   scene.traverse(o => {
     const m = o.material; if (!m) return;
     (Array.isArray(m) ? m : [m]).forEach(mm => {
@@ -10302,35 +10314,63 @@ function gfxShine10(pf, now) {
     });
   });
 }
+// textures seen at an angle (ground, grass, paths, the park map) stay sharp further away
+function gfxAniso10(pf) {
+  const A = Math.min(pf.aniso, renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1);
+  if (A <= 1) return;
+  scene.traverse(o => {
+    const m = o.material; if (!m) return;
+    (Array.isArray(m) ? m : [m]).forEach(mm => {
+      const t = mm && mm.map; const im = t && t.image; if (!t || !t.isTexture || t.isRenderTargetTexture || t.anisotropy >= A || !im || im.complete === false || !(im.width > 0)) return;
+      t.anisotropy = A; t.needsUpdate = true;
+    });
+  });
+}
+// the picture is not drawn at a lower resolution while the extras can still be turned down instead: the base game's
+// frame-rate watch may ask for less, but it only gets it once glow is off (or on Low, or on a device without glow)
+function gfxPrFloor10() {
+  if (gq === 'low' || GFX10.ok === false || GFX10.auto >= 2 || !GFX10.set.glow) return 0;
+  return Math.min(devicePixelRatio || 1, window.__gqPr || 2);
+}
+// (after the frame, never in the middle of a draw)
+function gfxPrApply10() { setTimeout(() => safe10('gfx pixel ratio', () => { renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight) }), 0) }
+{
+  const setPr = renderer.setPixelRatio.bind(renderer);
+  renderer.setPixelRatio = function (r) { GFX10.prWant = r; return setPr(Math.max(r, gfxPrFloor10())) };
+}
 // how hard the camera shakes and the edges blur: speed, steep drops and launches, mostly in the front-seat view
 function gfxMotion10(pf, dt) {
   let ts = 0, tb = 0;
   if (pf.shake && playing && !editing && !startOpen && (camMode === 'ride' || camMode === 'chase' || camMode === 'front')) {
-    const spd = sat10((v - 12) / 28), drop = sat10(-pT.y * 1.4) * sat10((v - 6) / 14), pov = camMode === 'ride' ? 1 : .5;
-    ts = pov * Math.min(1, spd * .35 + drop * .85 + launchKick * .5);
-    tb = pov * Math.min(.06, spd * .022 + drop * spd * .032 + launchKick * .02);
+    // 10.0.1: only steep drops and launches shake or blur; plain fast cruising stays sharp
+    const spd = sat10((v - 12) / 28), drop = sat10((-pT.y - .35) * 2) * sat10((v - 8) / 14), pov = camMode === 'ride' ? 1 : .4;
+    ts = pov * Math.min(1, drop * .7 + launchKick * .4 + spd * .06);
+    tb = camMode === 'ride' ? Math.min(.025, drop * (.4 + .6 * spd) * .025 + launchKick * .008) : 0;
   }
   const k = Math.min(1, dt * 6); GFX10.shake += (ts - GFX10.shake) * k; GFX10.blur += (tb - GFX10.blur) * k;
 }
 const gfxE10 = new THREE.Euler(), gfxQ10 = new THREE.Quaternion(), gfxV10 = new THREE.Vector3(), gfxP10 = new THREE.Vector3(), gfxR10 = new THREE.Quaternion(), gfxS10 = new THREE.Vector2();
 function gfxShakeOn10(cam) {
   const t = performance.now() / 1000, a = GFX10.shake;
-  const n1 = Math.sin(t * 37.1) + .6 * Math.sin(t * 61.7 + 1.3), n2 = Math.sin(t * 43.3 + 2.1) + .6 * Math.sin(t * 71.9 + .4), n3 = Math.sin(t * 29.7 + 4.2);
+  // a low rumble (about 7 to 17 shakes a second): faster than that, every frame lands somewhere new and the picture smears
+  const n1 = Math.sin(t * 11.3) + .5 * Math.sin(t * 17.9 + 1.3), n2 = Math.sin(t * 13.1 + 2.1) + .5 * Math.sin(t * 7.3 + .4), n3 = Math.sin(t * 9.7 + 4.2);
   gfxP10.copy(cam.position); gfxR10.copy(cam.quaternion);
-  cam.quaternion.multiply(gfxQ10.setFromEuler(gfxE10.set(n1 * a * .006, n2 * a * .006, n3 * a * .004)));
-  cam.position.add(gfxV10.set(n2, n1, 0).multiplyScalar(a * .025).applyQuaternion(cam.quaternion)); cam.updateMatrixWorld();
+  cam.quaternion.multiply(gfxQ10.setFromEuler(gfxE10.set(n1 * a * .0035, n2 * a * .0035, n3 * a * .002)));
+  cam.position.add(gfxV10.set(n2, n1, 0).multiplyScalar(a * .012).applyQuaternion(cam.quaternion)); cam.updateMatrixWorld();
 }
 function gfxShakeOff10(cam) { cam.position.copy(gfxP10); cam.quaternion.copy(gfxR10); cam.updateMatrixWorld() }
 // frame-rate watch: below ~30 frames a second for 4 s with the extras on, step down once (and tell the player once)
 function gfxWatch10(raw, post) {
   if (window.__coasterTestHarness === true && !GFX10.forceSlow) return;
-  if (raw > .5 || document.hidden) return;
+  if (GFX10.forceSlow) raw = Math.min(raw, 1); // test hook: very slow software drawing still counts
+  else if (raw > .5 || document.hidden) return;
   if (GFX10.warm > 0) { GFX10.warm -= raw; return }
-  const slow = GFX10.forceSlow ? 1 : raw > 1 / 30 ? 1 : 0;
+  const slow = GFX10.forceSlow ? 1 : raw > 1 / 38 ? 1 : 0;
   GFX10.slowT = post && slow ? GFX10.slowT + raw : Math.max(0, GFX10.slowT - raw * .5);
   if (GFX10.slowT > 4 && GFX10.auto < 2) {
     GFX10.auto++; GFX10.slowT = 0; GFX10.warm = 4;
     say(GFX10.auto === 1 ? '✨ Lighter glow and no motion blur, to keep things smooth' : '✨ Glow turned off to keep things smooth (Settings to turn it back on)');
+    if (GFX10.auto >= 2) gfxPrApply10();
   }
 }
 function gfxDraw10(orig, cam) {
@@ -10340,7 +10380,7 @@ function gfxDraw10(orig, cam) {
   const shake = cam === camera && GFX10.shake > .002;
   const post = pf.glow && gfxCheck10();
   gfxWatch10(raw, post);
-  GFX10.last = { post, glow: pf.glow && post, lv: pf.lv, blurN: pf.blurN, blur: +GFX10.blur.toFixed(4), shake: +GFX10.shake.toFixed(3), sun: !!(GFX10.sun && GFX10.sun.visible), shine: pf.shine, auto: GFX10.auto };
+  GFX10.last = { post, glow: pf.glow && post, lv: pf.lv, blurN: pf.blurN, sharp: post ? pf.sharp : 0, pr: +renderer.getPixelRatio().toFixed(2), blur: +GFX10.blur.toFixed(4), shake: +GFX10.shake.toFixed(3), sun: !!(GFX10.sun && GFX10.sun.visible), shine: pf.shine, auto: GFX10.auto };
   if (shake) gfxShakeOn10(cam);
   try {
     if (!post) { orig.call(renderer, scene, cam); return }
@@ -10353,12 +10393,12 @@ function gfxDraw10(orig, cam) {
       const L = gfxLook10();
       if (lv) {
         const D = GFX10.down, U = GFX10.up;
-        M.bright.uniforms.tSrc.value = GFX10.rt.texture; M.bright.uniforms.uTexel.value.set(1 / W, 1 / H); M.bright.uniforms.uThr.value = L.thr; pass(M.bright, D[0]);
+        M.bright.uniforms.tSrc.value = GFX10.rt.texture; M.bright.uniforms.uTexel.value.set(1 / W, 1 / H); M.bright.uniforms.uThr.value = L.thr; M.bright.uniforms.uKnee.value = L.knee; pass(M.bright, D[0]);
         for (let i = 1; i < lv; i++) { M.down.uniforms.tSrc.value = D[i - 1].texture; M.down.uniforms.uTexel.value.set(1 / D[i - 1].width, 1 / D[i - 1].height); pass(M.down, D[i]) }
         for (let i = lv - 2; i >= 0; i--) { const low = i === lv - 2 ? D[lv - 1] : U[i + 1]; M.up.uniforms.tLow.value = low.texture; M.up.uniforms.tHigh.value = D[i].texture; M.up.uniforms.uTexel.value.set(1 / low.width, 1 / low.height); pass(M.up, U[i]) }
       }
       const o = M.out.uniforms; o.tScene.value = GFX10.rt.texture; o.tBloom.value = lv ? GFX10.up[0].texture : GFX10.rt.texture;
-      o.uBloom.value = lv ? L.str / lv : 0; o.uBlur.value = pf.blurN ? GFX10.blur : 0; o.uVig.value = pf.glow ? L.vig : 0; o.uSat.value = pf.glow ? L.sat : 1;
+      o.uBloom.value = lv ? L.str / lv : 0; o.uBlur.value = pf.blurN ? GFX10.blur : 0; o.uVig.value = pf.glow ? L.vig : 0; o.uSat.value = pf.glow ? L.sat : 1; o.uSharp.value = pf.sharp; o.uTexel.value.set(1 / W, 1 / H);
       pass(M.out, null);
       // a shader this device cannot compile only logs and draws black: check each one once, and fall back if needed
       if (!M.checked) { M.checked = true; [M.bright, M.down, M.up, M.out].forEach(m => { const p = renderer.properties.get(m).currentProgram; if (p && p.diagnostics && p.diagnostics.runnable === false) throw new Error('graphics extras: a shader did not compile') }) }
@@ -10373,7 +10413,7 @@ function gfxDraw10(orig, cam) {
     try { gfxDraw10(orig, cam) }
     catch (e) {
       // never let the extras stop the game: switch them off for this visit and draw the plain way
-      console.warn('10.0 gfx', e); GFX10.ok = false; GFX10.shake = 0; try { gfxFree10(); renderer.setRenderTarget(null) } catch (e2) {}
+      console.warn('10.0 gfx', e); GFX10.ok = false; GFX10.shake = 0; gfxPrApply10(); try { gfxFree10(); renderer.setRenderTarget(null) } catch (e2) {}
       orig.call(this, sc, cam);
     } finally { GFX10.busy = false }
   };
@@ -10386,10 +10426,11 @@ function gfxSettingsHTML10() {
     : gq === 'low' ? 'Glow and motion blur are off on Low. Pick Medium or higher to see them.'
     : GFX10.auto >= 2 ? 'Glow was turned off to keep this device smooth. Turn it on again to retry.'
     : GFX10.auto === 1 ? 'Turned down a little to keep this device smooth.'
-    : `${GFXQ10[gq] ? QUAL[gq].n : ''}: ${pf.glow ? pf.lv + ' glow levels' : 'no glow'}${pf.blurN ? ', motion blur' : ''}${pf.shine > 1 ? ', extra shine on metal' : ''}.`;
+    : `${GFXQ10[gq] ? QUAL[gq].n : ''}: ${pf.glow ? pf.lv + ' glow levels' : 'no glow'}${pf.sharp ? ', sharpened' : ''}${pf.blurN ? ', motion blur on drops' : ''}${pf.shine > 1 ? ', extra shine on metal' : ''}.`;
   return `<div id="gfx10"><h4 class="h7">✨ Graphics extras</h4>
 <label class="tg7"><input type="checkbox" data-gfx10="glow" ${s.glow ? 'checked' : ''}> Glow and sun (lights, sunsets and the sun glow)</label>
-<label class="tg7"><input type="checkbox" data-gfx10="speed" ${s.speed ? 'checked' : ''}> Speed effects (shake and motion blur on big drops)</label>
+<label class="tg7"><input type="checkbox" data-gfx10="speed" ${s.speed ? 'checked' : ''}> Camera shake on big drops</label>
+<label class="tg7"><input type="checkbox" data-gfx10="blur" ${s.blur ? 'checked' : ''}> Motion blur on big drops (light, edges only)</label>
 <p class="n7">${html10(note)}</p></div>`;
 }
 {
@@ -10404,9 +10445,9 @@ function gfxSettingsHTML10() {
   };
   document.addEventListener('change', e => {
     const t = e.target, k = t && t.dataset && t.dataset.gfx10; if (!k) return;
-    GFX10.set[k] = !!t.checked; if (k === 'glow' && t.checked) { GFX10.auto = 0; GFX10.warm = 4 } if (k === 'speed' && !t.checked) { GFX10.shake = GFX10.blur = 0 }
-    SS10('gfx', GFX10.set); GFX10.shineK = null;
-    say(k === 'glow' ? (t.checked ? '✨ Glow on' : 'Glow off') : (t.checked ? '💨 Speed effects on' : 'Speed effects off'));
+    GFX10.set[k] = !!t.checked; if (k === 'glow' && t.checked) { GFX10.auto = 0; GFX10.warm = 4 } if (k === 'speed' && !t.checked) GFX10.shake = 0; if (k === 'blur' && !t.checked) GFX10.blur = 0;
+    SS10('gfx', GFX10.set); GFX10.shineK = null; if (k === 'glow') gfxPrApply10();
+    say(k === 'glow' ? (t.checked ? '✨ Glow on' : 'Glow off') : k === 'blur' ? (t.checked ? '💨 Motion blur on' : 'Motion blur off') : (t.checked ? '💨 Camera shake on' : 'Camera shake off'));
     safe10('gfx settings', () => { if (!$('#ov7').hidden) renderOv7() });
   });
 }
@@ -10417,6 +10458,8 @@ DBG10.gfx = {
   slow: on => { GFX10.forceSlow = on ? 1 : 0; GFX10.warm = 0; GFX10.slowT = 0 },
   // pretend to be on a fast drop so the speed effects show (for screenshots)
   motion: (sh, bl) => { GFX10.hold = sh != null; GFX10.shake = sh || 0; GFX10.blur = bl || 0; return [GFX10.shake, GFX10.blur] },
+  textures: () => { const out = []; scene.traverse(o => { const m = o.material; (Array.isArray(m) ? m : [m]).forEach(mm => { const t = mm && mm.map; if (t && t.isTexture && !t.isRenderTargetTexture && t.wrapS === THREE.RepeatWrapping) out.push(t.anisotropy) }) }); return out },
+  ladderPr: () => ['low', 'medium', 'high', 'ultra'].map(k => k + ':' + QUAL[k].pr).join(' '),
   metal: () => { let n = 0, b = 0; scene.traverse(o => { const m = o.material; (Array.isArray(m) ? m : [m]).forEach(mm => { if (mm && mm.isMeshStandardMaterial && mm.metalness >= .5) { n++; if (mm.userData.gfx10 && mm.userData.gfx10.k > 1) b++ } }) }); return { metal: n, boosted: b } }
 };
 
