@@ -11,10 +11,10 @@ const probe = async (file, w, h) => {
   r.hub = await X(() => [...document.querySelectorAll('#hub72 [data-hub]')].map(b => b.dataset.hub)); r.groups = await X(() => [...document.querySelectorAll('#hub72 .hubS82')].map(e => e.textContent));
   await page.click('#hub72 [data-hx="close"]'); await page.waitForTimeout(200);
   await page.click('#labBtn'); await page.waitForTimeout(600); r.lab = await X(() => !document.querySelector('#lab').hidden && document.querySelector('#labSec').textContent.length > 100); await page.click('#labClose'); await page.waitForTimeout(200);
-  await page.click('#goalBtn'); await page.waitForTimeout(300); r.goals = await X(() => document.querySelector('#ov7B .n7').textContent); await X(() => document.querySelector('#ov7X').click());
-  await page.click('#setBtn'); await page.waitForTimeout(300); r.settings = await X(() => [...document.querySelectorAll('#ov7B .h7')].map(e => e.textContent)); await X(() => document.querySelector('#ov7X').click());
+  await page.click('#goalBtn'); await page.waitForSelector('#ov7B .n7', { timeout: 15000 }); r.goals = await X(() => document.querySelector('#ov7B .n7').textContent); await X(() => document.querySelector('#ov7X').click());
+  await page.click('#setBtn'); await page.waitForSelector('#ov7B .h7', { timeout: 15000 }); r.settings = await X(() => [...document.querySelectorAll('#ov7B .h7')].map(e => e.textContent)); await X(() => document.querySelector('#ov7X').click());
   await X(() => window.__coasterDebug.v80.openPk('hq')); await page.waitForTimeout(500); r.hq = await X(() => window.__coasterDebug.v80.hq().open); await X(() => document.querySelector('#pk72 [data-x="close"]').click());
-  await page.click('#layout'); await page.waitForTimeout(400); r.menu = await X(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length); await page.click('#menuClose');
+  await page.click('#layout'); await page.waitForFunction(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length > 0, null, { timeout: 15000 }).catch(() => {}); r.menu = await X(() => !document.querySelector('#menu').hidden && document.querySelectorAll('#cards [data-i]').length); await page.click('#menuClose');
   await X(() => window.__coasterDebug.select(5)); await page.waitForTimeout(300); r.ride5 = await X(() => window.__coasterDebug.state().cur);
   // owner lock: five quick taps on Rides opens the password box (we never type a password)
   await X(() => { const b = document.querySelector('#layout'); for (let i = 0; i < 5; i++) b.click() }); await page.waitForTimeout(400); r.owner = await X(() => window.__coasterDebug.v7.owner().pw);
@@ -32,19 +32,20 @@ const probe = async (file, w, h) => {
 };
 (async () => {
   for (const [w, h] of [[390, 844], [844, 390]]) {
-    const a = await probe(ROOT + 'coaster_lab_v8_5.html', w, h), b = await probe(ROOT + 'coaster_lab_v9_0.html', w, h);
+    const a = await probe(ROOT + 'coaster_lab_v8_5.html', w, h), b = await probe(ROOT + 'coaster_lab_v10_0.html', w, h);
     ok(a.start && b.start && b.startClosed, `${w}x${h} start screen shows and Ride now closes it`);
-    ok(JSON.stringify(b.hub) === JSON.stringify(a.hub.slice(0, a.hub.length - 3).concat(['grav86', 'dz86', 'daily86'], a.hub.slice(-3))) || (a.hub.every(x => b.hub.includes(x)) && b.hub.length === a.hub.length + 3), 'Park & tools keeps all ' + a.hub.length + ' old tiles and adds 3: ' + b.groups.join(' / '));
+    const added = b.hub.filter(x => !a.hub.includes(x)).sort().join(',');// 8.6 added three tiles, 10.0 adds My Park and Account
+    ok(a.hub.every(x => b.hub.includes(x)) && added === 'acct10,daily86,dz86,grav86,ty10', 'Park & tools keeps all ' + a.hub.length + ' old tiles and adds 5 (' + added + '): ' + b.groups.join(' / '));
     ok(b.lab && a.lab, 'Research Lab opens');
-    const na = +a.goals.match(/of (\d+)/)[1], nb = +b.goals.match(/of (\d+)/)[1]; ok(nb === na + 8, `Goals lists ${nb} achievements (8.5 had ${na}, +8 new)`);
+    const na = +a.goals.match(/of (\d+)/)[1], nb = +b.goals.match(/of (\d+)/)[1]; ok(nb === na + 13, `Goals lists ${nb} achievements (8.5 had ${na}; +8 in 8.6 and +5 for My Park in 10.0)`);
     ok(a.settings.every(s => b.settings.includes(s)) && b.settings[0].includes('Experiments'), 'Settings keeps every 8.5 section and adds 🧪 Experiments on top');
-    ok(a.hq && b.hq, 'Park HQ opens'); ok(a.menu === b.menu && b.menu > 0, 'ride menu shows the same ' + b.menu + ' cards'); ok(b.ride5 === 5, 'switching rides works');
+    ok(a.hq && b.hq, 'Park HQ opens'); ok(b.menu === a.menu + 10 && a.menu > 0, 'ride menu shows the ' + a.menu + ' cards of 8.5 plus the 10 new coasters (' + b.menu + ')'); ok(b.ride5 === 5, 'switching rides works');
     ok(a.owner && b.owner, 'owner password prompt still appears (5 taps on Rides) — untouched');
     ok(b.builder && b.play === 'play' && b.exited, 'builder opens, playtests and exits'); ok(b.sketchOpen && a.sketchOpen, 'Sketch-to-Coaster studio opens');
-    ok(b.errors.length === 0 && a.errors.length === 0, `console errors v8.5: ${a.errors.length}, v8.6: ${b.errors.length}`); b.errors.slice(0, 4).forEach(e => console.log('   ', e.slice(0, 300)));
+    ok(b.errors.length === 0 && a.errors.length === 0, `console errors v8.5: ${a.errors.length}, v10.0: ${b.errors.length}`); b.errors.slice(0, 4).forEach(e => console.log('   ', e.slice(0, 300)));
   }
   // a whole lap on the Moon: the lap card names the gravity and the Moonwalker achievement unlocks
-  const { browser, page, errors } = await open(ROOT + 'coaster_lab_v9_0.html');
+  const { browser, page, errors } = await open(ROOT + 'coaster_lab_v10_0.html');
   await page.evaluate(() => { const d = window.__coasterDebug; d.v80.v86.setGrav('moon'); d.select(0) }); await page.waitForTimeout(3300);
   for (let i = 0; i < 80; i++) { await page.evaluate(() => window.__coasterDebug.v72.ff(1)); await page.waitForTimeout(60); if (await page.evaluate(() => !document.querySelector('#sum7').hidden)) break }
   await page.waitForTimeout(300);

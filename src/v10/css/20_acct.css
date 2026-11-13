@@ -27,6 +27,6 @@
 /* the way in on the title screen */
 .acChip{position:absolute;top:calc(12px + env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:1;min-height:40px;padding:8px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.28);background:rgba(10,16,30,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font:600 13px var(--fUI);cursor:pointer;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acChip b{font-weight:800}.acChip:hover{border-color:rgba(255,255,255,.6)}.acChip:focus-visible{outline:2px solid #fff;outline-offset:2px}
-@media (max-width:480px){.acChip{position:static;justify-self:start;align-self:start;max-width:100%;margin-top:-4px}}
+@media (max-width:700px){.acChip{position:static;justify-self:start;align-self:start;max-width:100%;margin-top:-4px}}
 @media (max-width:380px){.acBox{padding:16px 14px 14px;border-radius:18px}.acPick{grid-template-columns:1fr}.acHead h2{font-size:19px}}
 @media (max-height:480px){#acct10{place-items:start center}.acHead{margin-bottom:6px}.acLogo{width:36px;height:36px;font-size:19px}#acB input{min-height:42px}.acSub{margin-bottom:8px}}

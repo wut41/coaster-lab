@@ -3,7 +3,7 @@ const { open } = require('./harness');
 const ROOT = require('path').join(__dirname, '..') + '/';
 require('fs').mkdirSync(__dirname + '/shots', { recursive: true });
 (async () => {
-  const file = process.argv[2] || ROOT + 'coaster_lab_v9_0.html';
+  const file = process.argv[2] || ROOT + 'coaster_lab_v10_0.html';
   for (const vp of [[390, 844], [844, 390]]) {
     const { browser, page, errors, warns } = await open(file, { w: vp[0], h: vp[1] });
     const r = await page.evaluate(() => {

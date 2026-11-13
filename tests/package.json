@@ -1,7 +1,7 @@
 {
   "name": "coaster-lab-tests",
   "private": true,
-  "description": "Headless browser tests for Coaster Lab 9.0 (three.js is served from this package instead of the CDN)",
+  "description": "Headless browser tests for Coaster Lab 10.0 (three.js is served from this package instead of the CDN)",
   "scripts": {
     "test": "node run_all.js"
   },

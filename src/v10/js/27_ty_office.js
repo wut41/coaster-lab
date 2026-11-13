@@ -63,6 +63,7 @@ ${ed ? `<h3>Park</h3><div class="tySeg">${pkSeg10('popen', [['1', '🟢 Open to 
     h = `<h3>Park name</h3><div style="display:flex;gap:8px"><input type="text" id="tyNameI" maxlength="32" value="${html10(P_.name)}" ${ed ? '' : 'disabled'}>${ed ? pkBtn10('name', 'Save', 'primary') : ''}</div>
 ${ed ? `<h3>Gate colours</h3><div class="tySw">${SW10.map(c => `<button data-x="gate:${c}" style="background:${c}" class="${P_.look.gate === c ? 'on' : ''}" aria-label="Gate ${c}"></button>`).join('')}</div><small style="color:var(--ink2);font-size:11px">Trim and name board</small><div class="tySw">${SW10.map(c => `<button data-x="sign:${c}" style="background:${c}" class="${P_.look.sign === c ? 'on' : ''}" aria-label="Trim ${c}"></button>`).join('')}</div>` : ''}
 <h3>Which park</h3><p class="tyNote">Career and Sandbox are two separate parks. Switching saves the one you are in; nothing is lost.</p><div class="tyRow">${pkBtn10('slot:career', '🏆 Career park' + (TY.slot === 'career' && !TY.visit ? ' ✓' : ''), TY.slot === 'career' && !TY.visit ? 'primary' : '')}${pkBtn10('slot:sandbox', '🧪 Sandbox park' + (TY.slot === 'sandbox' && !TY.visit ? ' ✓' : ''), TY.slot === 'sandbox' && !TY.visit ? 'primary' : '')}</div>
+<h3>Account <small>optional</small></h3><div class="tyRow">${pkBtn10('acct', AUTH10.s ? '👤 ' + html10(AUTH10.s.name || 'Account') : '👤 Sign in or create an account')}${pkBtn10('owner', '♛ Owner controls')}</div>
 ${ed ? `<h3>Start again</h3><p class="tyNote">Wipes this ${sb ? 'Sandbox' : 'Career'} park and starts a new one. The other park is not touched.</p><div class="tyRow">${pkBtn10('wipe', '🗑 Start this park again', 'danger7')}</div>` : ''}
 <div class="tyRow">${pkBtn10('leave', '🎢 Back to the rides')}</div>`;
   }
@@ -93,7 +94,8 @@ PANELS72.ty10 = {
     else if (k === 'popen') { P_.open = v_ === '1'; if (!P_.open) TY.guests.forEach(g => { g.leave = true }) }
     else if (k === 'name') { const i = document.getElementById('tyNameI'); if (i) { P_.name = cleanName(i.value).slice(0, 32) || P_.name; tyGate10() } }
     else if (k === 'gate' || k === 'sign') { P_.look[k] = v_; tyGate10() }
-    else if (k === 'wipe') { if (await ask7('Start this ' + (sb ? 'Sandbox' : 'Career') + ' park again from nothing? This cannot be undone.', 'Start again', 'Keep my park', true)) { const s_ = TY.slot; DEL10('park.' + s_); closePk72(); TY.on && (TY.park = null); TY.cam.set = false; tyEnter10(s_, newPark10(s_)); TY.cam.set = true; return false } }
+    else if (k === 'acct') { acctOpen10(); return false } else if (k === 'owner') { closePk72(); ownTab = 'own10'; openOwner(); return false }
+    else if (k === 'wipe') { if (await ask7('Start this ' + (sb ? 'Sandbox' : 'Career') + ' park again from nothing? This cannot be undone.', 'Start again', 'Keep my park', true)) { const s_ = TY.slot; DEL10('park.' + s_); acctWiped10(s_); closePk72(); TY.on && (TY.park = null); TY.cam.set = false; tyEnter10(s_, newPark10(s_)); TY.cam.set = true; return false } }
     savePark10(); tyUi10();
   }
 };

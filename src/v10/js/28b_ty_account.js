@@ -9,7 +9,7 @@
 //  · Password reset uses Supabase's email. Until the project has its own email sender, Supabase's built-in one is
 //    limited to a couple of emails an hour (and to the project team's addresses), so resets may not arrive.
 const AUTH10 = { s: null, mode: 'in', busy: '', err: '', msg: '', ui: { email: '', pw: '', name: '', show: false, pw2: '', nick: null }, saves: {}, ask: null, syncing: false, syncAt: 0, syncErr: '', recover: false, open: false, t: 20, dirty: false };
-{ const s = LS10('auth', null); if (s && typeof s.at === 'string' && typeof s.rt === 'string' && typeof s.uid === 'string' && s.uid) AUTH10.s = s }
+{ const s = LSP10('auth', null); if (s && typeof s.at === 'string' && typeof s.rt === 'string' && typeof s.uid === 'string' && s.uid) AUTH10.s = s }
 const nameOk10 = n => String(n == null ? '' : n).replace(/[\u0000-\u001f<>"&]/g, '').trim().slice(0, 24);
 // the name shown on published parks and above the live pin: the account's player name, else this device's nickname
 const nick10 = () => AUTH10.s && AUTH10.s.name ? AUTH10.s.name : dev10().nick;
@@ -44,9 +44,9 @@ function authWhy10(e, what) {
 function authSet10(j) {
   if (!j || typeof j.access_token !== 'string' || typeof j.refresh_token !== 'string') return false; const u = j.user || {}, old = AUTH10.s;
   AUTH10.s = { at: j.access_token, rt: j.refresh_token, exp: j.expires_at ? j.expires_at * 1000 : Date.now() + (+j.expires_in || 3600) * 1000, uid: u.id || (old && old.uid) || '', email: u.email || (old && old.email) || '', name: nameOk10(u.user_metadata && u.user_metadata.username) || (old && old.name) || '' };
-  SS10('auth', AUTH10.s); return true;
+  SSP10('auth', AUTH10.s); return true;
 }
-function authClear10(msg) { AUTH10.s = null; AUTH10.mode = 'in'; DEL10('auth'); AUTH10.saves = {}; AUTH10.ask = null; AUTH10.recover = false; AUTH10.syncErr = ''; if (msg) AUTH10.msg = msg; acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
+function authClear10(msg) { AUTH10.s = null; AUTH10.mode = 'in'; DELP10('auth'); AUTH10.saves = {}; AUTH10.ask = null; AUTH10.recover = false; AUTH10.syncErr = ''; if (msg) AUTH10.msg = msg; acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
 // a valid access token (renewed shortly before it runs out), or null when signed out
 let _ref10 = null;
 async function token10(force) {
@@ -64,7 +64,7 @@ async function signUp10(email, pw, name) {
     let free = true; try { free = await rpc10('cl_username_free', { p_name: name }) } catch (e) { if (!e || !e.status) throw e }// (when the cloud functions are not installed yet the sign-up itself still says if a name is taken)
     if (free === false) { AUTH10.busy = ''; return authFail10('That player name is taken. Try another one.') }
     const j = await authApi10('signup', { email, password: pw, data: { username: name } }); AUTH10.busy = ''; AUTH10.ui.pw = '';
-    if (authSet10(j)) { if (!AUTH10.s.name) AUTH10.s.name = name; SS10('auth', AUTH10.s); AUTH10.msg = 'Welcome, ' + AUTH10.s.name + '! Your parks are now kept in your account.'; acctChip10(); acctDraw10(); try { sfx('unlock') } catch (e) {} await syncAll10(); return true }
+    if (authSet10(j)) { if (!AUTH10.s.name) AUTH10.s.name = name; SSP10('auth', AUTH10.s); AUTH10.msg = 'Welcome, ' + AUTH10.s.name + '! Your parks are now kept in your account.'; acctChip10(); acctDraw10(); try { sfx('unlock') } catch (e) {} await syncAll10(); return true }
     AUTH10.mode = 'in'; AUTH10.msg = 'Your account is made, but it has to be confirmed by email before you can sign in. Open the link in the email sent to ' + email + ', then sign in here.'; acctDraw10(); return false;
   } catch (e) { AUTH10.busy = ''; return authFail10(authWhy10(e, 'up')) }
 }
@@ -97,7 +97,7 @@ async function newPw10(pw) {
 async function newName10(n) {
   n = nameOk10(n); AUTH10.err = AUTH10.msg = ''; if (n.length < 3) return authFail10('A player name has 3 to 24 letters.');
   AUTH10.busy = 'Changing your player name…'; acctDraw10();
-  try { const r = await rpc10('cl_set_username', { p_name: n }); AUTH10.busy = ''; AUTH10.s.name = r.username; SS10('auth', AUTH10.s); AUTH10.ui.nick = null; AUTH10.msg = 'You are now ' + r.username + '.'; acctChip10(); acctDraw10(); if (LIVE10.joined) liveTrack10(); return true }
+  try { const r = await rpc10('cl_set_username', { p_name: n }); AUTH10.busy = ''; AUTH10.s.name = r.username; SSP10('auth', AUTH10.s); AUTH10.ui.nick = null; AUTH10.msg = 'You are now ' + r.username + '.'; acctChip10(); acctDraw10(); if (LIVE10.joined) liveTrack10(); return true }
   catch (e) { AUTH10.busy = ''; return authFail10(e && e.status && e.message && !/HTTP \d/.test(e.message) ? e.message.charAt(0).toUpperCase() + e.message.slice(1) + '.' : cloudWhy10(e)) }
 }
 // a link from an email (password reset, or a confirmation once those are switched on) signs the player in
@@ -115,8 +115,8 @@ const metaOf10 = P_ => ({ name: nameOk10(P_.name) || 'My Park', day: +P_.day || 
 const metaRaw10 = raw => { try { return metaOf10(JSON.parse(raw)) } catch (e) { return null } };
 const untouched10 = raw => { try { const P_ = JSON.parse(raw); return (+P_.day || 1) <= 1 && (!P_.objs || !P_.objs.length) && !(P_.tot && P_.tot.exp > 0) } catch (e) { return true } };
 function devName10() { const u = navigator.userAgent || ''; return (/iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows PC' : /Linux/.test(u) ? 'Linux PC' : 'Browser') + ' ' + dev10().pid.slice(0, 4) }
-function syncRec10(slot) { const st = LS10('sync', {}); return AUTH10.s && st.uid === AUTH10.s.uid && st[slot] || null }
-function syncMark10(slot, rev, h) { let st = LS10('sync', {}); if (!AUTH10.s) return; if (st.uid !== AUTH10.s.uid) st = { uid: AUTH10.s.uid }; st[slot] = { rev, h }; SS10('sync', st) }
+function syncRec10(slot) { const st = LSP10('sync', {}); return AUTH10.s && st.uid === AUTH10.s.uid && st[slot] || null }
+function syncMark10(slot, rev, h) { let st = LSP10('sync', {}); if (!AUTH10.s) return; if (st.uid !== AUTH10.s.uid) st = { uid: AUTH10.s.uid }; st[slot] = { rev, h }; SSP10('sync', st) }
 const liveSlot10 = slot => TY.on && !TY.visit && TY.slot === slot;
 // send this device's park. base = the cloud revision it replaces (undefined: the one this device last saw)
 async function syncUp10(slot, base) {
@@ -136,15 +136,21 @@ async function syncDown10(slot) {
   if (liveSlot10(slot)) { TY.sel = null; tyEnter10(slot, loadPark10(slot)); toast10('☁ Loaded the newer park from your account', 'acct', true) }// the view stays where it was
   return true;
 }
+// the player started a park again from nothing: the copy in the account goes too (at the next sync if offline now)
+function acctWiped10(slot) { if (!AUTH10.s) return; const st = LSP10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SSP10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
 // bring this device and the account in line. Never overwrites a played park without asking.
 async function syncAll10() {
-  if (!AUTH10.s || AUTH10.syncing || AUTH10.ask) return false; AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
+  if (!AUTH10.s || AUTH10.syncing) return false;
+  if (AUTH10.ask) {// a choice is waiting: nothing is sent or fetched, but what the page shows about both parks is brought up to date
+    AUTH10.syncing = true; try { const a = AUTH10.ask, me = await rpc10('cl_me', {}), cl = me && (me.saves || []).find(q => q.slot === a.slot); if (AUTH10.ask === a) { if (cl) a.cloud = cl; if (liveSlot10(a.slot)) savePark10(); const raw = rawPark10(a.slot); if (raw) a.local = metaRaw10(raw) } } catch (e) {} AUTH10.syncing = false; if (AUTH10.open) acctDraw10(); return false }
+  AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
   try {
     const me = await rpc10('cl_me', {}); if (!me) throw { status: 401 }; if (!AUTH10.s) return false;
-    if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SS10('auth', AUTH10.s); acctChip10() }
+    if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SSP10('auth', AUTH10.s); acctChip10() }
     AUTH10.saves = {}; for (const sv of me.saves || []) AUTH10.saves[sv.slot] = sv;
     for (const slot of ['career', 'sandbox']) {
-      const cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
+      let cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
+      if (rec && rec.wiped) { if (cl) await rpc10('cl_save_delete', { p_slot: slot }); delete AUTH10.saves[slot]; cl = null; const st = LSP10('sync', {}); delete st[slot]; SSP10('sync', st); rec = null }
       if (!cl) { if (raw && !untouched10(raw)) await syncUp10(slot, null); continue }
       if (!raw) { await syncDown10(slot); continue }
       if (rec && rec.rev === cl.rev) { if (rec.h !== h) { const r = await syncUp10(slot, cl.rev); if (r && r.conflict) { AUTH10.ask = { slot, cloud: r, local: metaRaw10(raw) }; break } } continue }// only this device changed
@@ -174,7 +180,7 @@ function bakSwap10(slot) {
   if (liveSlot10(slot)) { TY.sel = null; tyEnter10(slot, loadPark10(slot)) } AUTH10.dirty = true; AUTH10.t = 3; return true;
 }
 // quiet saving while you play: a few minutes apart, at the end of each day, and when you leave the park
-TICKS72.push((dt, raw) => { if (!AUTH10.s) return; AUTH10.t -= raw; if (AUTH10.t > 0) return; AUTH10.t = AUTH10.dirty ? 20 : 180; if (AUTH10.syncing || AUTH10.ask || !TY10.booted) return; if (TY.on && !TY.visit || AUTH10.dirty) syncAll10().then(ok => { if (!ok && AUTH10.s) AUTH10.t = 90 }) });
+TICKS72.push((dt, raw) => { if (!AUTH10.s) return; AUTH10.t -= raw; if (AUTH10.t > 0) return; AUTH10.t = 180; if (AUTH10.syncing || AUTH10.ask || !TY10.booted) return; if (TY.on && !TY.visit || AUTH10.dirty) syncAll10().then(ok => { if (AUTH10.s) AUTH10.t = Math.min(AUTH10.t, ok ? 180 : 90) }) });
 on72('ty10', ({ on }) => { if (AUTH10.s) { AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, on ? 2 : .5) } });
 { const f0 = endDay10; endDay10 = function () { const r = f0.apply(this, arguments); if (AUTH10.s) { AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 4) } return r } }
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && AUTH10.s && TY.on && !TY.visit && !AUTH10.syncing && !AUTH10.ask) syncUp10(TY.slot).catch(() => {}) });
@@ -218,7 +224,7 @@ function acctDraw10() {
   if (fid) { const n = $ty10(fid); if (n) { try { n.focus({ preventScroll: true }); if (pos && n.type !== 'email') n.setSelectionRange(pos[0], pos[1]) } catch (e) {} } }
 }
 function acctChip10() { const c = document.querySelector('#start .acChip'); if (c) c.innerHTML = AUTH10.s ? '👤 <b>' + html10(AUTH10.s.name || 'Account') + '</b>' : '👤 <b>Sign in</b>' }
-function acctOpen10(mode) { const el = $ty10('acct10'); if (!el) return false; if (mode && !AUTH10.s) AUTH10.mode = mode; AUTH10.open = true; el.hidden = false; acctDraw10(); if (AUTH10.s && !AUTH10.syncing && !AUTH10.ask && Date.now() - AUTH10.syncAt > 30000) syncAll10(); if (!AUTH10.s && !mobile) { const i = $ty10(AUTH10.mode === 'up' ? 'acName' : 'acEmail'); if (i) try { i.focus() } catch (e) {} } return true }
+function acctOpen10(mode) { const el = $ty10('acct10'); if (!el) return false; if (mode && !AUTH10.s) AUTH10.mode = mode; AUTH10.open = true; el.hidden = false; acctDraw10(); if (AUTH10.s && !AUTH10.syncing && (AUTH10.ask || Date.now() - AUTH10.syncAt > 30000)) syncAll10(); if (!AUTH10.s && !mobile) { const i = $ty10(AUTH10.mode === 'up' ? 'acName' : 'acEmail'); if (i) try { i.focus() } catch (e) {} } return true }
 function acctClose10() { const el = $ty10('acct10'); if (!el) return; AUTH10.open = false; el.hidden = true; AUTH10.err = ''; AUTH10.msg = ''; AUTH10.ui.pw = ''; AUTH10.ui.pw2 = ''; AUTH10.ui.show = false; if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
 function acctAct10(a) {
   const [k, v_] = String(a).split(':'), A = AUTH10;

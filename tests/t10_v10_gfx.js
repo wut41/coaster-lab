@@ -12,7 +12,7 @@ const G = () => window.__coasterDebug.v80.v10.gfx;
   {
     const { browser, page, errors } = await open(F, { w: 1200, h: 800, mobile: false });
     const X = (f, a) => page.evaluate(f, a), st = () => X(() => window.__coasterDebug.v80.v10.gfx.state()), wait = ms => page.waitForTimeout(ms);
-    await page.waitForFunction(() => window.__coasterDebug.v80.v10.gfx.state().frames > 10, null, { timeout: 60000 });
+    await wait(800); for (let k = 0; k < 40 && (await st()).frames <= 10; k++) await wait(250);// a software renderer needs longer for its first frames
     let s = await st();
     ok(s.ok === true, 'this browser can draw the extras (WebGL2 + half-float pictures): ' + s.ok);
     ok(s.q === 'high' && s.post && s.glow && s.lv === 5 && s.blurN === 8, `High: glow with 5 levels and 8 motion blur samples (${s.q}, post ${s.post}, levels ${s.lv}, blur ${s.blurN})`);
@@ -59,8 +59,10 @@ const G = () => window.__coasterDebug.v80.v10.gfx;
     s = await st(); ok(s.shake < .5, 'without a drop the shake settles back down: ' + s.shake);
 
     // the frame-rate watch: a device that stays slow gets lighter glow first, then no glow
-    await X(() => window.__coasterDebug.v80.v10.gfx.slow(true)); await wait(5500); const a1 = (await st()).auto;
-    await wait(9500); s = await st(); await X(() => window.__coasterDebug.v80.v10.gfx.slow(false));
+    // (the watch counts game time, which runs slower than the clock on a software renderer, so wait for each step instead of a fixed time)
+    const until = async (f, ms) => { const t = Date.now(); while (Date.now() - t < ms) { if (await X(f)) return true; await wait(300) } return false };
+    await X(() => window.__coasterDebug.v80.v10.gfx.slow(true)); await until(() => window.__coasterDebug.v80.v10.gfx.state().auto >= 1, 90000); const a1 = (await st()).auto;
+    await until(() => window.__coasterDebug.v80.v10.gfx.state().auto >= 2, 120000); s = await st(); await X(() => window.__coasterDebug.v80.v10.gfx.slow(false));
     ok(a1 === 1 && s.auto === 2 && !s.post, `slow device: lighter first, then glow off (${a1} then ${s.auto}, post ${s.post})`);
     await X(() => window.__coasterDebug.v80.v10.gfx.set({ glow: true })); await wait(300);
     ok((await st()).post, 'turning Glow on again retries the full look');

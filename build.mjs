@@ -42,6 +42,10 @@ const banner = (f, text) => `// ---- [${f}]\n${text.trim()}\n`;
 patch('brand badge', '<b>Coaster Lab<em>9.0.1</em></b>', `<b>Coaster Lab<em>${VERSION}</em></b>`);
 patch('save-copy version', "var o={app:'Coaster Lab',v:'9.0.1',kind:'saves'", `var o={app:'Coaster Lab',v:'${VERSION}',kind:'saves'`);
 patch('debug version', "__coasterDebug={version:'9.0.1',", `__coasterDebug={version:'${VERSION}',`);
+// texts that count the rides: 12 classics + 4 signature rides + 10 new in 10.0 = 26, plus the 4 secret rides
+patch('menu intro', 'Twelve coasters across ten worlds, or build your own. Psst… four secret rides are hidden somewhere 🤫', 'Twenty-six coasters, each in its own world, or build your own. Psst… four secret rides are hidden somewhere 🤫');
+patch('title tagline', 'Ride twelve wild roller coasters, run your own theme park across six themed worlds, build your own rides, and grow a living park with new lands, guests, staff and events.', 'Ride 26 wild roller coasters, build and run your own park full of living visitors, design your own rides, and share your park with friends.');
+patch('title rides button', '<small>12 coasters · 10 worlds</small>', '<small>26 coasters to ride</small>');
 patch('hub subtitle', '<small>Coaster Lab 9.0 · Gravity Lab · Disaster Mode · Evolve · Daily Challenge</small>', '<small>Coaster Lab 10 · My Park tycoon · new coasters · park sharing</small>');
 
 // ---------- 2 · small hooks in 9.0 code (each one is a single expression; behaviour is unchanged unless 10.0 uses it)
