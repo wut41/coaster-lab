@@ -95,8 +95,8 @@ const PHOTO10 = [null, [.22, 5], [.32, 6], [.4, 8]];// chance to buy, price
 // ---------------------------------------------------------------------------------------------------------------------
 // families: a grown-up leads and one to three others (mostly kids) follow them round the park
 const FAMILY10 = GT10.findIndex(t => t.k === 'family');
-{ const s0 = guestSpawn10; guestSpawn10 = function () {
-  const g = s0(); if (!g || g.ty !== FAMILY10 || g.lead || Math.random() > .75 || TY.guests.length > maxGuests10() - 3) return g;
+{ const s0 = guestSpawn10; guestSpawn10 = function (solo) {
+  const g = s0(); if (!g || solo || g.ty !== FAMILY10 || g.lead || Math.random() > .75 || TY.guests.length > maxGuests10() - 3) return g;
   const n = 1 + rndi10(3); g.kids = []; for (let k = 0; k < n; k++) { const f = s0(); if (!f) break; f.ty = FAMILY10; f.lead = g.id; f.L = g; f.kid = k > 0 || Math.random() < .55; f.x = g.x + rnd7(-.9, .9); f.z = g.z + rnd7(.4, 1.6); f.sp = g.sp; f.off = clamp(g.off + rnd7(-.5, .5), -1.2, 1.2); f.stay = g.stay + 30; f.cash = Math.max(f.cash * .6, 30); g.kids.push(f) }
   return g;
 } }

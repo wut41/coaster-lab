@@ -49,7 +49,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
     const { browser, page, errors } = await open(F, { w: 1200, h: 800, mobile: false, storage: { 'coasterlab.v80.bWelcome': '1', 'coasterlab.tut.v2': '1' } });
     const X = (f, a) => page.evaluate(f, a);
     await X(() => window.__coasterDebug.v80.v86.openBuilder()); await page.waitForTimeout(1200); await X(() => { const t = document.querySelector('#b8Tour'); if (t) t.hidden = true });
-    ok(await X(() => !!document.querySelector('#b8Lib [data-b8lib="gen10"]')), 'the builder library has a 🎲 Generate tab (also in Beginner)');
+    await X(() => window.__coasterDebug.v80.v10.builder.tab('ideas')); ok(await X(() => !!document.querySelector('#b8Lib [data-b8lib="gen10"]')), 'the builder library has a 🎲 Generate tab (also in Beginner)');
     await X(() => document.querySelector('#b8Lib [data-b8lib="gen10"]').click()); await page.waitForTimeout(300);
     ok(await X(() => document.querySelectorAll('#b8Lib [data-gen10="style"]').length) === 7, 'seven styles to choose from');
     const before = await X(() => JSON.stringify(window.__coasterDebug.v80.v90.design().els.map(e => [e.t, e.p])));

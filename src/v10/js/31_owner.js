@@ -40,7 +40,7 @@ $('#own7').addEventListener('click', async e => {
   switch (a) {
     case 'cash': earn10('grant', +v_ || 0); sfx('coin'); break;
     case 'level': { const l = level10(); xp10(l.need - l.into + .01); break }
-    case 'spawn': { const k = Math.min(+v_ || 0, SIM10.maxG - TY.guests.length); for (let i = 0; i < k; i++) guestSpawn10(); break }
+    case 'spawn': { const k = Math.min(+v_ || 0, SIM10.maxG - TY.guests.length); for (let i = 0; i < k; i++) guestSpawn10(true); break }// one by one: no families tagging along, so +10 is ten people
     case 'cheer': TY.guests.forEach(g => { g.happy = Math.max(g.happy, 92); g.hunger = Math.min(g.hunger, 20); g.thirst = Math.min(g.thirst, 20); g.energy = Math.max(g.energy, 80); g.nausea = 0 }); break;
     case 'home': TY.guests.forEach(g => { g.leave = true }); break;
     case 'sweep': TY.litter.length = 0; break;

@@ -14,7 +14,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
     const baseKey = await X(() => window.__coasterDebug.v80.v86.key());
     // open the 🧬 Evolve tab like a player
     await X(() => window.__coasterDebug.v80.bld.act('add')); await page.waitForTimeout(300);
-    await page.click('[data-b8lib="evo"]'); await page.waitForTimeout(300);
+    await page.click('[data-pick10="ideas"]'); await page.waitForTimeout(200); await page.click('[data-b8lib="evo"]'); await page.waitForTimeout(300);
     ok(await page.$('[data-evo86="go"]') != null, 'Evolve tab shows the Evolve button');
     await page.fill('[data-evo86="seed"]', '4242'); await page.dispatchEvent('[data-evo86="seed"]', 'change');
     await page.click('[data-evo86="gens"][data-v="6"]');
