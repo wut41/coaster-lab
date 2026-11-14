@@ -27,6 +27,10 @@ node t4_corners.js                # optional, slow (~15 min): proves every Daily
 | `t9_sound` | 10.0 sound upgrade: no audio before a tap, the remembered Sound switch, rider screams, the mixer channel, My Park soundscape |
 | `t10_v10_gfx` | 10.0 graphics extras: glow, sun disc, shinier metal, speed effects, the quality ladder and its Settings switches, the frame-rate watch |
 | `t11_v10_account` | 10.0 accounts: the sign-in page, creating an account, signing in and out, session renewal, cloud saves on two devices (never overwritten without asking, backups), parks owned by the account, a project with email confirmation still on, forgot password and the reset link, offline, a database that is not set up yet, four screen sizes |
+| `t17_trailer` | the first-visit trailer: plays once, Skip, remembered, Watch again, a video that can't load |
+| `t19_streak_logic` | daily streak rules in plain node: days in a row, the freeze, a broken streak, clock set back, DST, the reward ladder, week bonus, mystery item, Inferno skin |
+| `t19_streak_dom` | daily streak popup, HUD chip and title card in jsdom: opening by itself (never over the trailer, a first visit's title screen or a dialog), claiming, rewards, the switch |
+| `t19_streak` | daily streak in the real game: popup fits at four sizes, day 7 pays into the game, Inferno skin usable, chip and title card |
 
 `t8`, `t9` and `t11` can run one section at a time: `T8=C node t8_v10_park.js`, `T9=A node t9_sound.js`, `T11=BC node t11_v10_account.js`.
 

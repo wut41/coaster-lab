@@ -1215,6 +1215,85 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 @keyframes tr10in{from{opacity:0}}
 @keyframes tr10pulse{50%{transform:scale(1.05)}}
 @media(prefers-reduced-motion:reduce){#trailer10,#trailer10 .tr10snd{animation:none}}
+
+/* ---- [52_streak.css] */
+/* 10.0 daily streak: claim popup, HUD chip, title-screen card */
+#stk10{position:fixed;inset:0;z-index:14;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(4,6,16,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);transition:background .3s,backdrop-filter .3s,-webkit-backdrop-filter .3s}
+#stk10.in{background:rgba(4,6,16,.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+#stk10.out{background:rgba(4,6,16,0);pointer-events:none}
+.stk10In{position:relative;width:min(440px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;text-align:center;padding:20px 18px 14px;border-radius:24px;color:#fff;font-family:var(--fUI,system-ui);
+  background:radial-gradient(120% 70% at 50% 0,rgba(255,120,40,.28),transparent 60%),linear-gradient(165deg,#22163f 0,#111a33 55%,#0b1226 100%);
+  border:1.5px solid rgba(255,170,70,.55);box-shadow:0 0 0 1px rgba(255,255,255,.05) inset,0 24px 70px rgba(0,0,0,.55),0 0 60px rgba(255,110,30,.28);
+  transform:translateY(18px) scale(.94);opacity:0;transition:transform .42s cubic-bezier(.2,1.4,.4,1),opacity .25s}
+#stk10.in .stk10In{transform:none;opacity:1}
+#stk10.out .stk10In{transform:translateY(10px) scale(.97);opacity:0;transition-duration:.25s}
+.stk10X{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;font-size:15px;cursor:pointer;z-index:2}
+.stk10X:hover{background:rgba(255,255,255,.16)}
+.stk10Flame{position:relative;width:96px;height:112px;margin:0 auto 2px}
+.stk10Flame .fl{position:absolute;inset:0;transform-origin:50% 92%;animation:stk10flick 1.6s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(255,140,40,.75)) drop-shadow(0 0 30px rgba(255,80,20,.45))}
+.stk10Flame svg{width:100%;height:100%;display:block}
+.stk10Flame .i{transform-origin:50% 90%;animation:stk10core 1.1s ease-in-out infinite alternate}
+.stk10N{position:absolute;left:0;right:0;bottom:12px;font-family:var(--fD,inherit);font-weight:900;font-size:34px;line-height:1;color:#3a1206;text-shadow:0 1px 0 rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
+.stk10Flame .ring{position:absolute;left:50%;top:58%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:3px solid #ffd23f;opacity:0;pointer-events:none}
+#stk10.claimed .stk10Flame .ring{animation:stk10ring .8s ease-out}
+#stk10.claimed .stk10Flame .fl{animation:stk10boom .7s cubic-bezier(.2,1.6,.4,1),stk10flick 1.6s ease-in-out .7s infinite}
+.stk10Kick{display:block;font-size:11px;font-weight:800;letter-spacing:.22em;color:#ffb35c}
+#stk10T{margin:2px 0 4px;font-family:var(--fD,inherit);font-weight:900;font-size:24px;line-height:1.15}
+.stk10Sub{margin:0 auto 12px;max-width:34ch;color:#c4d0e8;font-size:13.5px;line-height:1.4}
+.stk10Row{list-style:none;margin:0 0 10px;padding:0;display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.stk10Row li{position:relative;display:grid;justify-items:center;gap:2px;padding:7px 2px 6px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);opacity:0;animation:stk10tile .4s ease-out forwards;animation-delay:calc(var(--i) * 45ms + 120ms)}
+.stk10Row small{font-size:9.5px;font-weight:700;color:#93a6c8;letter-spacing:.02em;white-space:nowrap}
+.stk10Row i{font-style:normal;font-size:18px;line-height:1.2}
+.stk10Row b{font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums;color:#ffe08a}
+.stk10Row li.done{background:rgba(80,220,140,.12);border-color:rgba(80,220,140,.35)}
+.stk10Row li.done i{color:#6ef0a6;font-weight:900}
+.stk10Row li.big{background:linear-gradient(160deg,rgba(255,194,51,.22),rgba(255,90,30,.18));border-color:rgba(255,194,51,.6)}
+.stk10Row li.today{border:2px solid #ffb347;background:rgba(255,150,60,.2);box-shadow:0 0 18px rgba(255,140,40,.45);animation:stk10tile .4s ease-out forwards,stk10glow 1.8s ease-in-out .6s infinite}
+.stk10Row li.today small{color:#ffd29a}
+.stk10Row li.pop{animation:stk10pop .55s cubic-bezier(.2,1.6,.4,1) forwards}
+.stk10Meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:12px}
+.stk10Meta span{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#d9e3f5}
+.stk10Got{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:-2px 0 12px;animation:stk10pop .5s cubic-bezier(.2,1.6,.4,1)}
+.stk10Got[hidden]{display:none}
+.stk10Got b{font-family:var(--fD,inherit);font-weight:900;font-size:16px;padding:5px 11px;border-radius:12px;background:rgba(255,210,63,.14);border:1px solid rgba(255,210,63,.45);color:#ffe28a}
+.stk10Got b.it{background:rgba(255,90,30,.2);border-color:rgba(255,120,50,.6);color:#fff}
+.stk10Got small{flex-basis:100%;color:#b9c7e0;font-size:12px}
+.stk10Go{display:block;width:100%;min-height:50px;padding:12px 16px;border:0;border-radius:16px;cursor:pointer;font-family:var(--fD,inherit);font-weight:900;font-size:17px;letter-spacing:.02em;color:#2a0d02;
+  background:linear-gradient(180deg,#ffd75e,#ff8a2b);box-shadow:0 6px 0 #b8460f,0 10px 26px rgba(255,120,30,.45);transition:transform .12s,box-shadow .12s,filter .2s}
+.stk10Go:not(:disabled):hover{filter:brightness(1.06)}
+.stk10Go:not(:disabled):active{transform:translateY(4px);box-shadow:0 2px 0 #b8460f,0 6px 16px rgba(255,120,30,.4)}
+.stk10Go:not(:disabled){animation:stk10nudge 2.4s ease-in-out 1.2s infinite}
+.stk10Go:disabled{cursor:default;color:#cfe;background:rgba(80,220,140,.16);box-shadow:none;border:1px solid rgba(80,220,140,.4)}
+.stk10Go:focus-visible,.stk10X:focus-visible,.stk10chip:focus-visible,.stk10Auto input:focus-visible{outline:3px solid #ffd23f;outline-offset:2px}
+.stk10Auto{display:inline-flex;align-items:center;gap:7px;margin-top:11px;font-size:12px;color:#93a6c8;cursor:pointer}
+.stk10Auto input{width:16px;height:16px;accent-color:#ff8a2b}
+.stk10Fly{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.stk10Fly i{position:absolute;font-style:normal;font-size:20px;animation:stk10fly 1s cubic-bezier(.3,.1,.3,1) forwards;opacity:0}
+/* HUD chip (inside the brand panel) */
+.stk10chip{display:inline-flex;align-items:center;gap:3px;margin-left:2px;padding:4px 9px 4px 7px;border-radius:99px;cursor:pointer;flex:none;background:rgba(255,120,40,.18);border:1px solid rgba(255,150,60,.5);font-family:var(--fD,inherit);font-weight:900;font-size:14px;line-height:1;color:#ffe2b0;position:relative}
+.stk10chip i{font-style:normal;font-size:14px}
+.stk10chip.cold{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#c9d4e8}
+.stk10chip.cold i{filter:grayscale(.7);opacity:.75}
+.stk10chip.ready::after{content:'';position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#ff3d6b;box-shadow:0 0 0 2px #0b1226,0 0 10px #ff3d6b;animation:stk10dot 1.4s ease-in-out infinite}
+.stk10chip:hover{filter:brightness(1.12)}
+/* title screen card */
+.cta.stk10cta{border-color:rgba(255,160,60,.45);background:linear-gradient(160deg,rgba(255,120,40,.22),rgba(14,22,40,.78) 70%)}
+.cta.stk10cta.ready{border-color:#ffb347;box-shadow:0 0 0 1px rgba(255,180,70,.35),0 0 26px rgba(255,130,40,.35);animation:stk10glow 2s ease-in-out infinite}
+.cta.stk10cta small{color:#ffd2a0}
+@keyframes stk10flick{0%,100%{transform:scale(1,1) rotate(0)}25%{transform:scale(1.03,.97) rotate(-1.5deg)}50%{transform:scale(.97,1.04) rotate(1deg)}75%{transform:scale(1.02,.99) rotate(-.5deg)}}
+@keyframes stk10core{from{transform:scale(.92,.9)}to{transform:scale(1.05,1.08)}}
+@keyframes stk10boom{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes stk10ring{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(3.2)}}
+@keyframes stk10tile{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes stk10pop{0%{opacity:1;transform:scale(.7)}60%{transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes stk10glow{0%,100%{box-shadow:0 0 10px rgba(255,140,40,.3)}50%{box-shadow:0 0 24px rgba(255,140,40,.65)}}
+@keyframes stk10nudge{0%,88%,100%{transform:none}92%{transform:scale(1.04)}96%{transform:scale(.99)}}
+@keyframes stk10dot{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+@keyframes stk10fly{0%{opacity:0;transform:translate(0,0) scale(.6)}12%{opacity:1}55%{transform:translate(calc(var(--dx) * .5 + var(--mx)),calc(var(--dy) * .55)) scale(1.15)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.5)}}
+/* small phones and short landscape screens */
+@media (max-width:360px){.stk10In{padding:18px 12px 12px}.stk10Row{gap:3px}.stk10Row li{padding:6px 1px 5px;border-radius:10px}.stk10Row i{font-size:15px}.stk10Row small{font-size:8.5px}.stk10Row b{font-size:10.5px}#stk10T{font-size:21px}}
+@media (max-height:520px){.stk10In{padding:12px 16px 10px;width:min(560px,100%)}.stk10Flame{width:64px;height:74px}.stk10N{font-size:24px;bottom:8px}#stk10T{font-size:19px}.stk10Sub{margin-bottom:8px;font-size:12.5px}.stk10Row{margin-bottom:8px}.stk10Meta{margin-bottom:8px}.stk10Go{min-height:44px;padding:9px 14px;font-size:15.5px}.stk10Auto{margin-top:7px}}
+@media (prefers-reduced-motion:reduce){.stk10In,#stk10{transition:none}.stk10Flame .fl,.stk10Flame .i,.stk10Row li,.stk10Go,.stk10chip.ready::after,.cta.stk10cta.ready{animation:none!important}.stk10Row li{opacity:1}}
 </style>
 </head>
 <body>
@@ -11793,6 +11872,269 @@ const TRAILER10 = {
   // rewatch: a button on the title screen
   const box = document.querySelector('#start .stCtas');
   if (box) { box.insertAdjacentHTML('beforeend', '<button class="cta tr10cta" type="button" data-trailer10="1"><b>🎬 Watch the trailer</b><small>90 seconds of pure drama (it is 40)</small></button>'); box.querySelector('[data-trailer10]').addEventListener('click', e => { e.stopPropagation(); open('rewatch') }) }
+}
+
+// ---- [20_streak.js]
+// ---- 10.0 daily streak + daily rewards: come back every day, the rewards grow all week and day 7 is a big one.
+//  · one claim per calendar day (the player's own clock, local midnight), a 🔥 streak that counts the days in a row
+//  · a 7-day reward ladder (coins + XP), a 🎁 mystery cosmetic on day 5, the 🔥 Inferno train skin on the first day 7
+//    (later weeks: another shop item you don't own yet), plus a week bonus that grows +10% per full week (max +50%)
+//  · one 🧊 streak freeze: covers a single missed day by itself, refilled on every day 7
+//  · two titles for the title picker: "On Fire" (7 days in a row) and "Unstoppable" (30 days in a row)
+//  · a claim popup with an animated flame, the week's tiles, flying coins and the unlock chime; a 🔥 chip on the HUD and a
+//    card on the title screen open it again. First visit: the popup waits until the trailer and the title screen are done.
+// Stored on this device only (coasterlab.v10.streak). Rewards go through the 7.2 progress system (award72 / PROG72.unlock).
+const STK10 = { key: 'coasterlab.v10.streak', el: null, shown: false, fake: null, bootT: Date.now(), startClosedT: 0, busy: false };
+
+// <core> — pure streak rules (no DOM, no game state): tests/t19_streak_logic.js runs this part on its own in node
+const STKC10 = (() => {
+  const LADDER = [
+    { c: 30, x: 50 }, { c: 40, x: 60 }, { c: 60, x: 80 }, { c: 80, x: 100 },
+    { c: 100, x: 120, box: true }, { c: 120, x: 150 }, { c: 250, x: 300, big: true }
+  ];
+  const BOX = ['pal:pastel', 'pal:sunset', 'fx:sparkle', 'deco:balloons', 'deco:topiary', 'fx:rainbow', 'skin:neon'];
+  const BIG = ['skin:luxury', 'pal:galaxy', 'fx:streak', 'deco:neon', 'deco:statue', 'skin:neon', 'fx:rainbow', 'pal:sunset', 'pal:pastel', 'fx:sparkle', 'deco:balloons', 'deco:topiary'];
+  const pad = n => (n < 10 ? '0' : '') + n;
+  const dayKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const isKey = k => typeof k === 'string' && /^\d{4}-\d\d-\d\d$/.test(k);
+  // whole calendar days from a to b (both 'YYYY-MM-DD'); counted in UTC so a daylight-saving change is never a missed day
+  const gap = (a, b) => { const p = k => k.split('-').map(Number), A = p(a), B = p(b); return Math.round((Date.UTC(B[0], B[1] - 1, B[2]) - Date.UTC(A[0], A[1] - 1, A[2])) / 864e5) };
+  const num = (v, d, lo, hi) => (typeof v === 'number' && isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : d);
+  function clean(o) {
+    const r = { v: 1, last: null, n: 0, best: 0, total: 0, frz: 1, saves: 0, auto: true, log: [] };
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
+    if (isKey(o.last)) r.last = o.last;
+    r.n = num(o.n, 0, 0, 1e5); r.best = Math.max(r.n, num(o.best, 0, 0, 1e5)); r.total = Math.max(r.n, num(o.total, 0, 0, 1e6));
+    r.frz = num(o.frz, 1, 0, 1); r.saves = num(o.saves, 0, 0, 1e5); r.auto = o.auto !== false;
+    if (Array.isArray(o.log)) r.log = o.log.filter(isKey).slice(-14);
+    if (!r.last) r.n = 0;
+    return r;
+  }
+  const dayOf = n => ((Math.max(1, n) - 1) % 7) + 1;              // 1..7: the tile on the week's ladder
+  const weekOf = n => Math.floor((Math.max(1, n) - 1) / 7) + 1;   // 1 = first week
+  const mult = n => 1 + 0.1 * Math.min(5, weekOf(n) - 1);        // +10% per full week already done, at most +50%
+  // where today stands, before claiming
+  function status(st, today) {
+    if (!st.last) return { claimed: false, n: 1, day: 1, live: 0, fresh: true, lost: 0, freeze: false };
+    const g = gap(st.last, today);
+    // already claimed today, or the clock went backwards: nothing to claim (and nothing is lost)
+    if (g <= 0) return { claimed: true, n: st.n, day: dayOf(st.n), live: st.n, fresh: false, lost: 0, freeze: false };
+    if (g === 1) return { claimed: false, n: st.n + 1, day: dayOf(st.n + 1), live: st.n, fresh: false, lost: 0, freeze: false };
+    if (g === 2 && st.frz > 0) return { claimed: false, n: st.n + 1, day: dayOf(st.n + 1), live: st.n, fresh: false, lost: 0, freeze: true };
+    return { claimed: false, n: 1, day: 1, live: 0, fresh: false, lost: st.n > 1 ? st.n : 0, freeze: false, missed: g - 1 };
+  }
+  // what a given streak day pays (rounded to 5s); owned(id) says whether a cosmetic is already the player's
+  function reward(n, owned, seed) {
+    const L = LADDER[dayOf(n) - 1], m = mult(n), r = { day: dayOf(n), week: weekOf(n), mult: m, coins: Math.round(L.c * m / 5) * 5, xp: Math.round(L.x * m / 5) * 5, item: null, freeze: false, big: !!L.big };
+    const pick = list => { const free = list.filter(id => !owned(id)); return free.length ? free[(seed >>> 0) % free.length] : null };
+    if (L.box) { r.item = pick(BOX); if (!r.item) r.coins += 60 }
+    if (L.big) { r.item = owned('skin:inferno') ? pick(BIG) : 'skin:inferno'; if (!r.item) r.coins += 150; r.freeze = true }
+    return r;
+  }
+  const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 };
+  // claim today: returns the new state and what was won (or null when today is already claimed)
+  function claim(st, today, owned) {
+    const s = status(st, today); if (s.claimed) return null;
+    const r = reward(s.n, owned, hash(today));
+    const o = clean(st);
+    o.n = s.n; o.last = today; o.total += 1; o.best = Math.max(o.best, o.n);
+    if (s.freeze) { o.frz = 0; o.saves += 1 }
+    if (r.freeze) o.frz = 1;
+    o.log = o.log.concat(today).slice(-14);
+    return { st: o, r, s };
+  }
+  return { LADDER, BOX, BIG, dayKey, gap, clean, status, reward, claim, dayOf, weekOf, mult, hash };
+})();
+// </core>
+
+{
+  const today = () => (STK10.fake && window.__coasterTestHarness === true ? STK10.fake : STKC10.dayKey(new Date()));
+  const load = () => { try { return STKC10.clean(JSON.parse(localStorage.getItem(STK10.key) || 'null')) } catch (e) { return STKC10.clean(null) } };
+  const save = st => { try { localStorage.setItem(STK10.key, JSON.stringify(st)) } catch (e) {} };
+  const owned = id => { try { return typeof PROG72 !== 'undefined' && !!PROG72.unlock[id] } catch (e) { return false } };
+  const itemName = id => id === 'skin:inferno' ? 'Inferno train skin' : ((typeof SHOP72 !== 'undefined' && SHOP72.find(s_ => s_[0] === id)) || [0, 0, id])[2];
+  const itemIcon = id => id === 'skin:inferno' ? '🔥' : ((typeof SHOP72 !== 'undefined' && SHOP72.find(s_ => s_[0] === id)) || [0, '🎁'])[1];
+  const H = s => (typeof esc === 'function' ? esc(String(s)) : String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';'));
+
+  // ---- the Inferno train skin (only from a day-7 streak reward) and two streak titles
+  try {
+    if (typeof SKIN72 !== 'undefined' && !SKIN72.inferno) SKIN72.inferno = { n: 'Inferno', ic: '🔥', body: '#1c0905', accent: '#ff5a1f', seat: '#2a0c06', restraint: '#ffb300', wheel: '#140705', light: '#ffb347', paint: 'metallic', seatFin: 'leather', trim: 'stripes', nose: 'fins', glow: 'pulse', trail: 'sparkle', style: 'ride', lock: 'skin:inferno' };
+    if (typeof LOCKS72 !== 'undefined' && !LOCKS72['skin:inferno']) LOCKS72['skin:inferno'] = { streak: 7 };   // never bought, never by level: only PROG72.unlock
+    if (typeof lockText72 === 'function') { const f0 = lockText72; lockText72 = function (id) { return id === 'skin:inferno' ? 'Unlock: claim a day-7 daily streak reward 🔥' : f0(id) } }
+    if (typeof TITLES72 !== 'undefined') {
+      if (!TITLES72.onfire) TITLES72.onfire = { n: 'On Fire', ok: () => load().best >= 7, how: 'Keep a 7-day daily streak' };
+      if (!TITLES72.unstop) TITLES72.unstop = { n: 'Unstoppable', ok: () => load().best >= 30, how: 'Keep a 30-day daily streak' };
+    }
+  } catch (e) { console.warn('10.0 streak setup', e) }
+
+  const FLAME = '<svg viewBox="0 0 64 80" aria-hidden="true"><defs><radialGradient id="stk10g1" cx="50%" cy="78%" r="70%"><stop offset="0" stop-color="#fff6c2"/><stop offset=".35" stop-color="#ffc933"/><stop offset=".7" stop-color="#ff6a1f"/><stop offset="1" stop-color="#e0182d"/></radialGradient><radialGradient id="stk10g2" cx="50%" cy="80%" r="60%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".6" stop-color="#ffe066"/><stop offset="1" stop-color="#ff9a2e"/></radialGradient></defs>' +
+    '<path class="o" fill="url(#stk10g1)" d="M32 2C36 16 50 22 54 40c4 18-6 36-22 38C14 80 4 64 8 48c3-12 12-16 12-28 6 6 7 12 6 18 6-10 8-22 6-36z"/>' +
+    '<path class="i" fill="url(#stk10g2)" d="M32 34c3 8 11 12 12 23 1 10-5 17-12 17s-14-6-12-15c1-7 6-9 7-16 3 3 4 6 4 9 2-5 2-12 1-18z"/></svg>';
+
+  const nextReward = (st, s) => STKC10.reward(s.n, owned, STKC10.hash(today()));
+  const countdown = () => { const d = new Date(), m = new Date(d); m.setHours(24, 0, 0, 0); const t = Math.max(0, m - d), h = Math.floor(t / 36e5), mi = Math.floor(t % 36e5 / 6e4); return h ? h + 'h ' + mi + 'm' : mi + 'm' };
+
+  // ---- the 7 tiles of the current week
+  function tiles(st, s, justClaimed) {
+    const nNow = s.claimed ? s.n : s.n;            // the streak day that today stands for
+    const wk0 = nNow - STKC10.dayOf(nNow);           // streak count before this week's day 1
+    let h = '';
+    for (let d = 1; d <= 7; d++) {
+      const n = wk0 + d, r = STKC10.reward(n, owned, STKC10.hash(today())), isToday = d === STKC10.dayOf(nNow);
+      const done = d < STKC10.dayOf(nNow) || (isToday && s.claimed);
+      const ic = r.big ? (r.item ? itemIcon(r.item) : '💰') : (STKC10.LADDER[d - 1].box ? '🎁' : '🪙');
+      h += `<li class="${done ? 'done' : ''} ${isToday ? 'today' : ''} ${r.big ? 'big' : ''} ${isToday && justClaimed ? 'pop' : ''}" style="--i:${d}"><small>Day ${d}</small><i aria-hidden="true">${done && !isToday ? '✓' : ic}</i><b>${r.coins}</b></li>`;
+    }
+    return h;
+  }
+
+  function render(justGot) {
+    const o = STK10.el; if (!o) return;
+    const st = load(), s = STKC10.status(st, today()), r = nextReward(st, s);
+    const shownN = s.claimed ? st.n : s.live;
+    const title = s.claimed ? (st.n === 1 ? 'Streak started!' : st.n + ' days in a row!') : s.fresh ? 'Your first daily reward' : s.lost ? 'Your streak burned out 😢' : s.freeze ? 'Your freeze saved the streak 🧊' : 'Day ' + s.n + ' is ready!';
+    const sub = s.claimed ? 'Next reward in ' + countdown() + '. Come back tomorrow to keep the fire going.'
+      : s.fresh ? 'Come back every day. Rewards grow all week and day 7 is huge.'
+      : s.lost ? 'You missed ' + (s.missed || 1) + ' day' + ((s.missed || 1) === 1 ? '' : 's') + ' after ' + s.lost + ' in a row. A new streak starts today.'
+      : s.freeze ? 'You missed a day, so your 🧊 freeze kicked in. Claim to keep going.'
+      : 'Claim it to make it ' + s.n + ' days in a row.';
+    const wk = STKC10.weekOf(s.claimed ? st.n : s.n), bonus = Math.round((STKC10.mult(s.claimed ? st.n : s.n) - 1) * 100);
+    o.querySelector('.stk10N').textContent = shownN;
+    o.querySelector('#stk10T').textContent = title;
+    o.querySelector('.stk10Sub').textContent = sub;
+    o.querySelector('.stk10Row').innerHTML = tiles(st, s, !!justGot);
+    o.querySelector('.stk10Meta').innerHTML = `<span title="Covers one missed day by itself">🧊 ${st.frz && !s.freeze ? '1 freeze' : 'No freeze'}</span><span>🏆 Best ${Math.max(st.best, shownN)}</span><span>${bonus ? '📈 Week ' + wk + ' bonus +' + bonus + '%' : '📅 Week ' + wk}</span>`;
+    const go = o.querySelector('.stk10Go');
+    if (s.claimed) { go.disabled = true; go.innerHTML = '✓ Claimed today' }
+    else { go.disabled = false; go.innerHTML = `Claim 🪙 ${r.coins} + ${r.xp} XP${r.item ? ' + ' + itemIcon(r.item) : ''}` }
+    const got = o.querySelector('.stk10Got');
+    if (justGot) {
+      const g = justGot;
+      got.hidden = false;
+      got.innerHTML = `<b>+🪙 ${g.coins}</b><b>+${g.xp} XP</b>${g.item ? `<b class="it">${itemIcon(g.item)} ${H(itemName(g.item))}</b>` : ''}${g.freeze && !g.freezeWas ? '<b>+🧊 freeze</b>' : ''}` +
+        (g.item === 'skin:inferno' ? '<small>Pick it in the Train Studio to set your coaster on fire 🔥</small>' : g.item ? '<small>It\'s yours now, find it in the shop and studio.</small>' : '');
+    } else got.hidden = true;
+    o.querySelector('.stk10Auto input').checked = st.auto;
+  }
+
+  function chip() {
+    const st = load(), s = STKC10.status(st, today()), n = s.claimed ? st.n : s.live, ready = !s.claimed;
+    let c = document.getElementById('stk10chip');
+    const brand = document.getElementById('brandBtn');
+    if (!c && brand) {
+      c = document.createElement('span'); c.id = 'stk10chip'; c.className = 'stk10chip'; c.setAttribute('role', 'button'); c.tabIndex = 0;
+      brand.appendChild(c);
+      const act = e => { e.stopPropagation(); e.preventDefault(); open('chip') };
+      c.addEventListener('click', act, true); c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') act(e) });
+    }
+    if (c) { c.innerHTML = `<i aria-hidden="true">🔥</i><b>${n}</b>`; c.classList.toggle('ready', ready); c.classList.toggle('cold', n === 0); c.setAttribute('aria-label', 'Daily streak: ' + n + ' day' + (n === 1 ? '' : 's') + (ready ? ', reward ready to claim' : '')) }
+    // the title screen card
+    const box = document.querySelector('#start .stCtas'); let t = box && box.querySelector('[data-stk10]');
+    if (box && !t) {
+      box.insertAdjacentHTML('afterbegin', '<button class="cta stk10cta" type="button" data-stk10="1"><b></b><small></small></button>');
+      t = box.querySelector('[data-stk10]'); t.addEventListener('click', e => { e.stopPropagation(); open('title') });
+      const go = box.querySelector('.cta.go'); if (go) go.after(t);    // right after "Ride now"
+    }
+    if (t) {
+      t.classList.toggle('ready', ready);
+      t.querySelector('b').textContent = ready ? '🎁 Daily reward ready' : '🔥 ' + n + '-day streak';
+      t.querySelector('small').textContent = ready ? (s.freeze ? 'Your freeze saved the streak!' : s.lost ? 'Start a new streak today' : 'Day ' + s.n + ' · claim it now') : 'Next reward in ' + countdown();
+    }
+  }
+
+  function build() {
+    const o = document.createElement('div'); o.id = 'stk10'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-labelledby', 'stk10T');
+    o.innerHTML = `<div class="stk10In"><button class="stk10X" type="button" aria-label="Close">✕</button>` +
+      `<div class="stk10Flame"><div class="fl">${FLAME}</div><b class="stk10N">0</b><span class="ring" aria-hidden="true"></span></div>` +
+      `<small class="stk10Kick">DAILY STREAK</small><h2 id="stk10T"></h2><p class="stk10Sub"></p>` +
+      `<ol class="stk10Row"></ol><div class="stk10Meta"></div><div class="stk10Got" hidden aria-live="polite"></div>` +
+      `<button class="stk10Go" type="button"></button>` +
+      `<label class="stk10Auto"><input type="checkbox"> Show this when I open the game</label><div class="stk10Fly" aria-hidden="true"></div></div>`;
+    o.addEventListener('click', e => { if (e.target === o || e.target.closest('.stk10X')) close() });
+    o.querySelector('.stk10Go').addEventListener('click', doClaim);
+    o.querySelector('.stk10Auto input').addEventListener('change', e => { const st = load(); st.auto = !!e.target.checked; save(st) });
+    return o;
+  }
+  function open(why) {
+    if (STK10.el) return; STK10.shown = true;
+    const o = build(); document.body.appendChild(o); STK10.el = o; render(null);
+    requestAnimationFrame(() => o.classList.add('in'));
+    const b = o.querySelector('.stk10Go'); setTimeout(() => { try { (b.disabled ? o.querySelector('.stk10X') : b).focus({ preventScroll: true }) } catch (e) {} }, 60);
+    try { sfx('chime', .6) } catch (e) {}
+    window.__streak10 && (window.__streak10.lastOpen = why);
+  }
+  function close() {
+    const o = STK10.el; if (!o) return; STK10.el = null; o.classList.remove('in'); o.classList.add('out');
+    setTimeout(() => o.remove(), 320); chip();
+  }
+  function flyCoins(o) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const fly = o.querySelector('.stk10Fly'), b = o.querySelector('.stk10Go').getBoundingClientRect(), f = o.querySelector('.stk10Flame').getBoundingClientRect(), box = o.querySelector('.stk10In').getBoundingClientRect();
+    const sx = b.left + b.width / 2 - box.left, sy = b.top - box.top, ex = f.left + f.width / 2 - box.left, ey = f.top + f.height / 2 - box.top;
+    for (let i = 0; i < 12; i++) {
+      const c = document.createElement('i'); c.textContent = i % 4 === 3 ? '⭐' : '🪙';
+      c.style.cssText = `left:${sx + (Math.random() - .5) * b.width * .7}px;top:${sy}px;--dx:${ex - sx + (Math.random() - .5) * 30}px;--dy:${ey - sy}px;--mx:${(Math.random() - .5) * 120}px;animation-delay:${i * 45}ms`;
+      fly.appendChild(c); setTimeout(() => c.remove(), 1400 + i * 45);
+    }
+  }
+  function doClaim() {
+    if (STK10.busy) return; const st = load(), res = STKC10.claim(st, today(), owned); if (!res) { render(null); return }
+    STK10.busy = true; const freezeWas = st.frz > 0 && !res.s.freeze;
+    save(res.st);
+    try {
+      if (res.r.item && typeof PROG72 !== 'undefined') { PROG72.unlock[res.r.item] = Date.now(); if (/^deco:/.test(res.r.item) && typeof rebuildPark72 === 'function') rebuildPark72() }
+      if (typeof award72 === 'function') award72(res.r.xp, res.r.coins, 'Daily streak'); else if (typeof saveProg72 === 'function') saveProg72(true);
+    } catch (e) { console.warn('10.0 streak reward', e) }
+    const o = STK10.el;
+    if (o) {
+      flyCoins(o);
+      o.classList.remove('claimed'); void o.offsetWidth; o.classList.add('claimed');
+      render(Object.assign({}, res.r, { freezeWas }));
+    }
+    try { sfx('coin'); setTimeout(() => { try { sfx(res.r.big ? 'gold' : 'unlock') } catch (e) {} }, 380) } catch (e) {}
+    try { if (typeof fxOn !== 'undefined' && fxOn && typeof confettiSmall === 'function' && !(typeof TY !== 'undefined' && TY.on)) (res.r.big && typeof confetti === 'function' ? confetti : confettiSmall)() } catch (e) {}
+    try { if (typeof pop7 === 'function') pop7('🔥 ' + res.st.n + '-day streak!', res.r.big ? 'x2' : '') } catch (e) {}
+    chip(); setTimeout(() => { STK10.busy = false }, 400);
+    if (window.__streak10) window.__streak10.last = res;
+  }
+
+  // ---- when to pop up by itself: once per visit, never over the trailer, the title screen of a first visit, a dialog,
+  // the builder or a text box. A player who unticked "Show this when I open the game" only gets the chip and the card.
+  const busyUI = () => {
+    if (typeof TRAILER10 !== 'undefined' && TRAILER10.el) return 'trailer';
+    if (document.getElementById('trailer10')) return 'trailer';
+    for (const id of ['ov7', 'sec7', 'pw7', 'own7']) { const e = document.getElementById(id); if (e && !e.hidden) return id }
+    const b = document.body.classList; if (b.contains('editing') || b.contains('b8play') || b.contains('owner')) return 'mode';
+    const a = document.activeElement; if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return 'typing';
+    if (document.visibilityState === 'hidden') return 'hidden';
+    return '';
+  };
+  let lastStart = null;
+  function tick() {
+    try {
+      chip();
+      const so = typeof startOpen !== 'undefined' && startOpen;
+      if (lastStart === true && !so) STK10.startClosedT = Date.now(); lastStart = so;
+      if (STK10.shown || STK10.el || !window.__booted) return;
+      const st = load(), s = STKC10.status(st, today());
+      if (s.claimed || !st.auto || busyUI()) return;
+      // a brand-new player first gets the trailer and the title screen, then a few seconds of the game, then the reward
+      if (s.fresh) { if (so || Date.now() - Math.max(STK10.bootT, STK10.startClosedT) < 6000) return }
+      else if (Date.now() - STK10.bootT < 1200) return;
+      open('auto');
+    } catch (e) { console.warn('10.0 streak', e) }
+  }
+  addEventListener('keydown', e => { if (STK10.el && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close() } }, true);
+  setInterval(tick, 1000); setTimeout(tick, 50);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick() });
+
+  if (window.__coasterTestHarness === true) window.__streak10 = {
+    core: STKC10, load, save, open, close, claim: doClaim, tick, chip, owned,
+    setToday: k => { STK10.fake = k; chip(); if (STK10.el) render(null) }, reset: () => { STK10.shown = false },
+    isOpen: () => !!STK10.el,
+    game: () => ({ coins: PROG72.coins, xp: PROG72.xp, inferno: !!PROG72.unlock['skin:inferno'], skin: !!(typeof SKIN72 !== 'undefined' && SKIN72.inferno),
+      usable: typeof isUnlocked72 === 'function' && isUnlocked72('skin:inferno') && (typeof designRef72 !== 'function' || !!designRef72('skin:inferno')), onfire: !!(TITLES72.onfire && TITLES72.onfire.ok()) })
+  };
 }
 
 }
