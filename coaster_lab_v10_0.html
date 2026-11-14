@@ -11528,8 +11528,15 @@ Object.assign(DBG10.ty, {
   balloons: () => ({ tg: PB10.tg ? { st: PB10.tg.st, goal: PB10.tg.goal && PB10.tg.goal.k, cash: Math.round(PB10.tg.cash), bal: !!PB10.tg.balloon } : null, carry: TY.guests.filter(g => g.balloon).length, fly: PB10.fly.length, drawn: PB10.m ? PB10.m.bal.count : 0, mascots: PB10.m ? PB10.m.body.count : 0 }),
   wk: () => ({ ...wk10() }), awards: () => { const A = awards10(); return A }, aw: () => TY.park.aw10 ? JSON.parse(JSON.stringify(TY.park.aw10)) : null,
   guestTo: (kind, cash) => { const g = TY.guests.find(q => !q.hide && q.st !== 'ride' && q.st !== 'board' && !q.leave) || TY.guests[0]; if (!g) return null; if (g.qo) gLeaveQ10(g, false); PB10.tg = g; if (cash != null) g.cash = cash; g.atm = 0; g.leave = false; return gKind10(g, kind) },
-  lake: (i, j) => onLake10(i, j), keyOk: () => [TY.on, isTyping72(), UI72.pk || null]
+  lake: (i, j) => onLake10(i, j), loopStops: () => PB10.loopStops || 0, keyOk: () => [TY.on, isTyping72(), UI72.pk || null]
 });
+// Safety net: a visitor's decide → walk → arrive → decide chain normally ends after a step or two. If something (a full queue,
+// a closed ride, a family leader's goal) keeps sending them straight back, they pause for a moment instead of looping until the
+// browser runs out of stack. This was the My Park crash seen when crowds walked to a coaster.
+{ const d0 = gDecide10; gDecide10 = function (g) {
+  if ((g._dd10 || 0) >= 6) { g.st = 'idle'; g.useT = .5 + Math.random() * .5; g.goal = null; PB10.loopStops = (PB10.loopStops || 0) + 1; return }
+  g._dd10 = (g._dd10 || 0) + 1; try { return d0.apply(this, arguments) } finally { g._dd10-- }
+} }
 
 // ---- [51_builder.js]
 // ---- 10.1 TRACK BUILDER — a roomier, simpler builder:
