@@ -18,6 +18,10 @@ const G = () => window.__coasterDebug.v80.v10.gfx;
     ok(s.q === 'high' && s.post && s.glow && s.lv === 5 && s.blurN === 8, `High: glow with 5 levels and 8 motion blur samples (${s.q}, post ${s.post}, levels ${s.lv}, blur ${s.blurN})`);
     ok(s.frames > 10 && s.w === 1200 && s.h === 800, `frames go through the glow picture at full size (${s.frames} frames, ${s.w}×${s.h}, MSAA ${s.samples})`);
     ok(s.sun === true, 'the sun disc shows in the daytime sky');
+    // sharpness (10.0.1): sharpen on, no motion blur or shake while cruising, steeper texture filtering, sharper pixel ratios
+    ok(s.sharp > 0 && s.blur === 0, `High is sharpened and has no motion blur at rest (sharp ${s.sharp}, blur ${s.blur})`);
+    ok(await X(() => { let n = 0, lo = 0; window.__coasterDebug.v80.v10.gfx.textures().forEach(a => { n++; if (a < 4) lo++ }); return n > 0 && lo === 0 }), 'textures seen at an angle use steep filtering');
+    ok(await X(() => window.__coasterDebug.v80.v10.gfx.ladderPr()) === 'low:1 medium:1.5 high:2 ultra:2.5', 'pixel ratios per quality are sharper than before (Low 1, Medium 1.5, High 2, Ultra 2.5)');
     const m = await X(() => window.__coasterDebug.v80.v10.gfx.metal());
     ok(m.metal > 0 && m.boosted === m.metal, `every metal material reflects more of the sky on High (${m.boosted} of ${m.metal})`);
     const on = await page.screenshot({ path: SH + 'gfx_high_glow_on.png' });
@@ -29,7 +33,7 @@ const G = () => window.__coasterDebug.v80.v10.gfx;
 
     // quality ladder through ⚙ Settings, and the two switches in it
     await page.click('#setBtn'); await wait(300);
-    ok(await X(() => !!document.querySelector('#gfx10 [data-gfx10="glow"]') && !!document.querySelector('#gfx10 [data-gfx10="speed"]')), 'Settings shows the Glow and Speed effects switches');
+    ok(await X(() => ['glow', 'speed', 'blur'].every(k => !!document.querySelector(`#gfx10 [data-gfx10="${k}"]`))), 'Settings shows the Glow, Camera shake and Motion blur switches');
     const lad = [];
     for (const q of ['low', 'medium', 'ultra', 'high']) { await X(q => document.querySelector(`#ov7B [data-o7="q"][data-v="${q}"]`).click(), q); await wait(400); const t = await st(); lad.push(`${q}:${t.post ? t.lv : 'off'}/${t.blurN}/${t.shine}`) }
     ok(lad.join(' ') === 'low:off/0/1 medium:3/4/1.2 ultra:6/10/1.6 high:5/8/1.45', 'quality ladder (levels/blur samples/shine): ' + lad.join(' '));
@@ -39,6 +43,10 @@ const G = () => window.__coasterDebug.v80.v10.gfx;
     ok(await X(() => !!document.querySelector('#gfx10 [data-gfx10="glow"]') && !document.querySelector('#gfx10 [data-gfx10="glow"]').checked), 'the switch stays shown and unticked after Settings redraws');
     await X(() => document.querySelector('#gfx10 [data-gfx10="glow"]').click()); await wait(300);
     ok((await st()).post, 'ticking Glow again turns it back on');
+    await X(() => document.querySelector('#gfx10 [data-gfx10="blur"]').click()); await wait(300); s = await st();
+    ok(!s.set.blur && s.blurN === 0 && s.set.speed && /"blur":false/.test(await X(() => localStorage.getItem('coasterlab.v10.gfx')) || ''), 'Motion blur has its own switch, and turning it off keeps the shake');
+    await X(() => document.querySelector('#gfx10 [data-gfx10="blur"]').click()); await wait(300);
+    ok((await st()).blurN === 8, 'ticking Motion blur again brings it back');
     await X(() => document.querySelector('#ov7X').click()); await wait(200);
 
     // a fast drop in the front seat: shake + motion blur, and the camera is put back after every frame
@@ -65,9 +73,11 @@ const G = () => window.__coasterDebug.v80.v10.gfx;
   // ---------- B. phone (starts on Medium)
   {
     const { browser, page, errors } = await open(F, { w: 390, h: 844 });
-    await page.waitForTimeout(800);
+    await page.waitForFunction(() => window.__coasterDebug.v80.v10.gfx.state().frames > 3, null, { timeout: 60000 });
     const s = await page.evaluate(() => window.__coasterDebug.v80.v10.gfx.state());
     ok(s.q === 'medium' && s.post && s.lv === 3 && s.blurN === 4, `phone: Medium with 3 glow levels and light motion blur (${s.q}, ${s.post}, ${s.lv}, ${s.blurN})`);
+    const dpr = await page.evaluate(() => devicePixelRatio);
+    ok(s.pr === Math.min(dpr, 1.5), `phone: Medium draws at ${s.pr} pixels per point (screen ${dpr})`);
     await page.screenshot({ path: SH + 'gfx_phone_medium.png' });
     ok(errors.length === 0, 'phone: 0 console errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ').slice(0, 400) : ''));
     await browser.close();
