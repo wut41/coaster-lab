@@ -1,0 +1,13 @@
+/* ---- 10.0 trailer overlay (first visit, and "Watch the trailer" on the title screen) */
+#trailer10{position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;align-items:center;justify-content:center;animation:tr10in .35s ease-out}
+#trailer10.out{opacity:0;transition:opacity .6s ease}
+#trailer10 video{width:100%;height:100%;object-fit:contain;background:#000;cursor:pointer}
+#trailer10 .tr10skip{position:absolute;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));font:600 15px/1 system-ui,sans-serif;color:#fff;background:rgba(20,20,28,.55);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#trailer10 .tr10skip:hover,#trailer10 .tr10skip:focus-visible{background:rgba(255,255,255,.2);outline:2px solid #c6ff3d;outline-offset:2px}
+#trailer10 .tr10snd{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));font:600 15px/1 system-ui,sans-serif;color:#111;background:#c6ff3d;border:0;border-radius:999px;padding:11px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(198,255,61,.35);animation:tr10pulse 1.6s ease-in-out infinite}
+#trailer10 .tr10bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.12)}
+#trailer10 .tr10bar i{display:block;height:100%;background:#c6ff3d;transform-origin:left;transform:scaleX(0)}
+#trailer10 .tr10msg{display:grid;gap:10px;justify-items:center;text-align:center;padding:24px;color:#fff;font:500 15px/1.4 system-ui,sans-serif}#trailer10 .tr10msg b{font-size:20px}#trailer10 .tr10msg span{color:#b4c0d2}#trailer10 .tr10msg a{color:#111;background:#c6ff3d;border-radius:999px;padding:11px 18px;font-weight:700;text-decoration:none}
+@keyframes tr10in{from{opacity:0}}
+@keyframes tr10pulse{50%{transform:scale(1.05)}}
+@media(prefers-reduced-motion:reduce){#trailer10,#trailer10 .tr10snd{animation:none}}
