@@ -104,8 +104,8 @@ const FAMILY10 = GT10.findIndex(t => t.k === 'family');
   const L_ = g.L; if (!L_ || L_.gone) { if (g.L) { g.L = null; g.lead = 0 } return d0(g) }
   if (L_.leave || g.leave) { g.leave = true; return d0(g) }
   const G_ = L_.goal; g.wq = 0;
-  if (L_.st === 'queue' && L_.qo && L_.qo.rt && rideOpen10(L_.qo)) { const o = L_.qo; return gGo10(g, { k: 'ride', id: o.id }, 'o' + o.id, o.rt.entry) }
-  if (G_ && L_.fkey && G_.k !== 'exit' && L_.st === 'walk') return gGo10(g, { ...G_ }, L_.fkey, L_.ftg);
+  if (L_.st === 'queue' && L_.qo && L_.qo.rt && rideOpen10(L_.qo) && L_.qo.rt.q.length < L_.qo.rt.qCap && !(g.skip[L_.qo.id] > g.t)) { const o = L_.qo; return gGo10(g, { k: 'ride', id: o.id }, 'o' + o.id, o.rt.entry) }
+  if (G_ && L_.fkey && G_.k !== 'exit' && L_.st === 'walk' && !(G_.id && g.skip[G_.id] > g.t) && field10(L_.fkey, L_.ftg)[g.ti] > 0) return gGo10(g, { ...G_ }, L_.fkey, L_.ftg);
   if (Math.hypot(L_.x - g.x, L_.z - g.z) > 9 && TY.path[L_.ti]) return gGo10(g, { k: 'stroll' }, 't' + L_.ti, [L_.ti]);
   g.st = 'idle'; g.useT = .8 + Math.random();
 } }
