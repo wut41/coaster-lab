@@ -1179,6 +1179,21 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 #frc10 span{display:flex;align-items:center;gap:5px}
 #frc10 u{display:inline-block;width:10px;height:10px;border-radius:50%}
 @media(max-width:350px){.lbC8.pk10 button{font-size:9.5px}#frc10{gap:7px;font-size:10px;padding:4px 9px}}
+
+/* ---- [50_trailer.css] */
+/* ---- 10.0 trailer overlay (first visit, and "Watch the trailer" on the title screen) */
+#trailer10{position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;align-items:center;justify-content:center;animation:tr10in .35s ease-out}
+#trailer10.out{opacity:0;transition:opacity .6s ease}
+#trailer10 video{width:100%;height:100%;object-fit:contain;background:#000;cursor:pointer}
+#trailer10 .tr10skip{position:absolute;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));font:600 15px/1 system-ui,sans-serif;color:#fff;background:rgba(20,20,28,.55);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#trailer10 .tr10skip:hover,#trailer10 .tr10skip:focus-visible{background:rgba(255,255,255,.2);outline:2px solid #c6ff3d;outline-offset:2px}
+#trailer10 .tr10snd{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));font:600 15px/1 system-ui,sans-serif;color:#111;background:#c6ff3d;border:0;border-radius:999px;padding:11px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(198,255,61,.35);animation:tr10pulse 1.6s ease-in-out infinite}
+#trailer10 .tr10bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.12)}
+#trailer10 .tr10bar i{display:block;height:100%;background:#c6ff3d;transform-origin:left;transform:scaleX(0)}
+#trailer10 .tr10msg{display:grid;gap:10px;justify-items:center;text-align:center;padding:24px;color:#fff;font:500 15px/1.4 system-ui,sans-serif}#trailer10 .tr10msg b{font-size:20px}#trailer10 .tr10msg span{color:#b4c0d2}#trailer10 .tr10msg a{color:#111;background:#c6ff3d;border-radius:999px;padding:11px 18px;font-weight:700;text-decoration:none}
+@keyframes tr10in{from{opacity:0}}
+@keyframes tr10pulse{50%{transform:scale(1.05)}}
+@media(prefers-reduced-motion:reduce){#trailer10,#trailer10 .tr10snd{animation:none}}
 </style>
 </head>
 <body>
@@ -11284,6 +11299,67 @@ if(window.__coasterTestHarness===true&&window.__coasterDebug)window.__coasterDeb
 // ---- [00_boot.js]
 // after start-up: a link from an account email signs the player in; a link to a shared park opens it
 TY10.booted = true; try { if (!(TY10.authLink && TY10.authLink())) TY10.deepLink && TY10.deepLink() } catch (e) { console.warn('10.0 link', e) }
+
+// ---- [10_trailer.js]
+// ---- 10.0 trailer: a short movie trailer plays the first time someone opens Coaster Lab, before the title screen.
+// It is never inlined (the video streams from a CDN only when it is shown), it can always be skipped, it remembers that
+// it was seen, and the title screen has a "Watch the trailer" button to see it again.
+const TRAILER10 = {
+  src: 'https://d2ol7oe51mr4n9.cloudfront.net/user_3Lz6MFbYPt74PTm03KGYRkETRCQ/7e4ef797-5ce6-4a11-959e-75283e1165db.mp4',
+  poster: 'https://d2ol7oe51mr4n9.cloudfront.net/user_3Lz6MFbYPt74PTm03KGYRkETRCQ/c65bf688-d603-4900-bb70-19bc4b324285.jpg',
+  key: 'coasterlab.v10.trailerSeen', el: null, v: null, timer: 0
+};
+{
+  const seen = () => { try { return !!localStorage.getItem(TRAILER10.key) } catch (e) { return true } };
+  const mark = () => { try { localStorage.setItem(TRAILER10.key, '1') } catch (e) {} };
+  const close = (how) => {
+    const o = TRAILER10.el; if (!o) return; TRAILER10.el = null; clearTimeout(TRAILER10.timer); mark();
+    o.classList.add('out'); const v = TRAILER10.v; TRAILER10.v = null;
+    setTimeout(() => { try { v && v.pause(); v && v.removeAttribute('src'); v && v.load() } catch (e) {} o.remove() }, how === 'error' ? 0 : 650);
+    window.__trailer10 = { open: false, how };
+    const b = document.querySelector('.cta.go'); if (b && typeof startOpen !== 'undefined' && startOpen) setTimeout(() => b.focus({ preventScroll: true }), 700);
+  };
+  const open = (why) => {
+    if (TRAILER10.el) return;
+    const o = document.createElement('div'); o.id = 'trailer10'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Coaster Lab trailer');
+    o.innerHTML = '<video playsinline preload="auto" poster="' + TRAILER10.poster + '"></video>' +
+      '<button class="tr10skip" type="button">Skip <span aria-hidden="true">›</span></button>' +
+      '<button class="tr10snd" type="button" hidden>🔊 Tap for sound</button>' +
+      '<div class="tr10bar" aria-hidden="true"><i></i></div>';
+    document.body.appendChild(o); TRAILER10.el = o;
+    const v = o.querySelector('video'), snd = o.querySelector('.tr10snd'), bar = o.querySelector('.tr10bar i'); TRAILER10.v = v;
+    v.src = TRAILER10.src;
+    o.querySelector('.tr10skip').onclick = () => close('skip');
+    const unmute = () => { v.muted = false; snd.hidden = true; if (v.paused) v.play().catch(() => {}) };
+    snd.onclick = e => { e.stopPropagation(); unmute() };
+    v.onclick = () => { if (v.muted) unmute() };
+    v.onended = () => close('end');
+    // first visit: a video that can't load just gets out of the way. Asked for on purpose: say so, with a link to watch it elsewhere
+    const fail = (how) => { if (why !== 'rewatch' || TRAILER10.el !== o) return close(how); clearTimeout(TRAILER10.timer); try { v.pause() } catch (e) {}
+      o.classList.add('tr10err'); v.remove(); snd.hidden = true;
+      o.insertAdjacentHTML('beforeend', '<div class="tr10msg"><b>The trailer can\'t play here</b><span>This page isn\'t allowed to stream video.</span><a href="' + TRAILER10.src + '" target="_blank" rel="noopener">Watch it in a new tab</a></div>');
+      window.__trailer10 = { open: true, why, how } };
+    v.onerror = () => fail('error:' + (v.error && v.error.code));
+    v.ontimeupdate = () => { if (v.duration) bar.style.transform = 'scaleX(' + (v.currentTime / v.duration).toFixed(4) + ')' };
+    v.onplaying = () => { clearTimeout(TRAILER10.timer); mark() };
+    // a slow or blocked connection never keeps anyone from the game: Skip is always there, a load error closes it at once,
+    // and if nothing has started after 25 s it closes by itself (while it waits, it keeps nudging a video that is ready)
+    const watch = (k) => { TRAILER10.timer = setTimeout(() => { if (TRAILER10.v !== v || v.currentTime > .05) return; if (k >= 4) return fail('timeout'); if (v.readyState >= 2) v.play().catch(() => {}); watch(k + 1) }, 5000) }; watch(0);
+    // sound on when the browser allows it (a tap on "Watch the trailer" counts); otherwise start muted with a sound button
+    v.muted = false; v.play().catch(() => { v.muted = true; snd.hidden = false; v.play().catch(err => fail('blocked:' + (err && err.name))) });
+    setTimeout(() => { const s = o.querySelector('.tr10skip'); s && s.focus({ preventScroll: true }) }, 50);
+    window.__trailer10 = { open: true, why };
+  };
+  addEventListener('keydown', e => { if (TRAILER10.el && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close('skip') } }, true);
+  TRAILER10.open = open; TRAILER10.close = close;
+  // first visit: play it over the title screen, which is already there underneath when the trailer ends
+  let reduce = false; try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) {}
+  let off = false; try { off = /[?&]notrailer\b/.test(location.search) } catch (e) {}
+  if (!seen() && !reduce && !off) open('first');
+  // rewatch: a button on the title screen
+  const box = document.querySelector('#start .stCtas');
+  if (box) { box.insertAdjacentHTML('beforeend', '<button class="cta tr10cta" type="button" data-trailer10="1"><b>🎬 Watch the trailer</b><small>90 seconds of pure drama (it is 40)</small></button>'); box.querySelector('[data-trailer10]').addEventListener('click', e => { e.stopPropagation(); open('rewatch') }) }
+}
 
 }
 requestAnimationFrame(animate);
