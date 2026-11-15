@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const BASE = path.join(ROOT, 'coaster_lab_v9_0.html');
-const OUT = path.join(ROOT, 'coaster_lab_v10_0.html');
+const OUT = process.env.CL_OUT || path.join(ROOT, 'coaster_lab_v10_0.html');
 const SRC = path.join(ROOT, 'src', 'v10');
 const VERSION = '10.0';
 

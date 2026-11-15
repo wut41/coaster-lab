@@ -82,3 +82,12 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 .ostat10{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}.ostat10>div{padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);min-width:0}
 .ostat10 small{display:block;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ostat10 b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #own7 .ob[disabled]{opacity:.4;cursor:default}
+/* 10.1 park sim: theme chips in the Scenery tray, scenario badge, warnings */
+.tyThemes{flex:0 0 auto;display:flex;flex-direction:column;flex-wrap:wrap;gap:4px;max-height:108px;align-content:flex-start;justify-content:center;padding-right:4px}
+.tyChip{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:var(--ink);border-radius:99px;padding:3px 10px;font:800 11px var(--fD);white-space:nowrap;cursor:pointer}
+.tyChip.on{background:var(--ty);color:#04241c;border-color:transparent}
+#tyBadge.scn{background:rgba(255,194,51,.95);color:#2b1d00;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+.tyWarn{color:#ffb4a6;font-weight:700;margin:8px 0 0}
+.neg{color:#ff8a7a}
+/* 10.1: eight tools now (Terrain added), so very narrow phones show the build bar as icons only */
+@media (max-width:360px){#tyBar{gap:2px;padding:4px}#tyBar .tyB{min-width:34px;padding:4px 2px}#tyBar .tyB span{display:none}#tyBar .tyB i{font-size:19px}}

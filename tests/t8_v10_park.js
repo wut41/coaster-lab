@@ -81,8 +81,8 @@ const near = (a, b, e = 1.5) => Math.abs(a - b) <= e, INCSUM = st => Object.valu
     await X(() => window.__coasterDebug.v80.v10.ty.time(1290)); await page.waitForTimeout(1200); const wn = await X(() => window.__coasterDebug.v80.v10.ty.weatherFlags()); ok(wn.night > .9 && wn.sunI < 1 && wn.dark, 'at 21:30 it is night: dim blue light, lamps and station lights on');
     await page.screenshot({ path: SH + 'v10_park_night.png' }); await X(() => window.__coasterDebug.v80.v10.ty.time(720)); await page.waitForTimeout(700); const wd = await X(() => window.__coasterDebug.v80.v10.ty.weatherFlags()); ok(wd.night < .05 && wd.sunI > 2, 'at noon it is bright day');
     // end of day
-    const dBefore = await S(), d = await X(() => window.__coasterDebug.v80.v10.ty.dayEnd()); s = await S();
-    ok(d && d.day === dBefore.day && near(d.inc - d.exp, sum(dBefore)[0] - sum(dBefore)[1], 60), 'closing time: the day card shows the day’s own books (profit ' + Math.round(d.inc - d.exp) + ')');
+    const upk = await X(() => window.__coasterDebug.v80.v10.ty.upkeep ? window.__coasterDebug.v80.v10.ty.upkeep() : 0), dBefore = await S(), d = await X(() => window.__coasterDebug.v80.v10.ty.dayEnd()); s = await S();
+    ok(d && d.day === dBefore.day && near(d.inc - d.exp, sum(dBefore)[0] - sum(dBefore)[1] - upk, 60), 'closing time: the day card shows the day’s own books, upkeep included (profit ' + Math.round(d.inc - d.exp) + ', upkeep ' + upk + ')');
     ok(sum(s)[0] < 1 && s.open === false, 'a new ledger starts for the next day; the park is closed for the night');
     ok(await X(() => !document.querySelector('#tyDay').hidden && /Day \d+ is over/.test(document.querySelector('#tyDay').textContent)), 'the end-of-day card is shown');
     await page.screenshot({ path: SH + 'v10_park_daycard.png' }); await X(() => window.__coasterDebug.v80.v10.ty.act('dayx'));

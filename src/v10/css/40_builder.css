@@ -1,0 +1,18 @@
+/* ---- 10.1 track builder: five picker tabs, merged piece lists, force colours legend */
+.lbC8.pk10{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+.lbC8.pk10 button{font-size:11px;padding:7px 2px}
+.lbS10{display:flex;align-items:center;gap:6px;margin:14px 2px 8px;font-size:12px;font-weight:900;letter-spacing:.3px;text-transform:uppercase;color:#9fb6dd}
+.lbS10:first-of-type{margin-top:4px}
+.lbS10 i{font-style:normal;font-size:15px}
+.lbSub10{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.lbSub10 button{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:999px;border:1px solid var(--b8ln);background:var(--b8bg2);color:#dbe7ff;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap}
+.lbSub10 button i{font-style:normal}
+.lbSub10 button.on{background:rgba(255,194,51,.16);border-color:rgba(255,194,51,.6);color:#ffe3a0}
+.lbMore10{margin:14px 2px 4px;font-size:12px;color:#9fb6dd}
+.lbEmpty10{text-align:center;padding:18px 8px}
+.lbEmpty10 .b8b{margin-top:8px}
+#frc10{position:fixed;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:12px;padding:5px 12px;border-radius:999px;background:rgba(10,16,30,.72);backdrop-filter:blur(6px);color:#e6efff;font-size:11.5px;font-weight:800;pointer-events:none;white-space:nowrap}
+#frc10[hidden]{display:none}
+#frc10 span{display:flex;align-items:center;gap:5px}
+#frc10 u{display:inline-block;width:10px;height:10px;border-radius:50%}
+@media(max-width:350px){.lbC8.pk10 button{font-size:9.5px}#frc10{gap:7px;font-size:10px;padding:4px 9px}}

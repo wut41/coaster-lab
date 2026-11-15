@@ -6,7 +6,10 @@
     "test": "node run_all.js"
   },
   "dependencies": {
-    "three": "0.160.0",
-    "playwright": "^1.47.0"
+    "playwright": "^1.47.0",
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.1"
   }
 }
