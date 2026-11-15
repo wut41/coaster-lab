@@ -68,9 +68,9 @@ function gDecide10(g) {
   let best = null, bs = .22, exp = false, long = false; const here = g.ti;
   for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots || g.skip[o.id] > g.t) continue; const inf = objInfo10(o); if (!rideOpen10(o)) continue;
     const f = field10('o' + o.id, R.entry), d = f[here]; if (d < 0) continue; const fare = fareOf10(o, inf);
-    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; continue }
+    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; R.tooExp = (R.tooExp || 0) + 1; continue }
     const fit = inf.int < T_.lo ? 1 - (T_.lo - inf.int) / 40 : inf.int > T_.hi ? 1 - (inf.int - T_.hi) / 28 : 1; if (fit <= .05) continue;
-    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 8 || R.q.length >= R.qCap) { long = true; continue }
+    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 8 || R.q.length >= R.qCap) { long = true; R.tooLong = (R.tooLong || 0) + 1; continue }
     const n = g.did[o.id] || 0, sc = (inf.exc / 55) * (.35 + .65 * fit) * (inf.t === 'coaster' ? T_.coaster : 1) * Math.pow(g.ty === 3 ? .78 : .52, n) * (1 - Math.min(.6, wait / (T_.pat * 9))) * (1 - Math.min(.5, d / 70)) * (.75 + Math.random() * .5) * (g.nausea > 45 ? Math.max(.2, 1 - inf.nau / 60) : 1);
     if (sc > bs) { bs = sc; best = o } }
   if (best) return gGo10(g, { k: 'ride', id: best.id }, 'o' + best.id, best.rt.entry);

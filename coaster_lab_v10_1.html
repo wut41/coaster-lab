@@ -1199,6 +1199,67 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 .dgIO{display:block;width:100%;box-sizing:border-box;margin-top:8px;font:11.5px/1.4 ui-monospace,Menlo,Consolas,monospace;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(4,10,24,.7);color:#dbe7f7;padding:8px}
 .dgOv{position:fixed;left:calc(8px + env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:40;padding:4px 8px;border-radius:8px;background:rgba(4,10,24,.82);color:#9effc0;font:700 11px/1.3 ui-monospace,Menlo,Consolas,monospace;pointer-events:none;white-space:nowrap}
 .tySaveW{position:absolute;right:calc(10px + var(--sar));top:calc(70px + var(--sat));max-width:calc(100vw - 20px);padding:7px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:rgba(214,48,49,.95);color:#fff;font:800 12px var(--fD);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35);z-index:3}
+/* ---- 10.1 My Park: reports, advisor, recent events */
+.ty10pk .tyTile .pos,.ty10pk .rp10 .pos{color:#7dffb0}.ty10pk .tyTile .neg,.ty10pk .rp10 .neg,.ty10pk b.neg{color:#ff9a9a}
+.rpS10{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;padding:0 2px}
+.rp10 th{text-align:left;font:800 10.5px var(--fUI);letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);padding:8px 2px 3px;white-space:nowrap}
+.rp10 th:not(:first-child),.rp10 td:not(:first-child){text-align:right;padding-left:10px;white-space:nowrap}
+.rp10 td:last-child{font:700 12px var(--fUI)}
+.rp10 td small{display:block;font-size:10.5px;color:var(--ink2);font-weight:600}
+.rpB10{display:block;height:4px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:3px;overflow:hidden;text-decoration:none}
+.rpB10 s{display:block;height:100%;border-radius:99px;background:#4ade80}.rpB10.neg s{background:#ff6b6b}
+.rpD10{display:flex;align-items:flex-end;gap:6px;height:70px;padding:8px 2px 0}
+.rpD10>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;height:100%}
+.rpD10 i{display:block;width:100%;max-width:34px;border-radius:5px;background:#4ade80}.rpD10 i.neg{background:#ff6b6b}.rpD10 small{font-size:9.5px;color:var(--ink2)}
+.rpL10{background:none;border:0;padding:0;color:var(--ink);font:700 12.5px var(--fUI);cursor:pointer;text-align:left;text-decoration:underline;text-decoration-color:rgba(255,255,255,.25);text-underline-offset:3px}
+.rpQ10{min-height:30px;padding:3px 10px;font-size:11.5px}.rpQ10.on{border-color:rgba(255,194,51,.8);background:rgba(255,194,51,.16)}
+.tyLi.adv10{border-color:rgba(124,196,255,.35);background:rgba(124,196,255,.07)}
+.ev10 .tyLi{padding:7px 10px;cursor:default}.ev10 .tyLi b{font-weight:700;font-size:12px}.ev10 .tyLi small{display:block;color:var(--ink2);font-size:10.5px}
+/* report tables scroll inside their own box instead of widening the whole page */
+.ty10pk{min-width:0;max-width:100%}
+.rpS10{max-width:100%;width:100%}
+.rp10{table-layout:auto}
+.rp10 td:first-child{white-space:normal;min-width:96px}
+
+/* ---- [64_builderpro.css] */
+/* ---- 10.1 Track Builder 6: live numbers, status chip, history, suggestions, scroll fades */
+.bst10{display:flex;align-items:center;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex:0 1 auto;max-width:min(54vw,700px);padding:1px}
+.bst10::-webkit-scrollbar,.tl8::-webkit-scrollbar,.tools8::-webkit-scrollbar,.acR8::-webkit-scrollbar{display:none}
+.bst10.dk{max-width:none;gap:3px;padding:0 0 1px}
+.bs10,.bsS10{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:34px;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#eaf2ff;font:800 12.5px var(--fUI);cursor:pointer;white-space:nowrap}
+.bs10 i,.bsS10 i{font-style:normal;font-size:13px}
+.bs10 b{font:800 12.5px var(--fD);letter-spacing:.2px}
+.bs10.warn{border-color:rgba(255,194,51,.6);background:rgba(255,194,51,.12)}.bs10.bad{border-color:rgba(255,107,107,.7);background:rgba(255,107,107,.15)}
+.bs10 em{font-style:normal;font-size:10.5px;font-weight:800;padding:1px 5px;border-radius:99px;background:rgba(124,196,255,.2);color:#bfe1ff;animation:bsPop10 .28s ease-out}
+.bs10 em.lv{background:rgba(255,194,51,.22);color:#ffe2a0}
+.bsS10{font-size:12px}.bsS10.good{border-color:rgba(74,222,128,.55);background:rgba(74,222,128,.13);color:#b9ffd4}.bsS10.warn{border-color:rgba(255,194,51,.6);background:rgba(255,194,51,.14);color:#ffe2a0}.bsS10.bad{border-color:rgba(255,107,107,.7);background:rgba(255,107,107,.17);color:#ffc9c2}
+.bsN10{font-size:11.5px;color:#9fb2cf;white-space:nowrap;padding:0 6px}
+@keyframes bsPop10{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.bst10.dk .bs10,.bst10.dk .bsS10{min-height:28px;padding:2px 7px;font-size:11.5px}.bst10.dk .bs10 b{font-size:11.5px}
+/* a row that scrolls sideways fades at the edge that has more */
+.ovR10{-webkit-mask-image:linear-gradient(270deg,transparent 0,#000 30px);mask-image:linear-gradient(270deg,transparent 0,#000 30px)}
+.ovL10{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 30px);mask-image:linear-gradient(90deg,transparent 0,#000 30px)}
+.ovL10.ovR10{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 30px,#000 calc(100% - 30px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 30px,#000 calc(100% - 30px),transparent 100%)}
+/* history */
+.hs10{max-height:min(60vh,430px);overflow:auto;width:min(300px,calc(100vw - 16px));gap:4px}
+.hsT10{font:800 13px var(--fD);padding:2px 4px 4px}.hsT10 small,.hsM10{display:block;font:600 11px var(--fUI);color:#9fb2cf}.hsM10{padding:4px}
+.hs10 button{display:grid;gap:1px;text-align:left;padding:7px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#eaf2ff;cursor:pointer;min-height:40px}
+.hs10 button b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hs10 button small{font-size:10.5px;color:#9fb2cf}
+.hs10 button.on{border-color:rgba(255,194,51,.75);background:rgba(255,194,51,.14)}.hs10 button.fut{opacity:.62}
+/* good next pieces */
+.sg10{margin:2px 0 10px;padding:9px;border-radius:14px;border:1px solid rgba(255,194,51,.35);background:rgba(255,194,51,.07)}
+.sgT10{display:block;font:800 12.5px var(--fD);margin-bottom:6px}.sgT10 small{display:block;font:600 11px var(--fUI);color:#c9d6ea;margin-top:1px}
+.sgR10{display:grid;gap:5px}
+.sgI10{display:flex;align-items:center;gap:9px;text-align:left;padding:7px 9px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(10,18,34,.55);color:#fff;cursor:pointer;min-height:44px}
+.sgI10 i{font-style:normal;font-size:19px;width:24px;text-align:center;flex:none}.sgI10 b{display:block;font-size:13px}.sgI10 small{display:block;font-size:11px;color:#b9c8de;line-height:1.3}
+/* Sketch Studio: closest layouts */
+.skM10{display:grid;gap:6px;margin:6px 0}
+.skM10>div{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+.skM10 i{font-style:normal;font-size:19px}.skM10 span{flex:1;min-width:0}.skM10 b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.skM10 small{font-size:11px;color:#9fb2cf}
+@media (max-width:900px){.bst10{max-width:44vw}}
+@media (prefers-reduced-motion:reduce){.bs10 em{animation:none}}
+/* the coaster's name keeps its place next to the numbers */
+@media (min-width:561px){#b8Top .b8nm{min-width:112px}}
 </style>
 </head>
 <body>
@@ -7025,7 +7086,7 @@ function panel(){if(!SK85.open)return;if(SK85.pv)return pvPanel();const I=S.INT,
   if(I.notes.length)h+=`<h4 class="h80">Notes</h4><ul class="skNt">${I.notes.map(([ic,t])=>`<li><i>${ic}</i><span>${esc(t)}</span></li>`).join('')}</ul>`;
   h+=`<p class="n8">Numbers marked ≈ are quick estimates. <b>Build my coaster</b> runs the full ride simulation and shows the real ones.</p>`}
  else h+=`<div class="emp8"><b>How it works</b><p>🗺 <b>Blueprint</b>: draw the track from above, starting at the station. Keep drawing from the glowing dot; draw over a part to redraw it.</p><p>📈 <b>Side view</b>: draw the hills from left to right. The first climb becomes the lift hill.</p><p>Draw one view or both — I fill in the other.</p></div>`;
- h+=`<details class="skSet" ${S.set?'open':''}><summary>⚙ Interpretation settings</summary>${settingsHTML()}</details></div>`;side.innerHTML=h;side.classList.toggle('open',S.sheet)}
+ h+=`<details class="skSet" ${S.set?'open':''}><summary>⚙ Interpretation settings</summary>${settingsHTML()}</details></div>`;if(SK85.extra)try{h=SK85.extra(h,S,I)}catch(e){console.warn('10.1 sketch panel',e)}side.innerHTML=h;side.classList.toggle('open',S.sheet)}
 function statsHTML(){const r=BR_;if(!r||!r.c||!r.tr)return'';const st=statsOf(r.c,r.tr,0),E=elementsOf(r.c,r.tr),turns=E.E.filter(e=>/turn|Helix/.test(e.name)).length;
  const K=(l,v_)=>`<span>${l}<b>${v_}</b></span>`;return`<div class="kv8 skKv">${K('Track',fL(r.c.L))}${K('Max height',fL(st.maxH))}${K('Top speed',fV(r.tr.vmax))}${K('Ride time',fmtT(r.tr.T))}${K('Inversions',E.inv)}${K('Turns',turns)}${K('Airtime',st.air.toFixed(1)+' s')}${K('Peak G',st.gMax.toFixed(1)+' G')}</div>`}
 function pvPanel(){const res=S.pv&&S.pv.res,r=BR_;if(!res||!r){side.innerHTML='';return}const iss=r.issues.filter(i=>i.sev==='crit'||i.sev==='warn'),E=r.c&&r.tr?elementsOf(r.c,r.tr).E:[],adj=res.adj||[],notes=res.I.notes||[];
@@ -8861,9 +8922,9 @@ function gDecide10(g) {
   let best = null, bs = .22, exp = false, long = false; const here = g.ti;
   for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots || g.skip[o.id] > g.t) continue; const inf = objInfo10(o); if (!rideOpen10(o)) continue;
     const f = field10('o' + o.id, R.entry), d = f[here]; if (d < 0) continue; const fare = fareOf10(o, inf);
-    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; continue }
+    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; R.tooExp = (R.tooExp || 0) + 1; continue }
     const fit = inf.int < T_.lo ? 1 - (T_.lo - inf.int) / 40 : inf.int > T_.hi ? 1 - (inf.int - T_.hi) / 28 : 1; if (fit <= .05) continue;
-    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 8 || R.q.length >= R.qCap) { long = true; continue }
+    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 8 || R.q.length >= R.qCap) { long = true; R.tooLong = (R.tooLong || 0) + 1; continue }
     const n = g.did[o.id] || 0, sc = (inf.exc / 55) * (.35 + .65 * fit) * (inf.t === 'coaster' ? T_.coaster : 1) * Math.pow(g.ty === 3 ? .78 : .52, n) * (1 - Math.min(.6, wait / (T_.pat * 9))) * (1 - Math.min(.5, d / 70)) * (.75 + Math.random() * .5) * (g.nausea > 45 ? Math.max(.2, 1 - inf.nau / 60) : 1);
     if (sc > bs) { bs = sc; best = o } }
   if (best) return gGo10(g, { k: 'ride', id: best.id }, 'o' + best.id, best.rt.entry);
@@ -9535,8 +9596,8 @@ const cInt10 = (x, a, b, d = 0) => Math.round(cNum10(x, a, b, d));
 const cCode10 = c => { const k = typeof c === 'string' ? c.trim().toUpperCase() : ''; return CODE_RE10.test(k) ? k : '' };
 function cStats10(st) {
   const o = {}; if (!st || typeof st !== 'object' || Array.isArray(st)) return o;
-  for (const [k, a, b] of [['rating', 0, 100], ['rep', 0, 100], ['day', 1, 1e6], ['guests', 0, 1e13], ['rides', 0, 1e13], ['coasters', 0, 900], ['attractions', 0, 900], ['level', 1, 30]]) if (st[k] != null) o[k] = cInt10(st[k], a, b);
-  if (st.mode === 'sandbox' || st.mode === 'career') o.mode = st.mode; if (st.money != null) o.money = cInt10(st.money, -1e12, 1e12); return o;
+  for (const [k, a, b] of [['rating', 0, 100], ['rep', 0, 100], ['day', 1, 1e6], ['guests', 0, 1e13], ['rides', 0, 1e13], ['coasters', 0, 900], ['attractions', 0, 900], ['level', 1, 30], ['money', -1e12, 1e12]]) { const n = cNum10(st[k], a, b, NaN); if (isFinite(n)) o[k] = Math.round(n) }// (anything that is not a number is left out, and shows as —)
+  if (st.mode === 'sandbox' || st.mode === 'career') o.mode = st.mode; return o;
 }
 function cRow10(p) {
   if (!p || typeof p !== 'object' || Array.isArray(p)) return null; const code = cCode10(p.code); if (!code) return null;
@@ -11185,8 +11246,11 @@ const FAMILY10 = GT10.findIndex(t => t.k === 'family');
   const L_ = g.L; if (!L_ || L_.gone) { if (g.L) { g.L = null; g.lead = 0 } return d0(g) }
   if (L_.leave || g.leave) { g.leave = true; return d0(g) }
   const G_ = L_.goal; g.wq = 0;
-  if (L_.st === 'queue' && L_.qo && L_.qo.rt && rideOpen10(L_.qo)) { const o = L_.qo; return gGo10(g, { k: 'ride', id: o.id }, 'o' + o.id, o.rt.entry) }
-  if (G_ && L_.fkey && G_.k !== 'exit' && L_.st === 'walk') return gGo10(g, { ...G_ }, L_.fkey, L_.ftg);
+  // (10.1, from the park-build line) a follower only heads for the leader's ride while its queue has room and they have not just
+  // been turned away from it, and only walks after the leader when that is somewhere else than where they stand. Without these
+  // checks a follower could be sent straight back and forth until the browser ran out of stack: the My Park crash near coasters.
+  if (L_.st === 'queue' && L_.qo && L_.qo.rt && rideOpen10(L_.qo) && L_.qo.rt.q.length < L_.qo.rt.qCap && !(g.skip[L_.qo.id] > g.t)) { const o = L_.qo; return gGo10(g, { k: 'ride', id: o.id }, 'o' + o.id, o.rt.entry) }
+  if (G_ && L_.fkey && G_.k !== 'exit' && L_.st === 'walk' && !(G_.id && g.skip[G_.id] > g.t) && field10(L_.fkey, L_.ftg)[g.ti] > 0) return gGo10(g, { ...G_ }, L_.fkey, L_.ftg);
   if (Math.hypot(L_.x - g.x, L_.z - g.z) > 9 && TY.path[L_.ti]) return gGo10(g, { k: 'stroll' }, 't' + L_.ti, [L_.ti]);
   g.st = 'idle'; g.useT = .8 + Math.random();
 } }
@@ -11423,6 +11487,229 @@ DBG10.builder = {
   setP: (k, key, v) => { D.els[k].p[key] = v; rebuild(true); return BR_.g.bad ? 'bad' : 'ok' },
   colorAt: (i) => { const g = BR_.g, c = ribColor(i, g.sec[i], g); return '#' + c.getHexString() }
 };
+
+// ---- [60_parkpro.js]
+// ---- 10.1 MY PARK — running the park by the numbers. Nothing here replaces the simulation: it counts what already
+// happens, keeps a week of books, and turns both into things the player can act on.
+//  · 📊 Reports (a new Park Office tab): yesterday at a glance, a week of income and costs by category, what every
+//    ride and stall earns (today, yesterday, since it was built, and when it pays for itself), queues (waits, people who
+//    skipped or gave up, people who found it too dear), why visitors went home, and how busy the staff were. CSV export.
+//  · 🧭 Park Advisor (on Overview): up to five suggestions, each worked out from those numbers, with the reason.
+//  · 🔔 Recent events (on Overview): the important messages of the last days, so nothing is lost when a toast fades.
+//  · Visitors tab: mood by visitor type and what is bothering people right now.
+//  · Staff: a free mechanic goes to the broken ride that matters most (not the one built first); an optional policy
+//    services worn rides before they break; a note on how busy the staff really were.
+//  · Queues: a ride's line can be kept short (half length), so fewer people wait a long time.
+//  · Visitors comment on what they notice (litter, rain, pretty places, the park at night, running out of money), which
+//    feeds "what visitors are saying".
+//  · Safety net (from the park-build line): a visitor whose decide → walk → arrive chain keeps restarting pauses for a
+//    moment instead of looping until the browser runs out of stack.
+// Saved with the park (all optional, ignored by older versions): per thing st.d0 / st.y (the books at the start of today
+// and for yesterday) and ql (short line); for the park wk (a week of daily books) and pol (staff policy).
+// ---------------------------------------------------------------------------------------------------------------------
+const PRO10 = { loopStops: 0, log: [], logKey: {}, day: null, staff: null, staffY: null, fix: { sum: 0, n: 0 }, fixY: null, t1: 0, tSay: 0, bench: [-1, false], told: {} };
+// ---- safety net for the visitor loop
+{ const d0 = gDecide10; gDecide10 = function (g) {
+  if ((g._dd10 || 0) >= 6) { g.st = 'idle'; g.useT = .5 + Math.random() * .5; g.goal = null; PRO10.loopStops++; return }
+  g._dd10 = (g._dd10 || 0) + 1; try { return d0.apply(this, arguments) } finally { g._dd10-- }
+} }
+// ---- what is saved with the park
+const tri10 = a => Array.isArray(a) && a.length === 3 && a.every(x => typeof x === 'number' && isFinite(x)) ? [numP10(a[0], 0, 0, 1e9), numP10(a[1], 0, 0, 1e12), numP10(a[2], 0, 0, 1e12)] : null;
+const WHY10 = [['done', '🙂', 'Had a full day'], ['closing', '🌙', 'The park closed'], ['broke', '👛', 'Ran out of money'], ['unhappy', '😡', 'Left unhappy'], ['tired', '🥱', 'Too tired'], ['norides', '🎟', 'Never got on a ride'], ['other', '🚪', 'Other reasons']];
+{ const c0 = cleanPark10; cleanPark10 = function (o, mode) {
+  const P_ = c0(o, mode); if (!P_ || !o || typeof o !== 'object') return P_;
+  if (Array.isArray(o.objs)) { const raw = new Map(); for (const q of o.objs) if (q && typeof q === 'object' && Number.isInteger(q.id)) raw.set(q.id, q);
+    for (const b of P_.objs) { const q = raw.get(b.id); if (!q || !b.st) continue; const d0 = tri10(q.st && q.st.d0), y = tri10(q.st && q.st.y); if (d0) b.st.d0 = d0; if (y) b.st.y = y; if (q.ql === 1) b.ql = 1 } }
+  P_.pol = { insp: o.pol && typeof o.pol === 'object' && o.pol.insp === 1 ? 1 : 0 };
+  P_.wk = Array.isArray(o.wk) ? o.wk.filter(d => d && typeof d === 'object' && d.inc && d.exp && typeof d.inc === 'object' && typeof d.exp === 'object').slice(-7).map(d => {
+    const r = { day: Math.round(numP10(d.day, 1, 1, 1e6)), inc: {}, exp: {}, guests: Math.round(numP10(d.guests, 0, 0, 1e7)), left: Math.round(numP10(d.left, 0, 0, 1e7)), spend: numP10(d.spend, 0, 0, 1e6), rides: numP10(d.rides, 0, 0, 1e4), happy: numP10(d.happy, 0, 0, 100), why: {} };
+    for (const k of INC10) r.inc[k[0]] = Math.round(numP10(d.inc[k[0]], 0, 0, 1e12)); for (const k of EXP10) r.exp[k[0]] = Math.round(numP10(d.exp[k[0]], 0, 0, 1e12));
+    for (const k of WHY10) r.why[k[0]] = Math.round(numP10(d.why && d.why[k[0]], 0, 0, 1e7)); return r }) : [];
+  return P_;
+} }
+// ---- counting what happens during the day
+const proDay10 = () => { const P_ = TY.park; if (!PRO10.day || PRO10.day.n !== P_.day || PRO10.day.id !== P_.id) PRO10.day = { n: P_.day, id: P_.id, left: 0, spend: 0, rides: 0, why: {} }; return PRO10.day };
+{ const l0 = guestLeft10; guestLeft10 = function (g) {
+  safe10('leave count', () => { if (TY.visit) return; const P_ = TY.park, d = proDay10(), hasRides = P_.objs.some(o => o.rt && o.rt.slots);
+    const k = g.happy < 16 ? 'unhappy' : g.cash < 2 ? 'broke' : g.energy < 5 ? 'tired' : !g.rides && hasRides ? 'norides' : !parkOpen10() ? 'closing' : g.t > g.stay ? 'done' : 'other';
+    d.why[k] = (d.why[k] || 0) + 1; d.left++; d.spend += g.spent || 0; d.rides += g.rides || 0;
+    const w = P_.wk && P_.wk[P_.wk.length - 1]; if (w && w.day === d.n) { w.left = d.left; w.spend = +(d.spend / d.left).toFixed(2); w.rides = +(d.rides / d.left).toFixed(2); w.why = { ...d.why } } });// (the report for a day is written at closing time; the people still walking out are added to it)
+  return l0.apply(this, arguments);
+} }
+{ const q0 = gLeaveQ10; gLeaveQ10 = function (g, angry) { if (angry && g.qo && g.qo.rt && !g.qo.rt.broken) g.qo.rt.gaveUp = (g.qo.rt.gaveUp || 0) + 1; return q0.apply(this, arguments) } }
+// a ride's line can be kept short
+{ const k0 = linkObj10; linkObj10 = function (o) { const r = k0.apply(this, arguments); if (o && o.ql === 1 && o.rt && o.rt.qCap) o.rt.qCap = Math.max(4, Math.ceil(o.rt.qCap / 2)); return r } }
+const upkeepOf10 = (o, inf) => inf.cost * (UPKEEP10[inf.t] || 0);
+const sinceD0 = o => { const d = o.st.d0 || [o.st.n, o.st.inc, o.st.run]; return [o.st.n - d[0], o.st.inc - d[1], o.st.run - d[2]] };
+// a thing's daily books start when it is built; things from a save made before 10.1 start counting when the park is opened
+{ const b0 = tyBuild10; tyBuild10 = function () { const res = b0.apply(this, arguments); if (res && res.ok && res.o && res.o.st && !res.o.st.d0) res.o.st.d0 = [0, 0, 0]; return res } }
+{ const r0 = tyRebuild10; tyRebuild10 = function () { const r = r0.apply(this, arguments); safe10('day books', () => { for (const o of TY.park.objs) if (o.st && !o.st.d0) o.st.d0 = [o.st.n || 0, o.st.inc || 0, o.st.run || 0] }); return r } }
+// ---- the end of a day: each thing's books for the day, the park's books for the week, a few notices
+{ const e0 = endDay10; endDay10 = function () {
+  const P_ = TY.park, mine = P_ && !TY.visit, d = mine ? proDay10() : null, rate0 = P_ ? P_.rating : 0, losers = [];
+  if (mine) safe10('day books', () => { for (const o of P_.objs) { if (!o.st) continue; const inf = objInfo10(o); if (!inf || inf.t === 'deco') continue; const t = sinceD0(o), py = o.st.y ? o.st.y[1] - o.st.y[2] - upkeepOf10(o, inf) : 0; o.st.y = [Math.max(0, t[0]), Math.max(0, t[1]), Math.max(0, t[2])]; o.st.d0 = [o.st.n, o.st.inc, o.st.run];
+    const pn = o.st.y[1] - o.st.y[2] - upkeepOf10(o, inf); if (pn < -1 && py < -1 && o.rt && o.rt.linked && o.open !== false) losers.push(o); const R = o.rt; if (R) { R.yq = { exp: R.tooExp || 0, long: R.tooLong || 0, up: R.gaveUp || 0 }; R.tooExp = R.tooLong = R.gaveUp = 0 } } });
+  const r = e0.apply(this, arguments);
+  if (mine) safe10('week books', () => {
+    const L = TY.lastDay; if (L && L.led) { const rec = { day: L.day, inc: {}, exp: {}, guests: L.guests || 0, left: d.left, spend: d.left ? +(d.spend / d.left).toFixed(2) : 0, rides: d.left ? +(d.rides / d.left).toFixed(2) : 0, happy: L.happy || 0, why: { ...d.why } };
+      for (const k of INC10) rec.inc[k[0]] = Math.round(L.led.inc[k[0]] || 0); for (const k of EXP10) rec.exp[k[0]] = Math.round(L.led.exp[k[0]] || 0); P_.wk = (P_.wk || []).filter(q => q.day !== rec.day).concat([rec]).slice(-7) }
+    PRO10.staffY = PRO10.staff; PRO10.staff = null; PRO10.fixY = PRO10.fix.n ? PRO10.fix.sum / PRO10.fix.n : null; PRO10.fix = { sum: 0, n: 0 }; PRO10.told = {};
+    if (P_.mode === 'career') { if (losers.length) toast10('💸 ' + objName10(losers[0]) + (losers.length > 1 ? ' and ' + (losers.length - 1) + ' more' : '') + ' lost money two days running. 📊 Reports shows why', 'lose' + P_.day, true);
+      if (rate0 - P_.rating >= 5) toast10('📉 The park rating fell from ' + Math.round(rate0) + ' to ' + Math.round(P_.rating) + ' today. 🧭 The Advisor on Overview has ideas', 'rate' + P_.day, true) }
+    const sy = PRO10.staffY; if (sy && sy.jan.n > 20 && sy.jan.busy / sy.jan.n > .93 && TY.clean < 75) toast10('🧹 Your janitors were busy all day and litter is still piling up', 'jan' + P_.day, true);
+    savePark10();
+  });
+  return r;
+} }
+// ---- staff: who is busy, how long repairs take, and which broken ride comes first
+function proStaffTick10() {
+  const P_ = TY.park; if (!P_ || TY.visit || !P_.speed || !parkOpen10()) return; const S = PRO10.staff || (PRO10.staff = { jan: { busy: 0, n: 0 }, mech: { busy: 0, n: 0 } });
+  for (const s_ of TY.staff) { const q = S[s_.k]; if (!q) continue; q.n++; if (s_.job) q.busy++ }
+  const now = P_.day * 1440 + P_.min; for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots) continue; if (R.broken && !R.bAt) R.bAt = now; else if (!R.broken && R.bAt) { PRO10.fix.sum += Math.max(0, now - R.bAt); PRO10.fix.n++; R.bAt = 0 } }
+}
+const rideValue10 = o => { const inf = objInfo10(o), R = o.rt; return (o.st && o.st.y ? o.st.y[1] : 0) + (inf ? inf.exc * (inf.t === 'coaster' ? 3 : 1.5) : 0) + (R && R.q ? R.q.length * 4 : 0) };
+{ const s0 = staffStep10; staffStep10 = function (dt) {
+  safe10('mechanic order', () => { const P_ = TY.park; let broken = null;
+    for (const s_ of TY.staff) { if (s_.k !== 'mech' || s_.job || s_.st === 'work' || s_.t - dt > 0) continue; if (!broken) broken = P_.objs.filter(q => q.rt && q.rt.broken === 1 && q.rt.linked).sort((a, b) => rideValue10(b) - rideValue10(a)); const o = broken.shift(); if (!o) break; o.rt.broken = 2; s_.job = o; s_.goal = o.rt.gateTile } });
+  return s0.apply(this, arguments);
+} }
+// optional policy: service worn rides before they break (the game's own inspection, started earlier and on busy rides too)
+{ const r0 = ridesStep10; ridesStep10 = function (dt) {
+  const r = r0.apply(this, arguments);
+  safe10('service policy', () => { const P_ = TY.park; if (!P_.pol || P_.pol.insp !== 1 || TY.visit || !parkOpen10() || P_.mode === 'sandbox' && !P_.seen.breaks) return; const mech = TY.staff.filter(s_ => s_.k === 'mech').length; if (!mech || !mechFree10()) return;
+    let busy = 0; for (const o of P_.objs) if (o.rt && o.rt.insp > 0) busy++; if (busy >= mech) return;
+    for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots || !R.linked || R.broken || R.insp > 0 || o.open === false || !(o.rel < 72)) continue; const idle = R.trains ? R.trains.every(t => !t.riders.length && t.ph !== 'run') : R.ph === 'load' && !(R.riders && R.riders.length); if (!idle) continue;
+      R.insp = 9 * (perk10('mech1') ? .7 : 1); toast10('🛠 ' + objName10(o) + ' is closed for a short service (before it breaks)', 'insp' + o.id); break } });
+  return r;
+} }
+// ---- visitors say what they notice. Two people at most every couple of seconds; it only adds to "what visitors are saying".
+function proBench10() { if (PRO10.bench[0] !== TY.pathVer) PRO10.bench = [TY.pathVer, TY.park.objs.some(o => CAT10[o.k] && CAT10[o.k].job === 'bench' && o.rt && o.rt.linked)]; return PRO10.bench[1] }
+function proNotice10(g) {
+  const P_ = TY.park, W_ = WX10[P_.wx.k], b = TY.beauty[g.ti] || 0, r = Math.random();
+  if (W_.rain && !g.umb && r < .5) return ['🌧', 'I am getting soaked'];
+  if (TY.clean < 55 && r < .6) return ['🗑', 'There is litter everywhere'];
+  if (g.energy < 28 && !proBench10()) return ['🥱', 'I need to sit down and there are no benches'];
+  if (g.cash < 6 && g.t < g.stay * .6) return ['👛', 'I am nearly out of money already'];
+  if (!g.rides && g.t > 110 && P_.objs.some(o => o.rt && o.rt.slots)) return ['🤔', 'I still have not found a ride for me'];
+  if (P_.min > 1170 && b > 3 && r < .5) return ['✨', 'The park looks lovely at night'];
+  if (b > 7 && r < .5) return ['🌷', 'It is so pretty here'];
+  if (g.happy > 88 && g.rides >= 3) return ['🥰', 'This is the best day ever'];
+  if (g.happy > 78 && P_.rating > 60 && r < .3) return ['⭐', 'I will tell my friends about this park'];
+  if (P_.wx.k === 'sunny' && g.thirst > 48 && r < .4) return ['☀️', 'It is hot today'];
+  return null;
+}
+TICKS72.push((dt, raw) => {
+  if (!TY.on || !TY.park) return;
+  if ((PRO10.t1 -= raw) <= 0) { PRO10.t1 = 1; safe10('staff count', proStaffTick10); safe10('park notices', proWatch10) }
+  if ((PRO10.tSay -= raw) > 0) return; PRO10.tSay = 2.2; const P_ = TY.park, G_ = TY.guests; if (!P_.speed || !G_.length || !parkOpen10()) return;
+  safe10('visitor notices', () => { for (let k = 0; k < 2; k++) { const g = G_[Math.floor(Math.random() * G_.length)]; if (!g || g.st !== 'walk' || g.leave || g.sayT > 0 || (g.cd10 || 0) > g.t) continue; const n = proNotice10(g); if (!n) continue; g.cd10 = g.t + 45; say10(g, n[0], n[1]) } });
+});
+// ---- 🔔 recent events: important messages are kept with the park day and time they happened
+{ const t0 = toast10; toast10 = function (msg, key, hi) {
+  if (hi && TY.on && TY.park && !TY.visit) { const now = performance.now(), k = key || msg; if (!(now - (PRO10.logKey[k] || -1e9) < 9000)) { PRO10.logKey[k] = now; PRO10.log.unshift({ day: TY.park.day, min: TY.park.min, msg: String(msg).slice(0, 200), id: TY.park.id }); if (PRO10.log.length > 40) PRO10.log.pop() } }
+  return t0.apply(this, arguments);
+} }
+// things worth a notice while the day runs (each at most once a day)
+function proWatch10() {
+  const P_ = TY.park; if (TY.visit || !P_.speed || !parkOpen10()) return; const tell = (k, msg) => { if (PRO10.told[k]) return; PRO10.told[k] = 1; toast10(msg, k + P_.day, true) };
+  for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots || !R.linked) continue; if ((R.gaveUp || 0) >= 8) tell('gu' + o.id, '⏱ ' + (R.gaveUp) + ' visitors have given up waiting for ' + objName10(o) + ' today'); else if ((R.tooExp || 0) >= 25 && (R.tooExp || 0) > sinceD0(o)[0] * 2) tell('te' + o.id, '💸 Many visitors find ' + objName10(o) + ' too expensive (' + R.tooExp + ' today)') }
+  if (P_.mode === 'career' && P_.loan > 0 && P_.money > P_.loan + 8000) tell('loan', '🏦 You have enough in the bank to repay your loan and stop paying interest');
+}
+// ---- 🧭 Park Advisor: suggestions worked out from the numbers above, most useful first
+function advice10() {
+  const P_ = TY.park, A = [], G_ = TY.guests, n = G_.length, add = (pri, ic, t, why, act) => A.push({ pri, ic, t, why, act }), career = P_.mode === 'career';
+  const rides = P_.objs.filter(o => o.rt && o.rt.slots && o.rt.linked), y = (P_.wk || [])[(P_.wk || []).length - 1];
+  for (const o of rides) { const inf = objInfo10(o), R = o.rt, t = sinceD0(o), fare = fareOf10(o, inf), nm = objName10(o), exp = (R.tooExp || 0) + (R.yq ? R.yq.exp : 0), lng = (R.tooLong || 0) + (R.yq ? R.yq.long : 0), up = (R.gaveUp || 0) + (R.yq ? R.yq.up : 0), rode = t[0] + (o.st.y ? o.st.y[0] : 0);
+    if (exp >= 12 && exp > rode * .8 && fare > 0) add(80 + Math.min(15, exp / 4), '💸', nm + ' is priced too high', exp + ' visitors turned it down as too expensive, against ' + rode + ' who rode. Try ' + money10(Math.max(0, fare - 1)) + '.', 'go:' + o.id);
+    else if (rideOpen10(o) && !exp && rode >= 40 && R.q.length >= R.qCap * .8 && fare < worth10(inf) * 1.1) add(55, '💵', nm + ' could cost a little more', 'Its line is nearly full and nobody found it expensive. ' + money10(fare + 1) + ' would bring in about ' + money10(rode / 2) + ' more a day.', 'go:' + o.id);
+    if (up + lng >= 14) add(70 + Math.min(15, up), '⏱', 'The wait for ' + nm + ' puts people off', (up ? up + ' gave up in the line' : '') + (up && lng ? ' and ' : '') + (lng ? lng + ' did not join it' : '') + '. ' + (o.up && o.up.cap < 3 ? 'A capacity upgrade moves more people an hour.' : 'Another ride like it nearby would share the crowd.'), 'go:' + o.id);
+    if (career && o.st.y) { const p = o.st.y[1] - o.st.y[2] - upkeepOf10(o, inf); if (p < -15 && o.open !== false) add(60 + Math.min(20, -p / 20), '📉', nm + ' lost ' + money10(-p) + ' yesterday', o.st.y[0] < 10 ? 'Only ' + o.st.y[0] + ' people rode it. Is it easy to reach, and is the price right?' : 'It costs more to run and keep up than it takes in tickets.', 'go:' + o.id) }
+    if (o.rel < 45 && !R.broken && !P_.staff.mech) add(75, '🔧', nm + ' is worn out (' + Math.round(o.rel) + '%)', 'It will break down soon and there is no mechanic to service it.', 'tab:staff') }
+  if (n >= 12) { const c = { hunger: 0, thirst: 0, wc: 0, tired: 0, sick: 0 }; for (const g of G_) { if (g.hunger > 60) c.hunger++; if (g.thirst > 60) c.thirst++; if (g.bladder > 68) c.wc++; if (g.energy < 26) c.tired++; if (g.nausea > 55) c.sick++ }
+    const has = k => P_.objs.some(o => CAT10[o.k] && (CAT10[o.k].sells === k || CAT10[o.k].job === k) && o.rt && o.rt.linked);
+    if (c.hunger > n * .25 && has('food')) add(66, '🍔', 'A quarter of your visitors are hungry', c.hunger + ' of ' + n + ' are hungry even though there is food. Another stall, nearer the busy rides, would help.', 'cat:shop');
+    if (c.thirst > n * .25 && has('drink')) add(64, '🥤', 'Many visitors are thirsty', c.thirst + ' of ' + n + ' want a drink. Add a drinks stand where the crowds are.', 'cat:shop');
+    if (c.wc > n * .2 && has('wc')) add(62, '🚻', 'The restrooms are too far away', c.wc + ' visitors need one right now.', 'cat:shop');
+    if (c.tired > n * .2) add(50, '🪑', 'Visitors are getting tired', c.tired + ' of ' + n + ' are worn out. Benches along the paths let them rest instead of going home.', 'cat:deco');
+    if (c.sick > n * .12) add(52, '🤢', 'Some visitors feel sick', c.sick + ' feel ill after the rides. Benches and an Info & First Aid desk near the wild rides help.', 'cat:deco') }
+  const S = PRO10.staffY || PRO10.staff; if (S) { const jb = S.jan.n > 30 ? S.jan.busy / S.jan.n : null, mb = S.mech.n > 30 ? S.mech.busy / S.mech.n : null;
+    if (jb != null && jb > .9 && TY.clean < 80) add(68, '🧹', 'Your janitors cannot keep up', 'They were busy ' + Math.round(jb * 100) + '% of the time and the park is ' + Math.round(TY.clean) + '% clean. Hire one more, or add litter bins by the food stalls.', 'tab:staff');
+    if (career && mb != null && mb < .04 && P_.staff.mech >= 2 && !rides.some(o => o.rt.broken)) add(35, '👷', 'You may have more mechanics than you need', 'They were busy ' + Math.round(mb * 100) + '% of the time. One fewer saves ' + money10(SIM10.wageMech * 12) + ' a day.', 'tab:staff');
+    if (career && jb != null && jb < .1 && P_.staff.jan >= 2 && TY.clean > 92) add(33, '🧹', 'You may have more janitors than you need', 'They were busy ' + Math.round(jb * 100) + '% of the time and the park is spotless. One fewer saves ' + money10(SIM10.wageJan * 12) + ' a day.', 'tab:staff') }
+  if (career) { const cost = y ? Object.values(y.exp).reduce((a, b) => a + b, 0) : 0;
+    if (P_.loan > 0 && P_.money > P_.loan + 6000) add(58, '🏦', 'Repay your loan', 'It costs ' + money10(P_.loan * .012) + ' a day in interest and you have ' + money10(P_.money) + ' in the bank.', 'tab:money');
+    if (y && cost > 0 && P_.money >= 0 && P_.money < cost * 1.5) add(72, '⚠️', 'Money is tight', 'You have ' + money10(P_.money) + ' and a day costs about ' + money10(cost) + '.', 'tab:rep');
+    if (y && y.guests >= 60 && !TY.day.turned && !P_.tot.turned && P_.rating > 55 && P_.fee < 60) add(40, '🎟', 'The entrance ticket could cost more', 'Nobody has turned back at the gate. ' + money10(P_.fee + 1) + ' would earn about ' + money10(y.guests) + ' more a day.', 'tab:money');
+    if (P_.rating >= 55 && !(P_.promo > 0) && rides.length >= 3 && n < maxGuests10() * .45 && parkOpen10()) add(45, '📣', 'Your park has room for more visitors', n + ' are here and there is room for about ' + maxGuests10() + '. An advert brings in about half as many again for six park hours.', 'tab:money') }
+  const R_ = TY.rate; if (R_ && rides.length >= 2) { if (R_.scen < 30) add(42, '🌳', 'Scenery is the weakest part of your rating', 'Trees, flowers and fountains beside the paths lift it, and visitors walking past them cheer up.', 'cat:deco'); if (y && y.why && y.left > 20 && (y.why.norides || 0) > y.left * .25) add(63, '🎟', 'A quarter of yesterday’s visitors never got on a ride', 'They paid to get in and found nothing they could afford or reach. Check prices and that every ride has a path.', 'tab:rides') }
+  return A.sort((a, b) => b.pri - a.pri).slice(0, 5);
+}
+// ---- 📊 Reports
+const pct10 = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
+function repRides10() {
+  const P_ = TY.park; return P_.objs.map(o => { const inf = objInfo10(o); if (!inf || inf.t === 'deco' || !o.st) return null; const t = sinceD0(o), up = upkeepOf10(o, inf), all = o.st.inc - o.st.run, yp = o.st.y ? o.st.y[1] - o.st.y[2] - up : null;
+    return { o, inf, name: objName10(o), n: t[0], today: t[1] - t[2], yn: o.st.y ? o.st.y[0] : null, yp, all, cost: inf.cost, back: all >= inf.cost ? 0 : yp > 0 ? Math.ceil((inf.cost - Math.max(0, all)) / yp) : -1 } }).filter(Boolean).sort((a, b) => (b.yp != null ? b.yp : b.today) - (a.yp != null ? a.yp : a.today));
+}
+function repHTML10() {
+  const P_ = TY.park, sb = P_.mode === 'sandbox', wk = P_.wk || [], y = wk[wk.length - 1], tile = (l, v_, s_) => `<div class="tyTile">${l}<b>${v_}</b>${s_ || ''}</div>`, sum = o => Object.values(o).reduce((a, b) => a + b, 0), d = proDay10(), rows = repRides10();
+  let h = '';
+  if (y) { const inc = sum(y.inc), exp = sum(y.exp), pr = inc - exp; h += `<h3>Yesterday <small>day ${y.day}</small></h3><div class="tyGrid">${tile(pr >= 0 ? 'Profit' : 'Loss', `<span class="${pr >= 0 ? 'pos' : 'neg'}">${money10(pr)}</span>`, money10(inc) + ' in · ' + money10(exp) + ' out')}${tile('Visitors', y.guests, y.left + ' went home')}${tile('Spent each', money10(y.spend), 'tickets, food and shops')}${tile('Rides each', y.rides.toFixed(1), 'on average')}${tile('Went home', Math.round(y.happy) + '% happy')}${tile('Profit a visitor', y.guests ? money10(pr / y.guests) : '—')}</div>` }
+  else h += `<p class="tyNote">📊 The first report appears when the park closes tonight. Until then, “today so far” below is live.</p>`;
+  if (wk.length) { const I = {}, E = {}; INC10.forEach(k => I[k[0]] = 0); EXP10.forEach(k => E[k[0]] = 0); wk.forEach(q => { for (const k in I) I[k] += q.inc[k] || 0; for (const k in E) E[k] += q.exp[k] || 0 }); const ti = sum(I), te = sum(E), mx = Math.max(1, ...Object.values(I), ...Object.values(E));
+    const row = (l, v_, cls) => v_ > .5 ? `<tr><td>${l}<u class="rpB10 ${cls}"><s style="width:${Math.max(2, Math.round(v_ / mx * 100))}%"></s></u></td><td class="${cls}">${cls === 'neg' ? '−' + money10(v_).replace('−', '') : money10(v_)}</td><td>${pct10(v_, cls === 'neg' ? te : ti)}%</td></tr>` : '';
+    h += `<h3>The last ${wk.length === 1 ? 'day' : wk.length + ' days'} <small>day ${wk[0].day}${wk.length > 1 ? ' to ' + wk[wk.length - 1].day : ''}</small></h3><div class="rpS10"><table class="tyLed rp10"><tr><th>Money in</th><th></th><th>share</th></tr>${INC10.map(k => row(k[1], I[k[0]], 'pos')).join('')}<tr><th>Money out</th><th></th><th>share</th></tr>${EXP10.map(k => row(k[1], E[k[0]], 'neg')).join('')}<tr class="tot"><td>${ti - te >= 0 ? 'Profit' : 'Loss'}</td><td class="${ti - te >= 0 ? 'pos' : 'neg'}">${money10(ti - te)}</td><td>${ti > 0 ? pct10(ti - te, ti) + '%' : ''}</td></tr></table></div>
+<div class="rpD10">${wk.map(q => { const p = sum(q.inc) - sum(q.exp), m = Math.max(1, ...wk.map(z => Math.abs(sum(z.inc) - sum(z.exp)))); return `<div title="Day ${q.day}: ${money10(p)} · ${q.guests} visitors"><i style="height:${Math.max(3, Math.abs(p) / m * 46)}px" class="${p >= 0 ? 'pos' : 'neg'}"></i><small>${q.day}</small></div>` }).join('')}</div>` }
+  h += `<h3>Rides and stalls <small>${sb ? 'sandbox: nothing is charged, the books still run' : 'best earner first'}</small></h3>` + (rows.length ? `<div class="rpS10"><table class="tyLed rp10"><tr><th>What</th><th>Today</th><th>Yesterday</th><th>Since built</th><th>Pays for itself</th></tr>${rows.map(q => `<tr><td><button class="rpL10" data-x="go:${q.o.id}">${q.inf.ic} ${html10(q.name)}</button><small>${q.n} today${q.yn != null ? ' · ' + q.yn + ' yesterday' : ''}</small></td><td class="${q.today >= 0 ? 'pos' : 'neg'}">${money10(q.today)}</td><td class="${q.yp == null ? '' : q.yp >= 0 ? 'pos' : 'neg'}">${q.yp == null ? '—' : money10(q.yp)}</td><td class="${q.all >= 0 ? 'pos' : 'neg'}">${money10(q.all)}</td><td>${q.back === 0 ? '✓ paid back' : q.back > 0 ? '≈ ' + q.back + ' day' + (q.back > 1 ? 's' : '') : '—'}</td></tr>`).join('')}</table></div><p class="tyNote">Today is tickets and sales minus running costs so far. Yesterday also takes off the day’s upkeep. “Pays for itself” compares what it has earned with what it cost to build (${money10(rows.reduce((a, q) => a + q.cost, 0))} for all of these).</p>` : '<p class="tyNote">Nothing built yet.</p>');
+  const qs = rows.filter(q => q.o.rt && q.o.rt.slots && q.o.rt.linked);
+  if (qs.length) h += `<h3>Queues <small>today so far</small></h3><div class="rpS10"><table class="tyLed rp10"><tr><th>Ride</th><th>In line</th><th>Wait</th><th>Skipped it</th><th>Gave up</th><th>Too dear</th><th>Line</th></tr>${qs.map(q => { const R = q.o.rt; return `<tr><td><button class="rpL10" data-x="go:${q.o.id}">${q.inf.ic} ${html10(q.name)}</button></td><td>${R.q.length} / ${R.qCap}</td><td>${Math.round(R.waitAvg || 0)} s</td><td>${R.tooLong || 0}</td><td class="${(R.gaveUp || 0) >= 8 ? 'neg' : ''}">${R.gaveUp || 0}</td><td class="${(R.tooExp || 0) >= 25 ? 'neg' : ''}">${R.tooExp || 0}</td><td>${canEdit10() ? `<button class="btn rpQ10${q.o.ql === 1 ? ' on' : ''}" data-x="ql:${q.o.id}" aria-pressed="${q.o.ql === 1}" title="A short line holds half as many people: fewer long waits, more people turned away">${q.o.ql === 1 ? 'Short' : 'Full'}</button>` : q.o.ql === 1 ? 'Short' : 'Full'}</td></tr>` }).join('')}</table></div><p class="tyNote">Wait is how long the people now boarding stood in line. “Skipped it” looked at the line and chose something else; “gave up” left the line; “too dear” wanted to ride but not at that price.</p>`;
+  const why = (src, n) => n ? `<div class="tyBars">${WHY10.filter(k => src[k[0]]).sort((a, b) => src[b[0]] - src[a[0]]).map(k => bar10(k[1] + ' ' + k[2], pct10(src[k[0]], n), src[k[0]] + ' · ' + pct10(src[k[0]], n) + '%')).join('')}</div>` : '';
+  if (d.left || y && y.left) h += `<h3>Why visitors went home</h3>${d.left ? `<p class="tyNote">Today so far: ${d.left} have left.</p>${why(d.why, d.left)}` : ''}${y && y.left ? `<p class="tyNote">Yesterday: ${y.left} left.</p>${why(y.why, y.left)}` : ''}`;
+  const S = PRO10.staff, SY = PRO10.staffY, use = q => q && q.n > 5 ? Math.round(q.busy / q.n * 100) + '%' : '—';
+  h += `<h3>Staff</h3><div class="tyGrid">${tile('Janitors busy', use(S && S.jan), SY ? 'yesterday ' + use(SY.jan) : P_.staff.jan + ' on the team')}${tile('Mechanics busy', use(S && S.mech), SY ? 'yesterday ' + use(SY.mech) : P_.staff.mech + ' on the team')}${tile('A repair takes', PRO10.fix.n ? Math.round(PRO10.fix.sum / PRO10.fix.n) + ' park min' : PRO10.fixY != null ? Math.round(PRO10.fixY) + ' park min' : '—', 'from breakdown to running again')}</div>
+${canEdit10() ? `<div class="tySeg">${pkSeg10('polInsp', [['0', '🛠 Service rides when they are quiet'], ['1', '🛡 Service rides before they break']], P_.pol && P_.pol.insp === 1 ? '1' : '0')}</div><p class="tyNote">${P_.pol && P_.pol.insp === 1 ? 'Mechanics close a ride for a short service as soon as it wears below 72%, even with a line waiting (the line is sent away). Fewer breakdowns, a few more short closures.' : 'Mechanics service a worn ride (below 55%) only when nobody is waiting for it. Busy rides run until they break.'} A free mechanic always goes to the broken ride that matters most first.</p>` : ''}
+<div class="tyRow">${pkBtn10('repCsv', '⬇ Download these numbers (CSV)')}</div>`;
+  return `<div class="ty10pk">${h}</div>`;
+}
+function repCsv10() {
+  const P_ = TY.park, q = v_ => '"' + String(v_).replace(/"/g, '""') + '"', L = ['# Coaster Lab ' + TY10.version + ' park report: ' + P_.name.replace(/[\r\n]/g, ' ') + ', day ' + P_.day + ' (game money, simulated values)', '', 'section,name,riders_or_sales_today,profit_today,riders_or_sales_yesterday,profit_yesterday,profit_since_built,build_cost'];
+  repRides10().forEach(r => L.push(['thing', q(r.name), r.n, Math.round(r.today), r.yn == null ? '' : r.yn, r.yp == null ? '' : Math.round(r.yp), Math.round(r.all), r.cost].join(',')));
+  L.push('', 'section,day,visitors,' + INC10.map(k => 'in_' + k[0]).join(',') + ',' + EXP10.map(k => 'out_' + k[0]).join(',')); (P_.wk || []).forEach(d => L.push(['day', d.day, d.guests, ...INC10.map(k => d.inc[k[0]] || 0), ...EXP10.map(k => d.exp[k[0]] || 0)].join(',')));
+  return L.join('\n');
+}
+// ---- the Park Office: the Reports tab, the Advisor and recent events on Overview, moods on Visitors
+{ const T = PANELS72.ty10, desc = Object.getOwnPropertyDescriptor(T, 'tabs'); Object.defineProperty(T, 'tabs', { configurable: true, get() { const t = desc.get.call(this); if (TY.visit) return t; const k = t.findIndex(x => x[0] === 'money'); t.splice(k + 1, 0, ['rep', '📊 Reports']); return t } }) }
+function proHome10() {
+  const P_ = TY.park, A = advice10(), log = PRO10.log.filter(e => e.id === P_.id).slice(0, 8);
+  return `<h3>🧭 Park Advisor <small>${A.length ? 'from your park’s own numbers' : 'nothing to suggest right now'}</small></h3><div class="tyList">${A.map(a => `<button class="tyLi adv10" data-x="${a.act}"><i>${a.ic}</i><div><b>${html10(a.t)}</b><small>${html10(a.why)}</small></div><em>›</em></button>`).join('') || '<div class="tyLi"><i>👍</i><div><b>The numbers look healthy</b><small>Prices, queues, staff and visitors’ needs are all in a good range. 📊 Reports has the details.</small></div></div>'}</div>
+<h3>🔔 Recent events <small>${log.length ? 'newest first' : 'nothing yet'}</small></h3>${log.length ? `<div class="tyList ev10">${log.map(e => `<div class="tyLi"><div><b>${html10(e.msg)}</b><small>day ${e.day} · ${clock72(e.min)}</small></div></div>`).join('')}</div>` : '<p class="tyNote">Breakdowns, repairs, goals and warnings are kept here, so you can read them after the message has faded.</p>'}`;
+}
+function proGuests10() {
+  const G_ = TY.guests, n = G_.length; if (!n) return ''; const by = GT10.map(() => [0, 0]), c = { hunger: 0, thirst: 0, wc: 0, tired: 0, sick: 0, poor: 0, sad: 0 };
+  for (const g of G_) { by[g.ty][0]++; by[g.ty][1] += g.happy; if (g.hunger > 60) c.hunger++; if (g.thirst > 60) c.thirst++; if (g.bladder > 68) c.wc++; if (g.energy < 26) c.tired++; if (g.nausea > 55) c.sick++; if (g.cash < 6) c.poor++; if (g.happy < 35) c.sad++ }
+  const items = [['hunger', '🍔 Hungry'], ['thirst', '🥤 Thirsty'], ['wc', '🚻 Need a restroom'], ['tired', '🥱 Tired'], ['sick', '🤢 Feeling sick'], ['poor', '👛 Nearly out of money'], ['sad', '😟 Unhappy']];
+  return `<h3>Mood by visitor type</h3><div class="tyBars">${GT10.map((T_, k) => by[k][0] ? bar10(T_.ic + ' ' + T_.n + ' (' + by[k][0] + ')', by[k][1] / by[k][0], Math.round(by[k][1] / by[k][0]) + '%') : '').join('')}</div>
+<h3>What is bothering them <small>right now, of ${n}</small></h3><div class="tyBars">${items.map(q => bar10(q[1], pct10(c[q[0]], n), c[q[0]] + ' · ' + pct10(c[q[0]], n) + '%')).join('')}</div>`;
+}
+{ const o0 = officeHTML10; officeHTML10 = function (tab) {
+  if (tab === 'rep' && TY.park) return safe10('reports', repHTML10) || '<div class="ty10pk"><p class="tyNote">The report could not be drawn.</p></div>';
+  let h = o0.apply(this, arguments); if (!TY.park) return h;
+  if (tab === 'home' && !TY.visit) { const add = safe10('advisor', proHome10); if (add) { const cut = h.indexOf('<h3>What visitors are saying</h3>'); h = cut >= 0 ? h.slice(0, cut) + add + h.slice(cut) : h.replace(/<\/div>$/, add + '</div>') } }
+  if (tab === 'guests') { const add = safe10('visitor moods', proGuests10); if (add) { const cut = h.indexOf('<h3>What they say</h3>'); h = cut >= 0 ? h.slice(0, cut) + add + h.slice(cut) : h.replace(/<\/div>$/, add + '</div>') } }
+  return h;
+} }
+{ const T = PANELS72.ty10, a0 = T.act; T.act = async function (a, t) {
+  const [k, v_] = String(a).split(':'), P_ = TY.park;
+  if (k === 'repCsv') { say(fileSave10((P_.name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'park') + '-report-day-' + P_.day + '.csv', repCsv10()) ? '⬇ Report saved to your downloads' : 'Could not save the report'); return false }
+  if (k === 'ql' && canEdit10()) { const o = TY.objById.get(+v_); if (o && o.rt) { o.ql = o.ql === 1 ? 0 : 1; if (!o.ql) delete o.ql; linkObj10(o); savePark10() } return }
+  if (k === 'polInsp' && canEdit10()) { P_.pol = { insp: v_ === '1' ? 1 : 0 }; savePark10(); return }
+  return a0.call(this, a, t);
+} }
+Object.assign(DBG10, { pro: {
+  advice: () => advice10().map(a => ({ pri: Math.round(a.pri), t: a.t, why: a.why, act: a.act })), rides: () => repRides10().map(r => ({ id: r.o.id, name: r.name, n: r.n, today: Math.round(r.today), yn: r.yn, yp: r.yp == null ? null : Math.round(r.yp), all: Math.round(r.all), back: r.back })),
+  day: () => ({ ...proDay10(), why: { ...proDay10().why } }), wk: () => JSON.parse(JSON.stringify(TY.park.wk || [])), log: () => PRO10.log.map(e => e.msg), staff: () => ({ now: PRO10.staff, y: PRO10.staffY, fix: PRO10.fix }), loopStops: () => PRO10.loopStops,
+  html: tab => officeHTML10(tab), csv: () => repCsv10(), queue: id => { const o = TY.objById.get(id); return o && o.rt ? { cap: o.rt.qCap, n: o.rt.q.length, short: o.ql === 1, exp: o.rt.tooExp || 0, long: o.rt.tooLong || 0, up: o.rt.gaveUp || 0 } : null },
+  setPol: v_ => { TY.park.pol = { insp: v_ ? 1 : 0 } }, notice: g => proNotice10(g), guests: () => TY.guests
+} });
 
 // ---- [61_saves.js]
 // ---- 10.1 MY PARK — saves you can rely on.
@@ -11715,6 +12002,205 @@ function diagOverlay10(on) {
   const d = document.createElement('div'); d.id = 'dgOv'; d.className = 'dgOv'; d.setAttribute('aria-hidden', 'true'); d.textContent = '…'; document.body.appendChild(d); DIAG10.ov = d;
 }
 DBG10.diag = { snap: () => diagSnap10(), html: () => diagHTML10(), report: () => diagReport10(), open: () => { ownTab = 'diag10'; openOwner() }, log: (lv, t) => diagLog10(lv, [t]), errs: () => DIAG10.errs.map(e => ({ ...e })), overlay: on => { diagOverlay10(on); return !!DIAG10.ov }, ovText: () => DIAG10.ov ? DIAG10.ov.textContent : '', warn: o => diagWarn10(o), frames: () => { const f = diagFrames10(); return { n: f.n, fps: f.fps, avg: f.avg, p95: f.p95, max: f.max } } };
+
+// ---- [64_builderpro.js]
+// ---- 10.1 TRACK BUILDER 6 — see what every change does, and get to things faster.
+//  · Live numbers: top speed, height, strongest G, airtime, length, ride time and inversions stay on screen while you
+//    build (in the top bar; above the timeline on a phone). After each change the numbers that moved show by how
+//    much, and while you are previewing or dragging you see what the change WOULD do before you place it.
+//  · One status chip: ✓ ready to ride, ⚠ things to check or 🚫 must-fix problems. Tap it to go straight to them.
+//  · Good next pieces: the piece library suggests what fits here, from the train's real speed and height at the end
+//    of your track (or after the piece you selected), with the reason in plain words.
+//  · History: every step by name, newest first. Tap one to go back (or forward) to it in a single move.
+//    Undo and Redo say what they will undo or redo.
+//  · ▶ Test from here: playtest starting just before the selected piece instead of riding the whole lap again.
+//  · Twelve more ready-made layouts: the tuned 10.0 park coasters, as blueprints you can start from or insert.
+//  · Sketch Studio: next to "what I see", the ready-made layouts whose shape is closest to your drawing.
+//  · Fixes: rows that scroll sideways (timeline, tools, piece actions) fade at the edge that has more, keep their
+//    place when the screen redraws, and the Delete button is no longer hidden under ✕. The welcome card steps aside
+//    as soon as you start building.
+// Everything here reads the builder's own check and lap simulation (BR_): nothing is estimated a second way.
+// ---------------------------------------------------------------------------------------------------------------------
+const BP10 = { src: null, cur: null, done: null, ref: null, sig: '', until: 0, hist: false, tIdx: null, tLvl: -1, sug: null, sugSrc: null, sugAt: -1 };
+// ---- the numbers of the track as it is now (null while it cannot be simulated)
+function bpStats10() { const r = BR_; if (!r || !r.g || r.g.bad || !r.c || !r.tr) return null; try { const st = statsOf(r.c, r.tr, 0), E = elementsOf(r.c, r.tr); return { v: r.tr.vmax, h: st.maxH, g: st.gMax, gn: st.gMin, lat: st.lat, air: st.air, len: r.g.len, T: r.tr.T, inv: E.inv } } catch (e) { return null } }
+// called on every redraw; does work only when the track was rebuilt. "done" is the last finished step, "ref" the one before
+function bpTrack10() {
+  const sig = bHi + ':' + bHist.length + ':' + (bHist[bHi] ? bHist[bHi].t : 0);
+  if (BP10.src !== BR_) { BP10.src = BR_; BP10.cur = bpStats10() }// the track was rebuilt
+  if (sig !== BP10.sig) { BP10.sig = sig; if (BP10.done && BP10.cur && BP10.done !== BP10.cur) { BP10.ref = BP10.done; BP10.until = performance.now() + 9000 } BP10.done = BP10.cur }// a step was finished (or undone)
+}
+// [key, icon, name, value → text, change → text, smallest change worth showing]
+const BP_CH10 = [
+  ['v', '⚡', 'Top speed', x => fV(x), d => fV(Math.abs(d), 0), .3], ['h', '⛰', 'Highest point', x => fL(x), d => fL(Math.abs(d), 0), .4],
+  ['g', '💥', 'Strongest G-force', x => x.toFixed(1) + ' G', d => Math.abs(d).toFixed(1), .1], ['air', '🪂', 'Airtime', x => x.toFixed(1) + ' s', d => Math.abs(d).toFixed(1), .1],
+  ['len', '📏', 'Track length', x => fL(x), d => fL(Math.abs(d), 0), 2], ['T', '⏱', 'Ride time', x => fmtT(x), d => Math.round(Math.abs(d)) + ' s', 1], ['inv', '🌀', 'Times upside down', x => String(x), d => String(Math.abs(d)), 1]];
+const bpForce10 = c => c.g >= FORCE10.red[0] || c.gn <= FORCE10.red[1] || c.lat >= FORCE10.red[2] ? 'bad' : c.g >= FORCE10.yel[0] || c.gn <= FORCE10.yel[1] || c.lat >= FORCE10.yel[2] ? 'warn' : '';
+function bpStatus10() {
+  if (!BR_ || !BR_.g || BR_.g.bad) return ['bad', '🚧', 'Track not finished', 'The track cannot be built yet. Open ✓ Check to see why.'];
+  const c = b8Counts80(); if (c.crit) return ['bad', '🚫', c.crit + ' must-fix', 'Problems that would stop the ride. Tap to see them.'];
+  if (c.warn) return ['warn', '⚠', c.warn + ' to check', 'The ride works; these are worth a look. Tap to see them.']; return ['good', '✓', 'Ready to ride', 'The safety check found nothing that must be fixed.'];
+}
+function bpStripHTML10(small) {
+  bpTrack10(); const c = BP10.cur, st = bpStatus10(), live = !!c && !!BP10.done && c !== BP10.done, base = live ? BP10.done : performance.now() < BP10.until ? BP10.ref : null, list = small ? BP_CH10.filter(q => q[0] !== 'len' && q[0] !== 'inv') : BP_CH10;
+  let h = `<button class="bsS10 ${st[0]}" data-b8="check10" title="${esc(st[3])}"><i>${st[1]}</i><span>${esc(st[2])}</span></button>`;
+  if (c) h += list.map(([k, ic, n, f, fd, eps]) => { const d = base ? c[k] - base[k] : 0, show = base && Math.abs(d) >= eps, cls = k === 'g' ? bpForce10(c) : '';
+    const tip = n + ': ' + f(c[k]) + (k === 'g' ? ' (lightest ' + c.gn.toFixed(1) + ' G, sideways ' + c.lat.toFixed(1) + ' G)' : '') + (show ? ' · ' + (d > 0 ? 'up ' : 'down ') + fd(d) + (live ? ' if you place this' : ' since the last step') : '');
+    return `<button class="bs10 ${cls}" data-b8="stat10" data-v="${k}" title="${esc(tip)}" aria-label="${esc(tip)}"><i>${ic}</i><b>${esc(f(c[k]))}</b>${show ? `<em class="${d > 0 ? 'up' : 'dn'}${live ? ' lv' : ''}">${d > 0 ? '▲' : '▼'}${esc(fd(d))}</em>` : ''}</button>` }).join('');
+  else h += `<span class="bsN10">Numbers appear when the track is complete</span>`;
+  return h;
+}
+// the strip lives in the top bar; on a phone held upright, above the timeline
+function bpStripPlace10() {
+  const top = $('#b8Top'), dock = $('#b8Dock'), nar = narrow80() && innerWidth <= 560, build = B8.mode === 'build' && editing; let el = $('#bst10');
+  if (!build) { if (el) el.remove(); return } const host = nar ? dock : top; if (!host) return;
+  if (!el || el.parentNode !== host) { if (el) el.remove(); el = document.createElement('div'); el.id = 'bst10'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Your coaster in numbers') }
+  el.className = 'bst10' + (nar ? ' dk' : '');
+  if (nar) { if (dock.firstChild !== el) dock.insertBefore(el, dock.firstChild) } else { const sp = top.querySelector('.b8sp'); if (sp) { if (sp.nextSibling !== el) top.insertBefore(el, sp.nextSibling) } else if (el.parentNode !== top) top.appendChild(el) }
+  const sl = el.scrollLeft; el.innerHTML = bpStripHTML10(nar || innerWidth < 1040); el.scrollLeft = sl; bpFade10(el);
+}
+// while a change is fresh the strip shows by how much; clear it when the time is up
+TICKS72.push(() => { if (BP10.until && performance.now() > BP10.until) { BP10.until = 0; if (B8.on && editing && B8.mode === 'build') bpStripPlace10() } });
+// ---- rows that scroll sideways: fade at the edge that has more, and keep their place across redraws
+function bpFade10(el) { if (!el) return; const up = () => { const m = el.scrollWidth - el.clientWidth; el.classList.toggle('ovL10', el.scrollLeft > 6); el.classList.toggle('ovR10', m - el.scrollLeft > 6) }; el.onscroll = up; up() }
+const bpRows10 = () => ['.tl8', '.tools8', '.sel8 .acR8'].map(q => $('#b8Dock ' + q));
+{ const f0 = b8DockR; b8DockR = function () {
+  const before = bpRows10().map(e => e ? e.scrollLeft : 0), sel0 = B8.scrollTl; f0.apply(this, arguments);
+  safe10('builder rows', () => { const rows = bpRows10(), jumped = B8.scrollTl !== sel0; rows.forEach((e, k) => { if (!e) return; if (!(k === 0 && jumped) && before[k]) e.scrollLeft = before[k]; bpFade10(e) }); bpStripPlace10() });
+} }
+// ---- the top bar: Undo and Redo say what they do, and a History list
+const bpAgo10 = t => { const s = Math.max(0, (Date.now() - t) / 1000); return s < 50 ? 'just now' : s < 3600 ? Math.round(s / 60) + ' min ago' : Math.round(s / 3600) + ' h ago' };
+function bpHistHTML10() {
+  const n = bHist.length, from = Math.max(0, n - 16); let h = '';
+  for (let i = n - 1; i >= from; i--) { const e = bHist[i]; h += `<button role="menuitem" class="${i === bHi ? 'on' : i > bHi ? 'fut' : ''}" data-b8="histGo10" data-v="${i}"${i === bHi ? ' aria-current="step"' : ''}><b>${esc(e.label || 'Change')}</b><small>${i === bHi ? 'you are here' : esc(bpAgo10(e.t)) + (i > bHi ? ' · undone' : '')}</small></button>` }
+  return `<div class="mn8 b8p hs10" role="menu" aria-label="History"><b class="hsT10">🕘 History <small>tap a step to go to it</small></b>${h}${from > 0 ? `<small class="hsM10">${from} older step${from > 1 ? 's' : ''} can still be reached with Undo</small>` : ''}</div>`;
+}
+{ const f0 = b8TopR; b8TopR = function () {
+  f0.apply(this, arguments);
+  safe10('builder top bar', () => {
+    const t = $('#b8Top'), u = t.querySelector('[data-b8="undo"]'), r = t.querySelector('[data-b8="redo"]');
+    if (u) { const l = B8.pv ? 'cancel “' + (B8.pv.label || 'this change') + '”' : bHi > 0 && bHist[bHi] ? bHist[bHi].label : ''; u.title = l ? 'Undo: ' + l + ' (Ctrl+Z)' : 'Nothing to undo'; u.setAttribute('aria-label', u.title) }
+    if (r) { const nx = bHist[bHi + 1]; r.title = nx ? 'Redo: ' + nx.label + ' (Ctrl+Y)' : 'Nothing to redo'; r.setAttribute('aria-label', r.title) }
+    if (B8.mode === 'build' && bHist.length > 1) {
+      const mn = t.querySelector('.mn8:not(.hs10)');
+      if (innerWidth <= 520) { if (mn && B8.menu === true && !mn.querySelector('[data-b8="hist10"]')) mn.insertAdjacentHTML('beforeend', '<button class="b8b" data-b8="hist10">🕘 History</button>') }
+      else if (r && !t.querySelector('.hsB10')) r.insertAdjacentHTML('afterend', `<button class="b8i hsB10" data-b8="hist10" title="History: every step you can go back to" aria-haspopup="menu" aria-expanded="${BP10.hist}"><i>🕘</i><span>History</span></button>`);
+      if (BP10.hist) t.insertAdjacentHTML('beforeend', bpHistHTML10());
+    } else BP10.hist = false;
+    bpStripPlace10();
+  });
+} }
+addEventListener('pointerdown', e => { if (BP10.hist && !(e.target.closest && e.target.closest('.hs10,[data-b8="hist10"]'))) { BP10.hist = false; if (B8.on) b8TopR() } }, true);
+// ---- good next pieces: what fits at the end of the track (or after the selection), from the train's speed and height there
+function bpTypes10() {// piece type → where it is in the library, for the level the builder is on
+  if (BP10.tIdx && BP10.tLvl === lvl80()) return BP10.tIdx; const T = {};
+  for (const k in LIBK80) { const c = LIBK80[k]; if (!c || !Array.isArray(c[3]) || !catVis10(k)) continue; c[3].forEach((it, i) => { let els = null; try { els = itemEls80(it) } catch (e) {} if (!els || els.length !== 1 || !has10(ET, els[0][0])) return; const t = els[0][0], own = String(it.n || '').toLowerCase() === String(ET[t].n || '').toLowerCase(); if (!T[t] || own && !T[t][2]) T[t] = [k, i, own] }) }
+  BP10.tIdx = T; BP10.tLvl = lvl80(); return T;
+}
+function bpSuggest10() {
+  const r = BR_; if (!r || !r.g || r.g.bad || B8.pv || bPv || bPend) return null; const at = insAt80(); if (BP10.sugSrc === r && BP10.sugAt === at) return BP10.sug;
+  const prev = D.els[at - 1], pt = prev ? prev.t : 'station', v = vEnd80(at - 1), sr = r.g.secR[at - 1], y = sr ? r.g.P[sr[1]].y + .7 : 0, T = bpTypes10(), out = [], used = new Set([pt]);
+  const add = (t, why) => { if (out.length < 3 && T[t] && !used.has(t)) { used.add(t); out.push({ t, cat: T[t][0], i: T[t][1], why }) } };
+  const going = D.els.slice(0, at).some(e => e.t === 'lift' || e.t === 'launch'), sp = fV(v); let note;
+  if (!going) { note = 'The train needs something to get it going'; add('lift', 'A chain lift pulls the train up, so it has height to spend'); add('launch', 'Fires the train out of the station instead'); add('drop', 'A drop straight out of the station (only if the station is high up)') }
+  else if (pt === 'lift') { note = 'The train is at the top, ' + fL(y) + ' up'; add('drop', 'Spend the height: the first drop sets the top speed'); add('twistdrop', 'A drop that turns while it falls'); add('turn', 'A slow turn at the top, then drop') }
+  else if (v < 7) { note = 'The train is slow here: ' + sp; if (y > 9) add('drop', 'There is ' + fL(y) + ' of height left to turn into speed'); add('launch', 'A launch gets it moving again'); add('lift', 'Or a second lift hill'); add('turn', 'A gentle turn costs little speed') }
+  else if (v >= 23) { note = 'The train is fast here: ' + sp; add('loop', sp + ' is plenty for a loop'); add('airtime', 'A tall hill here throws riders out of their seats'); add('overbank', 'Carry the speed through a tilted turn'); add('immelmann', 'Half a loop that turns the train round'); add('turn', 'A wide banked turn keeps the speed') }
+  else if (v >= 14) { note = 'The train is doing ' + sp + ' here'; add('airtime', 'A hill at this speed gives floaty airtime'); add('corkscrew', 'Fast enough for a corkscrew'); add('turn', 'A banked turn points it somewhere new'); add('zerog', 'A weightless roll'); add('hill', 'A small hill keeps things moving') }
+  else { note = 'The train is doing ' + sp + ' here'; add('hill', 'A low hill suits this speed'); add('turn', 'A turn costs little speed'); if (y > 8) add('drop', 'Use the ' + fL(y) + ' of height that is left'); add('helix', 'A spiral down gains a little speed'); add('airtime', 'A gentle airtime hill') }
+  BP10.sugSrc = r; BP10.sugAt = at; return BP10.sug = out.length ? { note, items: out, home: going && D.els.length >= 9 && at === D.els.length } : null;
+}
+function bpSugHTML10() {
+  const s = bpSuggest10(); if (!s) return '';
+  return `<div class="sg10"><b class="sgT10">💡 Good next pieces <small>${esc(s.note)}</small></b><div class="sgR10">${s.items.map(q => { const it = LIBK80[q.cat][3][q.i]; return `<button class="sgI10" data-b8it="${q.i}" data-cat10="${q.cat}" title="${esc(q.why)}"><i>${ET[q.t].ic}</i><span><b>${esc(it.n)}</b><small>${esc(q.why)}</small></span></button>` }).join('')}${s.home && LIBK80.quick && catVis10('quick') ? `<button class="sgI10" data-b8q="home" title="Turns the track towards the station so it finishes neatly"><i>🏠</i><span><b>Head back home</b><small>The track is long enough to start heading for the station</small></span></button>` : ''}</div></div>`;
+}
+{ const f0 = b8LibR; b8LibR = function () {
+  const r = f0.apply(this, arguments);
+  safe10('builder suggestions', () => { const body = $('#b8Lib .lbB8'); if (!body || B8.mode !== 'build' || !['recent', 'track', 'thrill'].includes(B8.pick10) || body.querySelector('.sg10')) return; const h = bpSugHTML10(); if (!h) return; const w = body.querySelector('.lbW8'); if (w) w.insertAdjacentHTML('afterend', h); else body.insertAdjacentHTML('afterbegin', h) });
+  return r;
+} }
+// ---- ▶ Test from here, in the actions of a selected piece
+{ const f0 = b8SelActs80; b8SelActs80 = function (big) { const h = f0.apply(this, arguments); if (!h) return h; const cut = h.lastIndexOf('<button class="b8b dng" data-b8="del"'); if (cut < 0) return h; return h.slice(0, cut) + `<button class="b8b" data-b8="playFrom10" title="Playtest starting just before this piece">▶<span>Test from here</span></button>` + h.slice(cut) } }
+function bpPlayFrom10() {
+  const r = userRange80(), g = BR_ && BR_.g; if (!r || !g || g.bad || !g.secR[r[0]] || !BR_.c) { b8Play(); return } const s0 = g.cum[g.secR[r[0]][0]] * BR_.c.L / g.len, nm = secName(D, r[0]);
+  b8Play(); if (B8.mode !== 'play') return;
+  safe10('test from here', () => { const c = curCtx(); if (!c) return; const tr = traceOf(c); seekK(tr, trIdx(tr.s, Math.max(0, s0 - 8))); if (!playing) setPlay(true); say('▶ Testing from just before ' + nm) });
+}
+// ---- the new buttons
+{ const f0 = b8Act; b8Act = async function (a, t, e) {
+  if (a === 'hist10') { BP10.hist = !BP10.hist; if (B8.menu) B8.menu = false; b8TopR(); return }
+  if (a === 'histGo10') { const i = +t.dataset.v; BP10.hist = false; if (Number.isInteger(i) && i >= 0 && i < bHist.length && i !== bHi) { if (B8.pv) b8Cancel(); if (bPv) { b8TopR(); return } const fwd = i > bHi, l = bHist[fwd ? i : Math.min(bHist.length - 1, i + 1)].label; histGo(i); say((fwd ? '↷ Forward to: ' : '↶ Back to before: ') + l) } b8Render(); return }
+  if (BP10.hist) { BP10.hist = false; b8TopR() }
+  if (a === 'check10') { B8.insTab = 'check'; b8OpenIns(); b8Render(); return }
+  if (a === 'stat10') { B8.insTab = 'info'; b8OpenIns(); b8Render(); return }
+  if (a === 'playFrom10') return bpPlayFrom10();
+  return f0.apply(this, arguments);
+} }
+// the welcome card steps aside as soon as you start building
+b8.addEventListener('click', e => { const t = $('#b8Tour'); if (!t || t.hidden || !t.classList.contains('wel8')) return; if (e.target.closest('[data-b8it],[data-b8tool],[data-b8sec],[data-b8q],[data-b8bp]')) t.hidden = true }, true);
+// ---- twelve more ready-made layouts: the tuned 10.0 park coasters (each passes the full check; tests/t20 proves it)
+const BPX10 = [
+  ['Dipper', '🧸', 'Little Dipper', 'A first coaster: a small lift, a gentle drop and a spiral.', 'Little Dipper', 1],
+  ['Cheddar', '🧀', 'Cheddar Chase', 'A wild mouse: tight flat turns one after another, then a sudden drop.', 'Cheddar Chase', 1],
+  ['Pendulum', '🎐', 'Pendulum Pass', 'A suspended coaster of long sweeping turns and a spiral finish.', 'Pendulum Pass', 0],
+  ['Timberwolf', '🪵', 'Timberwolf', 'A wooden coaster: one airtime hill after another.', 'Timberwolf', 0],
+  ['Turbo', '🏍', 'Turbo Circuit', 'Two launches and fast, low turns like a race track.', 'Turbo Circuit', 0],
+  ['Manta', '🌊', 'Sky Manta', 'A twisting first drop, a tilted turn, a corkscrew and a spiral.', 'Sky Manta', 0],
+  ['Talon', '🦅', 'Talon Strike', 'A dive coaster: a straight-down drop, an Immelmann and a second dive.', 'Talon Strike', 0],
+  ['Nightshade', '🦇', 'Nightshade', 'Hanging below the track through two loops, a weightless roll and two corkscrews.', 'Nightshade', 0],
+  ['Aurora', '🌌', 'Aurora Wing', 'Launched into an Immelmann, then a weightless roll, a corkscrew and a barrel roll.', 'Aurora Wing', 0],
+  ['Hydra', '🐉', 'Hydra', 'Seven times upside down: Immelmann, dive loop, loop, weightless roll and three corkscrews.', 'Hydra', 0],
+  ['Comet2', '☄️', 'Thunder Comet', 'A launch into a lift, a big drop, a barrel roll and a second launch.', 'Thunder Comet', 0],
+  ['Nova2', '🌟', 'Nova Giant', 'A very tall lift, a huge airtime hill, a loop and a weightless roll.', 'Nova Giant', 0]];
+safe10('blueprints', () => {
+  const hx = n => typeof n === 'number' ? '#' + (n & 0xffffff).toString(16).padStart(6, '0') : undefined;
+  for (const [key, ic, name, desc, ride, beg] of BPX10) {
+    if (!has10(DSN10, key) || TEMPLATES.some(t => t.id === 't10_' + key)) continue; const R_ = RIDES.find(q => (q.baseName || q.name) === ride), st = {};
+    if (R_) { for (const k of ['rail', 'tie', 'body', 'accent']) { const c = hx(R_[k]); if (c) st[k] = c } if (TSTY7.some(m => m[0] === R_.trainStyle)) st.train = R_.trainStyle }
+    TEMPLATES.push({ id: 't10_' + key, ic, name: name + ' (park ride)', desc, els: DSN10[key].map(e => [e[0], { ...e[1] }]), style: Object.keys(st).length ? st : undefined, park10: 1, easy10: beg ? 1 : 0 });
+  }
+});
+// ---- Sketch Studio: which ready-made layouts look most like the drawing?
+// Both shapes are walked at 48 evenly spaced steps from the station, moved to their middle and scaled to the same size.
+// The drawing is then compared with each layout turned in 15° steps, mirrored and run the other way round; the score
+// is how far apart the two lines stay on average (0 = the same shape). Nothing leaves the device.
+const SKM10 = { N: 48, tpl: new Map(), key: '', res: [] };
+function skmNorm10(pts) {// [[x, z], …] → N points along the line, centred, average distance from the middle = 1
+  if (!pts || pts.length < 2) return null; const N = SKM10.N, cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L_ = cum[cum.length - 1]; if (!(L_ > 1e-6)) return null; const out = []; let j = 0;
+  for (let k = 0; k < N; k++) { const d = L_ * k / (N - 1); while (j < pts.length - 2 && cum[j + 1] < d) j++; const a = (d - cum[j]) / Math.max(1e-9, cum[j + 1] - cum[j]); out.push([pts[j][0] + (pts[j + 1][0] - pts[j][0]) * a, pts[j][1] + (pts[j + 1][1] - pts[j][1]) * a]) }
+  let cx = 0, cz = 0; for (const p of out) { cx += p[0]; cz += p[1] } cx /= N; cz /= N; let rr = 0; for (const p of out) { p[0] -= cx; p[1] -= cz; rr += Math.hypot(p[0], p[1]) } rr = rr / N || 1; for (const p of out) { p[0] /= rr; p[1] /= rr } return out;
+}
+function skmDist10(a, b) {// smallest average gap over turning, mirroring and direction
+  const N = a.length; let best = 1e9;
+  for (const mir of [1, -1]) for (const rev of [0, 1]) for (let r = 0; r < 24; r++) { const c = Math.cos(r * PI / 12), s_ = Math.sin(r * PI / 12); let d = 0; for (let i = 0; i < N && d < best * N; i++) { const q = b[rev ? N - 1 - i : i], x = q[0] * mir, z = q[1]; d += Math.hypot(a[i][0] - (x * c - z * s_), a[i][1] - (x * s_ + z * c)) } d /= N; if (d < best) best = d }
+  return best;
+}
+const SKM_CUT10 = [1, .9, .8, .7, .6];// a drawing usually stops where the return track would begin: each layout is also tried cut short
+function skmTpl10(t) { const k = t.id; if (SKM10.tpl.has(k)) return SKM10.tpl.get(k); let n = null; try { const g = generate(mkD(t.name, t.els)); if (!g.bad && g.P && g.P.length > 8) { const all = g.P.map(p => [p.x, p.z]); n = SKM_CUT10.map(f => skmNorm10(all.slice(0, Math.max(4, Math.round(all.length * f))))).filter(Boolean) } } catch (e) {} SKM10.tpl.set(k, n && n.length ? n : null); return SKM10.tpl.get(k) }
+function skmMatch10(strokes) {
+  const pts = []; for (const s_ of (strokes || [])) if (s_ && Array.isArray(s_.pts)) for (const p of s_.pts) if (Array.isArray(p) && isFinite(p[0]) && isFinite(p[1])) pts.push([p[0], p[1]]);
+  if (pts.length < 6) return []; let L_ = 0; for (let i = 1; i < pts.length; i++) L_ += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (L_ < 30) return [];
+  const key = pts.length + ':' + Math.round(L_) + ':' + Math.round(pts[0][0] + pts[pts.length - 1][1]) + ':' + TEMPLATES.length; if (key === SKM10.key) return SKM10.res;
+  const a = skmNorm10(pts), res = []; if (!a) return [];
+  TEMPLATES.forEach((t, i) => { if (t.id === 'blank' || t.id === 't9starter') return; const bs = skmTpl10(t); if (!bs) return; let d = 1e9; for (const b of bs) d = Math.min(d, skmDist10(a, b)); res.push({ i, id: t.id, name: t.name, ic: t.ic, d, pct: Math.round(clamp(1 - d / .9, 0, 1) * 100) }) });
+  res.sort((p, q) => p.d - q.d); SKM10.key = key; return SKM10.res = res.slice(0, 3).filter(q => q.pct >= 35);
+}
+SK85.extra = function (h, S_, I) {
+  if (!S_ || !S_.sk || SK85.pv) return h; const m = skmMatch10(S_.sk.top); if (!m.length) return h;
+  const sec = `<h4 class="h80">📐 Closest ready-made layouts <small>by the shape of your blueprint</small></h4><div class="skM10">${m.map(q => `<div><i>${q.ic}</i><span><b>${esc(q.name)}</b><small>${q.pct}% alike</small></span><button class="b8b sm" data-skm10="${q.i}">Start from it</button></div>`).join('')}</div><p class="n8">“Build my coaster” still builds what you drew. These are finished coasters with a similar plan, if you would rather start from one.</p>`;
+  const cut = h.lastIndexOf('<details class="skSet"'); return cut < 0 ? h + sec : h.slice(0, cut) + sec + h.slice(cut);
+};
+{ const sk = $('#sk85'); if (sk) sk.addEventListener('click', e => { const b = e.target.closest('[data-skm10]'); if (!b) return; e.stopPropagation(); const i = +b.dataset.skm10, t = TEMPLATES[i]; if (!t) return; safe10('sketch match', () => { if (typeof DBG85 === 'object' && DBG85.sk && DBG85.sk.close) DBG85.sk.close(); else { const x = sk.querySelector('[data-sk="close"]'); if (x) x.click() } b8BpAct('new', { dataset: { v: String(i) } }) }) }, true) }
+// ---- test hooks
+Object.assign(DBG10.builder, {
+  stats: () => { bpTrack10(); return BP10.cur ? { ...BP10.cur } : null }, strip: () => { const e = $('#bst10'); return e ? { where: e.parentNode && e.parentNode.id, text: e.innerText.replace(/\s+/g, ' ').trim(), chips: e.querySelectorAll('.bs10').length, deltas: [...e.querySelectorAll('.bs10 em')].map(x => x.parentNode.dataset.v + x.textContent), status: (e.querySelector('.bsS10') || {}).className || '' } : null },
+  suggest: () => { BP10.sugSrc = null; const s = bpSuggest10(); return s ? { note: s.note, items: s.items.map(q => q.t), why: s.items.map(q => q.why), home: s.home } : null },
+  hist: () => ({ open: BP10.hist, n: bHist.length, at: bHi, labels: bHist.map(h => h.label) }), histGo: i => b8Act('histGo10', { dataset: { v: String(i) } }),
+  blueprints: () => TEMPLATES.filter(t => t.park10).map(t => ({ id: t.id, name: t.name, n: t.els.length, style: t.style || null })), tplEls: id => { const t = TEMPLATES.find(q => q.id === id); return t ? JSON.parse(JSON.stringify(t.els)) : null },
+  match: strokes => skmMatch10(strokes).map(q => ({ id: q.id, name: q.name, pct: q.pct })), matchSelf: id => { const t = TEMPLATES.find(q => q.id === id); if (!t) return null; const g = generate(mkD(t.name, t.els)), P_ = g.P, n = Math.floor(P_.length * .8), pts = []; for (let i = 0; i < n; i += 3) pts.push([P_[i].x + 14, P_[i].z - 9]); SKM10.key = ''; return skmMatch10([{ pts }]).map(q => ({ id: q.id, pct: q.pct })) },
+  playFrom: () => bpPlayFrom10(), trainS: () => s
+});
 
 }
 

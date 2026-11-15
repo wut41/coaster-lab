@@ -39,4 +39,14 @@ async function open(file, { w = 390, h = 844, mobile = true, skipStart = true, s
   await page.waitForTimeout(1500);
   return { browser, ctx, page, errors, warns };
 }
-module.exports = { open };
+// a second tab in the same browser (same storage, same cloud stand-in), for the two-tab checks
+async function tab(ctx, file, hash = '') {
+  const page = await ctx.newPage(), errors = [], warns = [];
+  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); if (m.type() === 'warning') { warns.push(m.text()); if (/^Coaster Lab: "[^"]*" failed/.test(m.text()) || /^\d+\.\d [a-zA-Z].*(Error|JSHandle@error)/.test(m.text())) errors.push('CAUGHT ' + m.text()) } });
+  page.on('pageerror', e => errors.push('PAGEERROR ' + (e.stack || e.message)));
+  await page.goto('https://coaster.test/' + path.basename(file) + hash);
+  await page.waitForFunction(() => window.__booted === true, null, { timeout: 60000 });
+  await page.waitForTimeout(1200);
+  return { page, errors, warns };
+}
+module.exports = { open, tab };

@@ -18,8 +18,8 @@ const cInt10 = (x, a, b, d = 0) => Math.round(cNum10(x, a, b, d));
 const cCode10 = c => { const k = typeof c === 'string' ? c.trim().toUpperCase() : ''; return CODE_RE10.test(k) ? k : '' };
 function cStats10(st) {
   const o = {}; if (!st || typeof st !== 'object' || Array.isArray(st)) return o;
-  for (const [k, a, b] of [['rating', 0, 100], ['rep', 0, 100], ['day', 1, 1e6], ['guests', 0, 1e13], ['rides', 0, 1e13], ['coasters', 0, 900], ['attractions', 0, 900], ['level', 1, 30]]) if (st[k] != null) o[k] = cInt10(st[k], a, b);
-  if (st.mode === 'sandbox' || st.mode === 'career') o.mode = st.mode; if (st.money != null) o.money = cInt10(st.money, -1e12, 1e12); return o;
+  for (const [k, a, b] of [['rating', 0, 100], ['rep', 0, 100], ['day', 1, 1e6], ['guests', 0, 1e13], ['rides', 0, 1e13], ['coasters', 0, 900], ['attractions', 0, 900], ['level', 1, 30], ['money', -1e12, 1e12]]) { const n = cNum10(st[k], a, b, NaN); if (isFinite(n)) o[k] = Math.round(n) }// (anything that is not a number is left out, and shows as —)
+  if (st.mode === 'sandbox' || st.mode === 'career') o.mode = st.mode; return o;
 }
 function cRow10(p) {
   if (!p || typeof p !== 'object' || Array.isArray(p)) return null; const code = cCode10(p.code); if (!code) return null;

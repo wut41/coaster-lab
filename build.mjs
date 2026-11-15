@@ -83,6 +83,9 @@ patch('lattice: optional', 'function lattice(){if(!QUAL[gq].lat||!P||!U)return;'
 // rail gauge / tube size per ride (wooden coasters have flat running rails; default values are the 9.0 numbers)
 patch('rails: per-ride gauge', 'tube(offs(.3,0),.09,railmat);tube(offs(-.3,0),.09,railmat);tube(offs(0,-.3),.13,dark);', 'tube(offs(.3,0),def.railR10||.09,railmat);tube(offs(-.3,0),def.railR10||.09,railmat);if(!def.noSpine10)tube(offs(0,-.3),.13,dark);');
 
+// the Sketch Studio's side panel can be given one more section (64_builderpro.js adds "closest ready-made layouts")
+patch('sketch studio: panel hook', "side.innerHTML=h;side.classList.toggle('open',S.sheet)}", "if(SK85.extra)try{h=SK85.extra(h,S,I)}catch(e){console.warn('10.1 sketch panel',e)}side.innerHTML=h;side.classList.toggle('open',S.sheet)}");
+
 // ---------- 3 · inject styles, markup, modules
 const css = files('css', '.css').map(([f, t]) => `/* ---- [${f}] */\n${t.trim()}\n`).join('\n');
 patch('styles', '</style>\n</head>', `/* ===== COASTER LAB 10.0 — MY PARK ===== */\n${css}</style>\n</head>`);
