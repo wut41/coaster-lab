@@ -1,7 +1,7 @@
 const path = require('path');
 const { open } = require('../harness');
 (async () => {
-  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w: 1200, h: 800, mobile: false, storage: { 'coasterlab.v80.bWelcome': '1', 'coasterlab.tut.v2': '1' } });
+  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w: 1200, h: 800, mobile: false, storage: { 'coasterlab.v80.bWelcome': '1', 'coasterlab.tut.v2': '1' } });
   const T = (f, a) => page.evaluate(f, a);
   await T(() => window.__coasterDebug.v80.v86.openBuilder()); await page.waitForTimeout(1200);
   await T(() => { const t = document.querySelector('#b8Tour'); if (t) t.hidden = true });

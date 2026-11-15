@@ -2,7 +2,7 @@
 // ride cycles, shops, staff, breakdowns, weather and the clock, goals and levels, saving, Career / Sandbox, park codes,
 // the park cloud (played by a stand-in server), live presence (played by a stand-in socket) and four screen sizes.
 const { open } = require('./harness'), L = require('./tools/park_lib');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const ONLY = process.env.T8 || 'ABCDE';// run some sections only: T8=C node t8_v10_park.js

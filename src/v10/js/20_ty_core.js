@@ -90,7 +90,7 @@ const landPrice10 = P_ => Math.round((1800 + 650 * Math.max(0, landCount10(P_) -
 const coasterKey10 = d => 'c:' + (d.baseName || d.name);
 function coasterDef10(key, P_) {
   if (key.startsWith('c:')) { const n = key.slice(2); return RIDES.find(r => (r.baseName || r.name) === n) || null }
-  if (key.startsWith('u:')) { const P2 = P_ || TY.park, c = P2 && P2.custom[key.slice(2)]; return c ? customDef10(key.slice(2), c) : null }
+  if (key.startsWith('u:')) { const P2 = P_ || TY.park, id = key.slice(2), c = P2 && P2.custom && has10(P2.custom, id) ? P2.custom[id] : null; return c ? customDef10(id, c) : null }
   return null;
 }
 // a player's own design becomes a ride definition through the same generate → fillDef path the builder uses
@@ -109,6 +109,10 @@ function coasterList10(P_) {
 }
 // ---- saving. Career and Sandbox are separate slots; everything read back is checked (never trust stored data).
 const numP10 = (x, d, a, b) => typeof x === 'number' && isFinite(x) ? clamp(x, a, b) : d;
+// 10.1: a key that came from a save, a park code or the cloud is only looked up when the table really has it.
+// (Every object also answers to "constructor", "toString", "__proto__" …, so a plain TABLE[key] test let those
+// through as if they were things you can build, and the park then failed to open.)
+const has10 = (T_, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(T_, k);
 function cleanPark10(o, mode) {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
   const P_ = newPark10(mode || (o.mode === 'sandbox' ? 'sandbox' : 'career')), sb = P_.mode === 'sandbox';
@@ -120,25 +124,28 @@ function cleanPark10(o, mode) {
   P_.custom = {}; if (o.custom && typeof o.custom === 'object') Object.keys(o.custom).slice(0, 24).forEach(id => { const c = o.custom[id]; if (!/^[a-z0-9]{2,24}$/i.test(id) || !c || !Array.isArray(c.els) || c.els.length > 60) return; try { const r = sanDesign({ v: 2, name: c.name, els: c.els, style: c.style }); if (r.ok) P_.custom[id] = { name: cleanName(c.name) || 'My Coaster', els: r.D.els.map(e => ({ t: e.t, p: e.p })), style: r.D.style } } catch (e) {} });
   P_.objs = []; let maxId = 0;
   if (Array.isArray(o.objs)) o.objs.slice(0, 900).forEach(q => {
-    if (!q || typeof q !== 'object' || typeof q.k !== 'string') return; const isC = /^[cu]:/.test(q.k); if (!isC && !CAT10[q.k]) return; if (isC && !coasterDef10(q.k, P_)) return;
+    if (!q || typeof q !== 'object' || typeof q.k !== 'string') return; const isC = /^[cu]:/.test(q.k); if (!isC && !has10(CAT10, q.k)) return; if (isC && !coasterDef10(q.k, P_)) return;
     const b = { id: Math.round(numP10(q.id, 0, 1, 1e7)), k: q.k, x: Math.round(numP10(q.x, 0, -40, GW10 + 40)), z: Math.round(numP10(q.z, 0, -40, GH10 + 40)), r: Math.round(numP10(q.r, 0, 0, 3)) };
     if (!b.id || P_.objs.some(x => x.id === b.id)) b.id = ++maxId + 100000; maxId = Math.max(maxId, b.id < 100000 ? b.id : 0);
-    const C = CAT10[q.k]; if (isC || (C && (C.t === 'flat' || C.t === 'shop' || C.t === 'fac'))) {
+    const C = isC ? null : CAT10[q.k]; if (isC || (C && (C.t === 'flat' || C.t === 'shop' || C.t === 'fac'))) {
       if (typeof q.name === 'string') b.name = cleanName(q.name); b.price = +numP10(q.price, -1, -1, 99).toFixed(2); b.open = q.open !== false; b.rel = numP10(q.rel, 100, 0, 100); b.age = numP10(q.age, 0, 0, 1e7);
       b.up = { cap: Math.round(numP10(q.up && q.up.cap, 0, 0, 3)), rel: Math.round(numP10(q.up && q.up.rel, 0, 0, 3)), fx: Math.round(numP10(q.up && q.up.fx, 0, 0, 3)) };
       b.st = { n: numP10(q.st && q.st.n, 0, 0, 1e9), inc: numP10(q.st && q.st.inc, 0, 0, 1e12), run: numP10(q.st && q.st.run, 0, 0, 1e12), like: numP10(q.st && q.st.like, 0, 0, 1e9), rated: numP10(q.st && q.st.rated, 0, 0, 1e9), down: numP10(q.st && q.st.down, 0, 0, 1e6) };
-      if (q.col && typeof q.col === 'object') { b.col = {}; ['rail', 'tie', 'body', 'accent', 'roof'].forEach(k => { if (typeof q.col[k] === 'string' && /^#[0-9a-f]{6}$/i.test(q.col[k])) b.col[k] = q.col[k].toLowerCase() }); if (typeof q.col.train === 'string' && (STY10[q.col.train] || ['sit', 'inverted', 'flying', 'spinning'].includes(q.col.train))) b.col.train = q.col.train; if (Number.isInteger(q.col.stn) && q.col.stn >= 0 && q.col.stn < 4) b.col.stn = q.col.stn }
+      if (q.col && typeof q.col === 'object') { b.col = {}; ['rail', 'tie', 'body', 'accent', 'roof'].forEach(k => { if (typeof q.col[k] === 'string' && /^#[0-9a-f]{6}$/i.test(q.col[k])) b.col[k] = q.col[k].toLowerCase() }); if (typeof q.col.train === 'string' && (has10(STY10, q.col.train) || ['sit', 'inverted', 'flying', 'spinning'].includes(q.col.train))) b.col.train = q.col.train; if (Number.isInteger(q.col.stn) && q.col.stn >= 0 && q.col.stn < 4) b.col.stn = q.col.stn }
     }
     P_.objs.push(b);
   });
   P_.nextId = Math.max(maxId + 1, Math.round(numP10(o.nextId, 1, 1, 1e7)));
   P_.staff = { jan: Math.round(numP10(o.staff && o.staff.jan, 1, 0, 30)), mech: Math.round(numP10(o.staff && o.staff.mech, 1, 0, 20)) };
   P_.rep = numP10(o.rep, 18, 0, 100); P_.rating = numP10(o.rating, 0, 0, 100); P_.xp = Math.round(numP10(o.xp, 0, 0, 1e9)); P_.promo = numP10(o.promo, 0, 0, 1e5); P_.tut = Math.round(numP10(o.tut, sb ? 9 : 0, 0, 9));
-  ['perks', 'goals', 'seen'].forEach(k => { if (o[k] && typeof o[k] === 'object') for (const q in o[k]) if (q.length < 40 && (typeof o[k][q] === 'number' || typeof o[k][q] === 'boolean')) P_[k][q] = o[k][q] });
+  ['perks', 'goals', 'seen'].forEach(k => { if (o[k] && typeof o[k] === 'object' && !Array.isArray(o[k])) for (const q of Object.keys(o[k]).slice(0, 200)) if (q.length < 40 && q !== '__proto__' && (typeof o[k][q] === 'number' && isFinite(o[k][q]) || typeof o[k][q] === 'boolean')) P_[k][q] = o[k][q] });
+  // 10.1: the code this park is published under is text, so the number-or-yes/no rule above dropped it at every
+  // reload and the game forgot the park was published. It is kept when it is a real cloud code.
+  if (o.seen && typeof o.seen === 'object' && typeof o.seen.cloud === 'string' && /^[2-9A-HJ-NP-Z]{6}$/.test(o.seen.cloud)) P_.seen.cloud = o.seen.cloud;
   if (o.led && typeof o.led === 'object') { for (const k in P_.led.inc) P_.led.inc[k] = numP10(o.led.inc && o.led.inc[k], 0, 0, 1e12); for (const k in P_.led.exp) P_.led.exp[k] = numP10(o.led.exp && o.led.exp[k], 0, 0, 1e12) }
   if (o.tot && typeof o.tot === 'object') for (const k in P_.tot) P_.tot[k] = numP10(o.tot[k], 0, 0, 1e13);
-  if (Array.isArray(o.hist)) P_.hist = o.hist.filter(h => h && typeof h === 'object').slice(-40).map(h => ({ day: Math.round(numP10(h.day, 1, 1, 1e6)), inc: numP10(h.inc, 0, 0, 1e12), exp: numP10(h.exp, 0, 0, 1e12), guests: numP10(h.guests, 0, 0, 1e7), peak: numP10(h.peak, 0, 0, 1e6), rating: numP10(h.rating, 0, 0, 100), happy: numP10(h.happy, 0, 0, 100), money: numP10(h.money, 0, -1e12, 1e12), wx: typeof h.wx === 'string' ? h.wx.slice(0, 10) : 'sunny' }));
-  if (o.wx && typeof o.wx === 'object') { if (WX10[o.wx.k]) P_.wx.k = o.wx.k; P_.wx.until = numP10(o.wx.until, 0, 0, 1e9); P_.wx.auto = o.wx.auto !== false }
+  if (Array.isArray(o.hist)) P_.hist = o.hist.filter(h => h && typeof h === 'object').slice(-40).map(h => ({ day: Math.round(numP10(h.day, 1, 1, 1e6)), inc: numP10(h.inc, 0, 0, 1e12), exp: numP10(h.exp, 0, 0, 1e12), guests: numP10(h.guests, 0, 0, 1e7), peak: numP10(h.peak, 0, 0, 1e6), rating: numP10(h.rating, 0, 0, 100), happy: numP10(h.happy, 0, 0, 100), money: numP10(h.money, 0, -1e12, 1e12), wx: has10(WX10, h.wx) ? h.wx : 'sunny' }));
+  if (o.wx && typeof o.wx === 'object') { if (has10(WX10, o.wx.k)) P_.wx.k = o.wx.k; P_.wx.until = numP10(o.wx.until, 0, 0, 1e9); P_.wx.auto = o.wx.auto !== false }
   if (o.clock && typeof o.clock === 'object') P_.clock.auto = o.clock.auto !== false;
   if (o.look && typeof o.look === 'object') { P_.look.path = Math.round(numP10(o.look.path, 0, 0, PATHS10.length - 1));['gate', 'sign'].forEach(k => { if (typeof o.look[k] === 'string' && /^#[0-9a-f]{6}$/i.test(o.look[k])) P_.look[k] = o.look[k] }) }
   return P_;

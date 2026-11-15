@@ -3,7 +3,7 @@
 // parks owned by the account, and everything still working signed out, offline and before the database is set up.
 // The account server and the database are played by tests/tools/cloud_mock.js (same rules as the SQL migration).
 const { open } = require('./harness'), L = require('./tools/park_lib'), makeCloud = require('./tools/cloud_mock');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const ONLY = process.env.T11 || 'ABCDEFG';// run some sections only: T11=BC node t11_v10_account.js

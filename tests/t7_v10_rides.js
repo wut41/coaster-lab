@@ -1,6 +1,6 @@
 // Coaster Lab 10.0: the ten new coasters, the two rebuilt flagships, the eight new train types and the 🎲 Generate tab.
 const { open } = require('./harness');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
 (async () => {

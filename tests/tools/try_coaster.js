@@ -2,7 +2,7 @@ const path = require('path'), fs = require('fs');
 const { open } = require('../harness'), L = require('./park_lib');
 (async () => {
   const w = +process.argv[2] || 1200, h = +process.argv[3] || 800, SH = path.join(__dirname, '..', 'shots');
-  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w, h, mobile: w < 700 });
+  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w, h, mobile: w < 700 });
   const T = (f, a) => page.evaluate(f, a), log = (m, x) => console.log(m, typeof x === 'string' ? x : JSON.stringify(x));
   await T(() => window.__coasterDebug.v80.v10.ty.fresh('sandbox'));
   await T(() => window.__coasterDebug.v80.v10.ty.path(24, 46, 24, 30));

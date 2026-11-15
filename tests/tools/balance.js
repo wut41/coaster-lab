@@ -5,7 +5,7 @@
 //  · "grown": the sensible park after reinvesting (more rides, a second coaster, more land)
 // A sensible park should make a modest profit from day 2 or 3; a neglected one should lose money and reputation.
 const { open } = require('../harness'), L = require('./park_lib');
-const F = require('path').join(__dirname, '..', '..') + '/coaster_lab_v10_0.html';
+const F = require('path').join(__dirname, '..', '..') + '/coaster_lab_v10_1.html';
 (async () => {
   const { browser, page, errors } = await open(F, { w: 1200, h: 800, mobile: false });
   const X = (f, a) => page.evaluate(f, a), T = 'window.__coasterDebug.v80.v10.ty';

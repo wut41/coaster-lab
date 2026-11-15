@@ -1,13 +1,13 @@
 // Developer tool: measure coaster designs with the game's own engine (generate → validate → simulated lap).
 //   node tests/tools/probe_designs.js <designs.js> [name-filter]
 // <designs.js> exports { Name: [[type, params], ...], ... }. Prints must-fix problems, warnings and ride stats for each,
-// so a layout can be tuned before it is added to src/v10. Uses coaster_lab_v10_0.html (run `node build.mjs` first).
+// so a layout can be tuned before it is added to src/v10. Uses coaster_lab_v10_1.html (run `node build.mjs` first).
 const path = require('path');
 const { open } = require('../harness');
 (async () => {
   const file = path.resolve(process.argv[2]), filter = process.argv[3];
   const designs = require(file);
-  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w: 800, h: 600, mobile: false });
+  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w: 800, h: 600, mobile: false });
   for (const [name, els] of Object.entries(designs)) {
     if (filter && !name.toLowerCase().includes(filter.toLowerCase())) continue;
     const m = await page.evaluate(([n, e]) => window.__coasterDebug.v80.v10.measure(e, n), [name, els]);

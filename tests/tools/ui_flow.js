@@ -3,7 +3,7 @@ const path = require('path'), fs = require('fs');
 const { open } = require('../harness');
 (async () => {
   const w = +process.argv[2] || 390, h = +process.argv[3] || 844, tag = w + 'x' + h, SH = path.join(__dirname, '..', 'shots');
-  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w, h, mobile: w < 1000, skipStart: false });
+  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w, h, mobile: w < 1000, skipStart: false });
   const T = (f, a) => page.evaluate(f, a), log = (m, x) => console.log(m, typeof x === 'string' ? x : JSON.stringify(x)), shot = n => page.screenshot({ path: path.join(SH, 'ui_' + tag + '_' + n + '.png') });
   await page.waitForTimeout(800); await shot('0title');
   await page.click('[data-go="ty10"]'); await page.waitForTimeout(1500); log('open', await T(() => window.__coasterDebug.v80.v10.ty.state()).then(s => s && [s.name, s.mode, s.money]));

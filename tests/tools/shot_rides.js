@@ -5,7 +5,7 @@ const { open } = require('../harness');
 (async () => {
   const filter = (process.argv[2] || '').toLowerCase(), cam = process.argv[3] || 'orbit', w = +process.argv[4] || 1200, h = +process.argv[5] || 800;
   const SH = path.join(__dirname, '..', 'shots'); fs.mkdirSync(SH, { recursive: true });
-  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w, h, mobile: w < 700 });
+  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w, h, mobile: w < 700 });
   const rides = await page.evaluate(() => window.__coasterDebug.v80.v10.rides());
   for (const r of rides) {
     if (filter && !r.name.toLowerCase().includes(filter)) continue;

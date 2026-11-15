@@ -1,7 +1,7 @@
 // Coaster Lab 10.1 — polish in My Park: things pop in with dust, coins float up from rides that earn, rain puddles and
 // ripples, coaster track lights and ride bulbs at night, the Fireworks Launcher and its show at closing time.
 const { open } = require('./harness'), L = require('./tools/park_lib');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 (async () => {

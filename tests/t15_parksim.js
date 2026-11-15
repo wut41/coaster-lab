@@ -1,7 +1,7 @@
 // Coaster Lab 10.1 — the deeper park sim: upkeep and going broke, themed scenery and themed rides, on-ride photos,
 // families walking together, and the four scenarios (start, progress badge, win, run out of time, saving).
 const { open } = require('./harness'), L = require('./tools/park_lib');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 (async () => {

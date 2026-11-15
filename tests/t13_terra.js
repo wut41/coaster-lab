@@ -2,7 +2,7 @@
 // costs, what it may not touch, building on hills (earthworks), lakes (no building in water, path bridges, coasters
 // over water and through hills in tunnels), visitors walking at the height of the ground, saving and park codes.
 const { open } = require('./harness'), L = require('./tools/park_lib');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 (async () => {

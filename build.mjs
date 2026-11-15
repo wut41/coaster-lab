@@ -1,6 +1,7 @@
-// Coaster Lab 10.0 build: takes coaster_lab_v9_0.html (never modified) and produces the single-file game
-// coaster_lab_v10_0.html by (1) applying a short list of exact, asserted patches to the 9.0 code and
+// Coaster Lab 10.x build: takes coaster_lab_v9_0.html (never modified) and produces the single-file game
+// coaster_lab_v10_1.html by (1) applying a short list of exact, asserted patches to the 9.0 code and
 // (2) injecting the new styles, markup and modules from src/v10/.
+// (coaster_lab_v10_0.html is the previous build, kept as it was: the tests compare the new build with it.)
 //
 //   node build.mjs            build
 //   node build.mjs --check    build, then syntax-check the game script with node
@@ -14,9 +15,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const BASE = path.join(ROOT, 'coaster_lab_v9_0.html');
-const OUT = process.env.CL_OUT || path.join(ROOT, 'coaster_lab_v10_0.html');
+const OUT = process.env.CL_OUT || path.join(ROOT, 'coaster_lab_v10_1.html');
 const SRC = path.join(ROOT, 'src', 'v10');
-const VERSION = '10.0';
+const VERSION = '10.1';
 
 let html = fs.readFileSync(BASE, 'utf8');
 const count = (h, f) => h.split(f).length - 1;
@@ -47,6 +48,33 @@ patch('menu intro', 'Twelve coasters across ten worlds, or build your own. Psst�
 patch('title tagline', 'Ride twelve wild roller coasters, run your own theme park across six themed worlds, build your own rides, and grow a living park with new lands, guests, staff and events.', 'Ride 26 wild roller coasters, build and run your own park full of living visitors, design your own rides, and share your park with friends.');
 patch('title rides button', '<small>12 coasters · 10 worlds</small>', '<small>26 coasters to ride</small>');
 patch('hub subtitle', '<small>Coaster Lab 9.0 · Gravity Lab · Disaster Mode · Evolve · Daily Challenge</small>', '<small>Coaster Lab 10 · My Park tycoon · new coasters · park sharing</small>');
+
+// ---------- 1b · 10.1 hardening of 9.0 code (each patch is one expression)
+// The test hooks are decided ONCE, when the page starts. Before 10.1 the owner and moderator locks looked at
+// window.__coasterTestHarness every time they were opened, so typing that flag into the browser console opened both
+// panels without a passcode. (Anything in a browser can still be changed by its user: these locks only ever protected
+// this browser's copy of the game.)
+patch('harness: decided at start-up', "<script type=\"module\">\nimport * as THREE from 'three';\n", "<script type=\"module\">\nimport * as THREE from 'three';\nconst HARNESS10=window.__coasterTestHarness===true;\n");
+patch('owner lock: no console bypass', "openOwner=function(){if(!ownerOK72&&window.__coasterTestHarness!==true){ownerPrompt();return}", "openOwner=function(){if(!ownerOK72&&!HARNESS10){ownerPrompt();return}");
+patch('moderator lock: no console bypass', "open(){if(!modOK83&&!ownerOK72&&window.__coasterTestHarness!==true){", "open(){if(!modOK83&&!ownerOK72&&!HARNESS10){");
+// a pasted design whose section type is the name of something every object has ("constructor", "toString", …) used
+// to get past the "unknown type" check and then stop the import with an error instead of a message
+patch('designs: own section types only', "if(!e||!ET[e.t])return{ok:0,why:'section '+(i+1)+' has an unknown type'}", "if(!e||typeof e.t!=='string'||!Object.prototype.hasOwnProperty.call(ET,e.t))return{ok:0,why:'section '+(i+1)+' has an unknown type'}");
+// text put into a page is also safe inside a single-quoted attribute (a player name may contain an apostrophe)
+patch('escape apostrophes too', `const esc=t=>String(t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));`, `const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));`);
+// Content-Security-Policy (a second line of defence if some text ever reached the page unescaped). The game's own
+// scripts are inline, so inline <script> stays allowed; what is switched off is everything the game never uses:
+// event-handler attributes (script-src-attr 'none': an injected <img onerror=…> does nothing), plugins, frames,
+// workers, <base>, form posts, and connections to anywhere but the game's own cloud project and the three.js CDN.
+// A browser that does not know script-src-attr ignores it. (frame-ancestors cannot be set from a <meta>: if the game
+// is hosted, send that one as a real HTTP header.)
+{
+  const share = fs.readFileSync(path.join(SRC, 'js', '28_ty_share.js'), 'utf8'), m = /const CLOUD10 = \{ url: 'https:\/\/([a-z0-9]+\.supabase\.co)'/.exec(share);
+  if (!m) throw new Error('CSP: the cloud address was not found in 28_ty_share.js');
+  const CSP = ["default-src 'none'", "script-src 'unsafe-inline' https://cdn.jsdelivr.net", "script-src-attr 'none'", "style-src 'unsafe-inline' https://fonts.googleapis.com", "font-src https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob:", "media-src 'self' data: blob:", `connect-src https://${m[1]} wss://${m[1]} https://cdn.jsdelivr.net data: blob:`, "object-src 'none'", "frame-src 'none'", "worker-src 'none'", "base-uri 'none'", "form-action 'none'", "manifest-src 'self'"].join('; ');
+  patch('content security policy', '<meta charset="utf-8">\n', `<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${CSP}">\n`);
+}
 
 // ---------- 2 · small hooks in 9.0 code (each one is a single expression; behaviour is unchanged unless 10.0 uses it)
 // wooden coasters draw their own timber structure, so the steel columns are skipped for rides flagged noSup10

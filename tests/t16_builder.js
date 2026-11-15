@@ -1,7 +1,7 @@
 // Coaster Lab 10.1 — the roomier Track Builder: panels that slide in only when needed, the five-tab piece picker with
 // Recent pieces, extra drag handles with a hint, and live force colours (green, yellow, red) with a toolbar switch.
 const { open } = require('./harness');
-const ROOT = require('path').join(__dirname, '..') + '/', F = process.env.CL_F || ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = process.env.CL_F || ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const cutOff = () => [...document.querySelectorAll('#b8Lib .lbC8 button span')].filter(s => s.scrollWidth > s.clientWidth + 1).map(s => s.textContent);

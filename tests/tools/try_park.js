@@ -3,7 +3,7 @@ const path = require('path'), fs = require('fs');
 const { open } = require('../harness');
 (async () => {
   const w = +process.argv[2] || 1200, h = +process.argv[3] || 800, SH = path.join(__dirname, '..', 'shots'); fs.mkdirSync(SH, { recursive: true });
-  const { browser, page, errors, warns } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w, h, mobile: w < 700 });
+  const { browser, page, errors, warns } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w, h, mobile: w < 700 });
   const T = (f, a) => page.evaluate(f, a), log = (m, x) => console.log(m, typeof x === 'string' ? x : JSON.stringify(x));
   log('fresh', await T(() => window.__coasterDebug.v80.v10.ty.fresh('career', 60000)));
   await page.waitForTimeout(1500); log('errors after open', errors.slice(0, 5));

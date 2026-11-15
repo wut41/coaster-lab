@@ -7,7 +7,7 @@ const { open } = require('../harness');
 (async () => {
   const args = process.argv.slice(2), oi = args.indexOf('--out'), outFile = oi >= 0 ? args.splice(oi, 2)[1] : null;
   const concepts = require(path.resolve(args[0])), filter = args[1];
-  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_0.html'), { w: 800, h: 600, mobile: false });
+  const { browser, page, errors } = await open(path.join(__dirname, '..', '..', 'coaster_lab_v10_1.html'), { w: 800, h: 600, mobile: false });
   const out = outFile && fs.existsSync(outFile) ? JSON.parse(fs.readFileSync(outFile, 'utf8')) : {};
   for (const [name, c] of Object.entries(concepts)) {
     if (filter && !name.toLowerCase().includes(filter.toLowerCase())) continue;

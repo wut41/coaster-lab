@@ -3,7 +3,7 @@
 // Sound button, crowd, rumble, ride-along wind and the music mood. Sound is played for real (headless Chromium runs
 // Web Audio), so these checks follow the engine's own numbers; nobody listens to the output here.
 const { open } = require('./harness'), L = require('./tools/park_lib');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html';
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const ONLY = process.env.T9 || 'ABC';
 const waitFor = async (page, fn, arg, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await page.evaluate(fn, arg)) return true; await page.waitForTimeout(400) } return false };

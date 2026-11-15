@@ -32,7 +32,7 @@ const probe = async (file, w, h) => {
 };
 (async () => {
   for (const [w, h] of [[390, 844], [844, 390]]) {
-    const a = await probe(ROOT + 'coaster_lab_v8_5.html', w, h), b = await probe(ROOT + 'coaster_lab_v10_0.html', w, h);
+    const a = await probe(ROOT + 'coaster_lab_v8_5.html', w, h), b = await probe(ROOT + 'coaster_lab_v10_1.html', w, h);
     ok(a.start && b.start && b.startClosed, `${w}x${h} start screen shows and Ride now closes it`);
     const added = b.hub.filter(x => !a.hub.includes(x)).sort().join(',');// 8.6 added three tiles, 10.0 adds My Park and Account
     ok(a.hub.every(x => b.hub.includes(x)) && added === 'acct10,daily86,dz86,grav86,ty10', 'Park & tools keeps all ' + a.hub.length + ' old tiles and adds 5 (' + added + '): ' + b.groups.join(' / '));
@@ -45,7 +45,7 @@ const probe = async (file, w, h) => {
     ok(b.errors.length === 0 && a.errors.length === 0, `console errors v8.5: ${a.errors.length}, v10.0: ${b.errors.length}`); b.errors.slice(0, 4).forEach(e => console.log('   ', e.slice(0, 300)));
   }
   // a whole lap on the Moon: the lap card names the gravity and the Moonwalker achievement unlocks
-  const { browser, page, errors } = await open(ROOT + 'coaster_lab_v10_0.html');
+  const { browser, page, errors } = await open(ROOT + 'coaster_lab_v10_1.html');
   await page.evaluate(() => { const d = window.__coasterDebug; d.v80.v86.setGrav('moon'); d.select(0) }); await page.waitForTimeout(3300);
   for (let i = 0; i < 80; i++) { await page.evaluate(() => window.__coasterDebug.v72.ff(1)); await page.waitForTimeout(60); if (await page.evaluate(() => !document.querySelector('#sum7').hidden)) break }
   await page.waitForTimeout(300);

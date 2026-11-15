@@ -8,8 +8,9 @@
 //    Cloud saves are protected in the database: a player can read and write only their own rows.
 //  · Password reset uses Supabase's email. Until the project has its own email sender, Supabase's built-in one is
 //    limited to a couple of emails an hour (and to the project team's addresses), so resets may not arrive.
-const AUTH10 = { s: null, mode: 'in', busy: '', err: '', msg: '', ui: { email: '', pw: '', name: '', show: false, pw2: '', nick: null }, saves: {}, ask: null, syncing: false, syncAt: 0, syncErr: '', recover: false, open: false, t: 20, dirty: false };
-{ const s = LSP10('auth', null); if (s && typeof s.at === 'string' && typeof s.rt === 'string' && typeof s.uid === 'string' && s.uid) AUTH10.s = s }
+const AUTH10 = { s: null, mode: 'in', busy: '', err: '', msg: '', ui: { email: '', pw: '', name: '', show: false, pw2: '', nick: null }, saves: {}, ask: null, syncing: false, syncAt: 0, syncErr: '', recover: false, open: false, t: 20, dirty: false, link: null, upAt: 0 };
+const authStored10 = () => { const s = LSP10('auth', null); return s && typeof s === 'object' && typeof s.at === 'string' && typeof s.rt === 'string' && typeof s.uid === 'string' && s.uid ? s : null };
+AUTH10.s = authStored10();
 const nameOk10 = n => String(n == null ? '' : n).replace(/[\u0000-\u001f<>"&]/g, '').trim().slice(0, 24);
 // the name shown on published parks and above the live pin: the account's player name, else this device's nickname
 const nick10 = () => AUTH10.s && AUTH10.s.name ? AUTH10.s.name : dev10().nick;
@@ -46,14 +47,29 @@ function authSet10(j) {
   AUTH10.s = { at: j.access_token, rt: j.refresh_token, exp: j.expires_at ? j.expires_at * 1000 : Date.now() + (+j.expires_in || 3600) * 1000, uid: u.id || (old && old.uid) || '', email: u.email || (old && old.email) || '', name: nameOk10(u.user_metadata && u.user_metadata.username) || (old && old.name) || '' };
   SSP10('auth', AUTH10.s); return true;
 }
-function authClear10(msg) { AUTH10.s = null; AUTH10.mode = 'in'; DELP10('auth'); AUTH10.saves = {}; AUTH10.ask = null; AUTH10.recover = false; AUTH10.syncErr = ''; if (msg) AUTH10.msg = msg; acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
+function authClear10(msg) { AUTH10.s = null; AUTH10.mode = 'in'; DELP10('auth'); AUTH10.saves = {}; AUTH10.ask = null; AUTH10.link = null; AUTH10.recover = false; AUTH10.syncErr = ''; if (msg) AUTH10.msg = msg; acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false) }
 // a valid access token (renewed shortly before it runs out), or null when signed out
 let _ref10 = null;
+// 10.1: two tabs share one sign-in. The account server hands out a new refresh token at every renewal and refuses a
+// used one (and may then end the whole session), so a tab that kept an old copy in memory used to sign every tab out.
+// A tab now takes the newest session from storage before it renews, and when a renewal is refused it looks once more:
+// if another tab renewed in the meantime, that session is used instead of signing out.
+function authTake10() { const st = authStored10(), s = AUTH10.s; if (!st || !s || st.uid !== s.uid || st.rt === s.rt) return false; if (!(st.exp > s.exp)) return false; AUTH10.s = st; return true }
 async function token10(force) {
-  const s = AUTH10.s; if (!s) return null; if (!force && s.exp - Date.now() > 60000) return s.at;
-  if (!_ref10) _ref10 = (async () => { try { authSet10(await authApi10('token?grant_type=refresh_token', { refresh_token: s.rt })) } catch (e) { if (e && e.status && e.status < 500 && e.status !== 429) authClear10('Your sign-in has run out. Please sign in again.') } finally { _ref10 = null } })();
+  let s = AUTH10.s; if (!s) return null; if (!force && s.exp - Date.now() > 60000) return s.at;
+  if (authTake10()) { s = AUTH10.s; if (s.exp - Date.now() > 60000) return s.at }
+  if (!_ref10) _ref10 = (async () => { try { authSet10(await authApi10('token?grant_type=refresh_token', { refresh_token: s.rt })) } catch (e) { if (e && e.status && e.status < 500 && e.status !== 429 && !(authTake10() && AUTH10.s.exp - Date.now() > 5000)) authClear10('Your sign-in has run out. Please sign in again.') } finally { _ref10 = null } })();
   await _ref10; return AUTH10.s && AUTH10.s.exp - Date.now() > 5000 ? AUTH10.s.at : null;
 }
+// another tab signed in, signed out or renewed: this tab follows (storage events only arrive from OTHER tabs)
+addEventListener('storage', e => {
+  if (e.key !== null && e.key !== KP10 + 'auth') return; const st = authStored10(), s = AUTH10.s;
+  if (!st) { if (s) { AUTH10.s = null; AUTH10.saves = {}; AUTH10.ask = null; AUTH10.link = null; AUTH10.recover = false; AUTH10.syncErr = ''; AUTH10.msg = 'Signed out in another tab.' } }
+  else if (!s || st.uid !== s.uid) { AUTH10.s = st; AUTH10.saves = {}; AUTH10.ask = null; AUTH10.link = null; AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 3) }
+  else if (st.rt !== s.rt || st.at !== s.at) { if (st.exp >= s.exp) AUTH10.s = st; return }
+  else return;
+  acctChip10(); if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false);
+});
 // ---- sign up, sign in, sign out
 const emailOk10 = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 async function signUp10(email, pw, name) {
@@ -78,7 +94,7 @@ async function signIn10(email, pw) {
 function authFail10(why) { AUTH10.err = why; acctDraw10(); return false }
 async function signOut10() {
   const s = AUTH10.s; if (!s) return; AUTH10.busy = 'Saving and signing out…'; acctDraw10();
-  try { if (!AUTH10.ask) for (const slot of ['career', 'sandbox']) await syncUp10(slot) } catch (e) {}// one last save; the parks also stay on this device
+  try { if (!AUTH10.ask && !AUTH10.link) await syncJob10(async () => { for (const slot of ['career', 'sandbox']) await syncUp10(slot) }) } catch (e) {}// one last save; the parks also stay on this device
   try { const tk = await token10(); if (tk) await authApi10('logout?scope=local', null, { token: tk, ms: 6000 }) } catch (e) {}
   AUTH10.busy = ''; AUTH10.err = ''; authClear10('Signed out. Your parks are still on this device.');
 }
@@ -91,7 +107,7 @@ async function recover10(email) {
 async function newPw10(pw) {
   AUTH10.err = AUTH10.msg = ''; if (String(pw || '').length < 8) return authFail10('Use a password of at least 8 characters.');
   AUTH10.busy = 'Changing the password…'; acctDraw10();
-  try { const tk = await token10(); if (!tk) throw { status: 401 }; await authApi10('user', { password: pw }, { method: 'PUT', token: tk }); AUTH10.busy = ''; AUTH10.ui.pw2 = ''; AUTH10.recover = false; AUTH10.msg = 'Your password is changed.'; acctDraw10(); return true }
+  try { const tk = await token10(); if (!tk) throw { status: 401 }; await authApi10('user', { password: pw }, { method: 'PUT', token: tk }); AUTH10.busy = ''; AUTH10.ui.pw2 = ''; AUTH10.recover = false; if (AUTH10.link) { AUTH10.link = null; AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 2) } AUTH10.msg = 'Your password is changed.'; acctDraw10(); return true }
   catch (e) { AUTH10.busy = ''; return authFail10(authWhy10(e)) }
 }
 async function newName10(n) {
@@ -106,11 +122,18 @@ function acctHash10() {
   const q = new URLSearchParams(h.replace(/^#/, '')); try { history.replaceState(null, '', location.pathname + location.search) } catch (e) {}
   if (q.get('error_description')) { AUTH10.err = 'That link did not work: ' + q.get('error_description') + '.'; acctOpen10(); return true }
   const at = q.get('access_token'), rt = q.get('refresh_token'), rec = q.get('type') === 'recovery'; if (!at || !rt) return false;
-  authApi10('user', null, { method: 'GET', token: at }).then(u => { authSet10({ access_token: at, refresh_token: rt, expires_in: +q.get('expires_in') || 3600, user: u }); AUTH10.recover = rec; AUTH10.msg = rec ? 'Choose a new password for your account.' : 'You are signed in.'; acctChip10(); acctOpen10(); if (!rec) syncAll10() }).catch(e => { AUTH10.err = authWhy10(e); acctOpen10() });
+  // 10.1: a link signs this browser in to whichever account the LINK belongs to. Someone could send a link to their
+  // own account, hoping this device's parks get saved into it. So nothing is sent or fetched after a link until the
+  // player has seen which account it is and said yes (AUTH10.link); "Not me" signs out without sending anything.
+  authApi10('user', null, { method: 'GET', token: at }).then(u => { const was = AUTH10.s && AUTH10.s.uid; if (!u || typeof u !== 'object' || !authSet10({ access_token: at, refresh_token: rt, expires_in: cInt10(q.get('expires_in'), 60, 86400 * 30, 3600), user: u })) throw { status: 401 }; if (was && was !== AUTH10.s.uid) { AUTH10.saves = {}; AUTH10.ask = null } AUTH10.recover = rec; AUTH10.link = { email: AUTH10.s.email || '', uid: AUTH10.s.uid }; AUTH10.msg = rec ? 'Choose a new password for your account.' : ''; acctChip10(); acctOpen10() }).catch(e => { AUTH10.err = authWhy10(e); acctOpen10() });
   return true;
 }
 // ---- cloud saves: the player's Career and Sandbox parks, one row each
 const rawPark10 = slot => { try { return localStorage.getItem(K10 + 'park.' + slot) } catch (e) { return null } };
+// (10.1) the summary of a cloud save, rebuilt field by field
+const cMeta10 = m => m && typeof m === 'object' && !Array.isArray(m) ? { name: nameOk10(m.name) || 'My Park', day: cInt10(m.day, 1, 1e6, 1), money: m.money == null ? null : cInt10(m.money, -1e12, 1e12), rating: cInt10(m.rating, 0, 100), things: cInt10(m.things, 0, 5000) } : null;
+const cSave10 = sv => sv && typeof sv === 'object' && (sv.slot === 'career' || sv.slot === 'sandbox') && Number.isInteger(sv.rev) && sv.rev > 0 ? { slot: sv.slot, meta: cMeta10(sv.meta), rev: sv.rev, device: typeof sv.device === 'string' ? sv.device.slice(0, 40) : '', updated: typeof sv.updated === 'string' ? sv.updated.slice(0, 40) : '' } : null;
+const cSaves10 = a => Array.isArray(a) ? a.slice(0, 4).map(cSave10).filter(Boolean) : [];
 const metaOf10 = P_ => ({ name: nameOk10(P_.name) || 'My Park', day: +P_.day || 1, money: P_.mode === 'sandbox' ? null : Math.round(+P_.money || 0), rating: Math.round(+P_.rating || 0), things: Array.isArray(P_.objs) ? P_.objs.length : 0 });
 const metaRaw10 = raw => { try { return metaOf10(JSON.parse(raw)) } catch (e) { return null } };
 const untouched10 = raw => { try { const P_ = JSON.parse(raw); return (+P_.day || 1) <= 1 && (!P_.objs || !P_.objs.length) && !(P_.tot && P_.tot.exp > 0) } catch (e) { return true } };
@@ -119,35 +142,43 @@ function syncRec10(slot) { const st = LSP10('sync', {}); return AUTH10.s && st.u
 function syncMark10(slot, rev, h) { let st = LSP10('sync', {}); if (!AUTH10.s) return; if (st.uid !== AUTH10.s.uid) st = { uid: AUTH10.s.uid }; st[slot] = { rev, h }; SSP10('sync', st) }
 const liveSlot10 = slot => TY.on && !TY.visit && TY.slot === slot;
 // send this device's park. base = the cloud revision it replaces (undefined: the one this device last saw)
+// 10.1: sync jobs never overlap. A save sent while the page was being hidden could still be on its way when the next
+// full sync started; the two then disagreed about the newest revision and the player was asked to choose between
+// "two different parks" that were the same park. Every job now waits for the one before it.
+let _syncQ10 = Promise.resolve();
+const syncJob10 = f => { const r = _syncQ10.then(f, f); _syncQ10 = r.then(() => {}, () => {}); return r };
 async function syncUp10(slot, base) {
-  if (!AUTH10.s) return { off: true }; if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot); if (!raw) return { none: true };
+  if (!AUTH10.s || AUTH10.link) return { off: true }; if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot); if (!raw) return { none: true };
   const rec = syncRec10(slot), h = hash10(raw); if (base === undefined) { if (rec && rec.h === h) return { same: true }; base = rec ? rec.rev : null }
   let P_; try { P_ = JSON.parse(raw) } catch (e) { return { none: true } }
   const r = await rpc10('cl_save_put', { p_slot: slot, p_data: P_, p_meta: metaOf10(P_), p_device: devName10(), p_base_rev: base }, 30000);
-  if (r && r.conflict) return r; syncMark10(slot, r.rev, h); AUTH10.saves[slot] = { slot, meta: metaOf10(P_), rev: r.rev, device: devName10(), updated: new Date().toISOString() }; return r;
+  if (r && r.conflict) return { conflict: true, rev: cInt10(r.rev, 0, 1e15), meta: cMeta10(r.meta), device: typeof r.device === 'string' ? r.device.slice(0, 40) : '', updated: typeof r.updated === 'string' ? r.updated.slice(0, 40) : '' };
+  if (!r || !Number.isInteger(r.rev) || r.rev < 1) throw new Error('the cloud gave an answer the game does not understand'); syncMark10(slot, r.rev, h); AUTH10.saves[slot] = { slot, meta: metaOf10(P_), rev: r.rev, device: devName10(), updated: new Date().toISOString() }; return r;
 }
 // fetch the cloud park onto this device. The park it replaces is kept as a backup on this device.
 async function syncDown10(slot) {
   const r = await rpc10('cl_save_get', { p_slot: slot }, 30000); if (!r) return false;
+  if (typeof r !== 'object' || !Number.isInteger(r.rev) || r.rev < 1) throw new Error('the cloud gave an answer the game does not understand');
   const P_ = cleanPark10(r.data, slot); if (!P_) throw new Error('the park in the cloud could not be read');
   if (liveSlot10(slot)) savePark10(); const old = rawPark10(slot), raw = JSON.stringify(P_, skipRt10);
   try { if (old && old !== raw && !untouched10(old)) localStorage.setItem(K10 + 'park.' + slot + '.bak', old); localStorage.setItem(K10 + 'park.' + slot, raw) } catch (e) { saveFail81('v10.park', e); throw new Error('this device is out of storage space') }
-  syncMark10(slot, r.rev, hash10(raw)); AUTH10.saves[slot] = { slot, meta: r.meta || metaOf10(P_), rev: r.rev, device: r.device, updated: r.updated };
+  syncMark10(slot, r.rev, hash10(raw)); AUTH10.saves[slot] = { slot, meta: cMeta10(r.meta) || metaOf10(P_), rev: r.rev, device: typeof r.device === 'string' ? r.device.slice(0, 40) : '', updated: typeof r.updated === 'string' ? r.updated.slice(0, 40) : '' };
   if (liveSlot10(slot)) { TY.sel = null; tyEnter10(slot, loadPark10(slot)); toast10('☁ Loaded the newer park from your account', 'acct', true) }// the view stays where it was
   return true;
 }
 // the player started a park again from nothing: the copy in the account goes too (at the next sync if offline now)
 function acctWiped10(slot) { if (!AUTH10.s) return; const st = LSP10('sync', {}); if (st.uid !== AUTH10.s.uid) return; st[slot] = { rev: st[slot] ? st[slot].rev : 0, h: 0, wiped: true }; SSP10('sync', st); AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 1.5) }
 // bring this device and the account in line. Never overwrites a played park without asking.
-async function syncAll10() {
-  if (!AUTH10.s || AUTH10.syncing) return false;
+function syncAll10() { if (!AUTH10.s || AUTH10.syncing || AUTH10.link) return Promise.resolve(false); return syncJob10(syncAllNow10) }
+async function syncAllNow10() {
+  if (!AUTH10.s || AUTH10.syncing || AUTH10.link) return false;
   if (AUTH10.ask) {// a choice is waiting: nothing is sent or fetched, but what the page shows about both parks is brought up to date
-    AUTH10.syncing = true; try { const a = AUTH10.ask, me = await rpc10('cl_me', {}), cl = me && (me.saves || []).find(q => q.slot === a.slot); if (AUTH10.ask === a) { if (cl) a.cloud = cl; if (liveSlot10(a.slot)) savePark10(); const raw = rawPark10(a.slot); if (raw) a.local = metaRaw10(raw) } } catch (e) {} AUTH10.syncing = false; if (AUTH10.open) acctDraw10(); return false }
+    AUTH10.syncing = true; try { const a = AUTH10.ask, me = await rpc10('cl_me', {}), cl = me && cSaves10(me.saves).find(q => q.slot === a.slot); if (AUTH10.ask === a) { if (cl) a.cloud = cl; if (liveSlot10(a.slot)) savePark10(); const raw = rawPark10(a.slot); if (raw) a.local = metaRaw10(raw) } } catch (e) {} AUTH10.syncing = false; if (AUTH10.open) acctDraw10(); return false }
   AUTH10.syncing = true; AUTH10.syncErr = ''; if (AUTH10.open) acctDraw10(); let ok = false;
   try {
     const me = await rpc10('cl_me', {}); if (!me) throw { status: 401 }; if (!AUTH10.s) return false;
     if (me.username && me.username !== AUTH10.s.name) { AUTH10.s.name = nameOk10(me.username); SSP10('auth', AUTH10.s); acctChip10() }
-    AUTH10.saves = {}; for (const sv of me.saves || []) AUTH10.saves[sv.slot] = sv;
+    AUTH10.saves = {}; for (const sv of cSaves10(me.saves)) AUTH10.saves[sv.slot] = sv;
     for (const slot of ['career', 'sandbox']) {
       let cl = AUTH10.saves[slot], rec = syncRec10(slot); if (liveSlot10(slot)) savePark10(); const raw = rawPark10(slot), h = raw ? hash10(raw) : 0;
       if (rec && rec.wiped) { if (cl) await rpc10('cl_save_delete', { p_slot: slot }); delete AUTH10.saves[slot]; cl = null; const st = LSP10('sync', {}); delete st[slot]; SSP10('sync', st); rec = null }
@@ -163,7 +194,8 @@ async function syncAll10() {
   if (AUTH10.open) acctDraw10(); if (UI72.pk === 'ty10' && UI72.pkTab === 'share') renderPk72(false); return ok;
 }
 // the player chose which of two different parks to keep; the other one stays on this device as a backup
-async function syncKeep10(which) {
+function syncKeep10(which) { if (!AUTH10.ask || AUTH10.syncing) return Promise.resolve(false); return syncJob10(() => syncKeepNow10(which)) }
+async function syncKeepNow10(which) {
   const a = AUTH10.ask; if (!a || AUTH10.syncing) return false; AUTH10.syncing = true; AUTH10.syncErr = ''; AUTH10.busy = which === 'cloud' ? 'Loading the park from your account…' : 'Sending this device’s park to your account…'; acctDraw10(); let ok = false;
   try {
     if (which === 'cloud') await syncDown10(a.slot);
@@ -183,7 +215,7 @@ function bakSwap10(slot) {
 TICKS72.push((dt, raw) => { if (!AUTH10.s) return; AUTH10.t -= raw; if (AUTH10.t > 0) return; AUTH10.t = 180; if (AUTH10.syncing || AUTH10.ask || !TY10.booted) return; if (TY.on && !TY.visit || AUTH10.dirty) syncAll10().then(ok => { if (AUTH10.s) AUTH10.t = Math.min(AUTH10.t, ok ? 180 : 90) }) });
 on72('ty10', ({ on }) => { if (AUTH10.s) { AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, on ? 2 : .5) } });
 { const f0 = endDay10; endDay10 = function () { const r = f0.apply(this, arguments); if (AUTH10.s) { AUTH10.dirty = true; AUTH10.t = Math.min(AUTH10.t, 4) } return r } }
-addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && AUTH10.s && TY.on && !TY.visit && !AUTH10.syncing && !AUTH10.ask) syncUp10(TY.slot).catch(() => {}) });
+addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && AUTH10.s && TY.on && !TY.visit && !AUTH10.syncing && !AUTH10.ask && !AUTH10.link && (TY.slot === 'career' || TY.slot === 'sandbox')) { const slot = TY.slot; syncJob10(() => syncUp10(slot)).catch(() => {}) } });
 // ---- the account page
 const ago10 = iso => { const t = Date.parse(iso); if (!isFinite(t)) return ''; const s = Math.max(0, (Date.now() - t) / 1000); return s < 90 ? 'just now' : s < 3600 ? Math.round(s / 60) + ' min ago' : s < 86400 ? Math.round(s / 3600) + ' h ago' : Math.round(s / 86400) + ' days ago' };
 const metaLine10 = m => m ? 'day ' + (m.day || 1) + (m.money != null ? ' · ' + money10(m.money) : ' · sandbox') + ' · ' + (m.things || 0) + ' things built' : '';
@@ -203,6 +235,7 @@ ${note}<button class="btn primary acGo" type="submit"${dis}>${up ? 'Create my ac
 <p class="acFine">Your email is only used to sign you in and to reset your password.</p>`;
   }
   if (A.recover) return `<div class="acWho"><i>👤</i><div><b>${html10(s.name || 'Player')}</b><small>${html10(s.email)}</small></div></div><h3>Choose a new password</h3><form id="acF" data-acform="pw" novalidate><label for="acPw2">New password<small>At least 8 characters</small></label>${pwField('acPw2', 'pw2', 'new-password', 'New password')}${note}<button class="btn primary acGo" type="submit"${dis}>Save the new password</button></form><div class="acRow"><span></span><button type="button" class="acLink" data-ac="norecover">Not now</button></div>`;
+  if (A.link) return `<div class="acWho"><i>👤</i><div><b>${html10(s.name || 'Player')}</b><small>${html10(s.email)}</small></div></div><h3>Is this your account?</h3><p class="acSub">You opened a sign-in link, and this browser is now signed in as <b>${html10(s.email || s.name || 'this account')}</b>. If you asked for that link, carry on. If someone else sent it to you, choose “Not me”: nothing from this device has been sent to that account.</p>${note}<div class="acRow"><button type="button" class="btn" data-ac="linkno"${dis}>Not me · sign out</button><button type="button" class="btn primary" data-ac="linkyes"${dis}>Yes, keep me signed in</button></div>`;
   if (A.ask) { const a = A.ask, nm = a.slot === 'sandbox' ? 'Sandbox' : 'Career', c = a.cloud.meta || {}, l = a.local || {};
     return `<div class="acWho"><i>👤</i><div><b>${html10(s.name || 'Player')}</b><small>${html10(s.email)}</small></div></div><h3>Two different ${nm} parks</h3><p class="acSub">Your account has a ${nm} park, and this device has a different one. Which one do you want to keep playing? The other one is kept as a backup on this device, so nothing is lost.</p>
 <div class="acPick"><button type="button" data-ac="keep:cloud"${dis}><i>☁</i><b>${html10(c.name || 'Park in your account')}</b><small>${html10(metaLine10(c))}</small><small>saved ${html10(ago10(a.cloud.updated))}${a.cloud.device ? ' from ' + html10(a.cloud.device) : ''}</small><em>Use the park in my account</em></button>
@@ -238,6 +271,8 @@ function acctAct10(a) {
     case 'sync': A.err = A.msg = ''; syncAll10(); break;
     case 'play': acctClose10(); if (!TY.on) tyOpen10(); break;
     case 'keep': syncKeep10(v_ === 'cloud' ? 'cloud' : 'local'); break;
+    case 'linkyes': A.link = null; A.err = ''; A.msg = 'You are signed in.'; acctDraw10(); syncAll10(); break;
+    case 'linkno': signOut10(); break;
     case 'bak': ask7('Swap this park with the backup kept on this device? The park you have now becomes the backup.', 'Swap them', 'Cancel').then(y => { if (y && bakSwap10(v_ === 'sandbox' ? 'sandbox' : 'career')) { A.msg = 'Swapped. The park you had is now the backup.'; acctDraw10() } }); break;
   }
 }

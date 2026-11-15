@@ -3,7 +3,7 @@
 // Saves before/after pictures in tests/shots/gfx_*.png (glow on vs off, a fast drop with motion blur, a phone).
 const { open } = require('./harness');
 const fs = require('fs');
-const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
+const ROOT = require('path').join(__dirname, '..') + '/', F = ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 fs.mkdirSync(SH, { recursive: true });
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const G = () => window.__coasterDebug.v80.v10.gfx;
