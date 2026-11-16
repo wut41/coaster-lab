@@ -1,7 +1,7 @@
 # Coaster Lab tests
 
 Automated checks for `coaster_lab_v10_1.html`. They run the real game in headless Chromium at a 390×844 phone
-size and an 844×390 landscape size (`t6_v90`, `t8_v10_park`, `t11_v10_account` and `t20`–`t24` also at 320×568 and 1200×800). three.js comes from the npm package instead of the CDN; it is byte-identical,
+size and an 844×390 landscape size (`t6_v90`, `t8_v10_park`, `t11_v10_account` and `t21`–`t24` also at 320×568 and 1200×800; `t20_security` runs at 390×844 and 1200×800, and its one new screen, the "Is this your account?" question, at all four). three.js comes from the npm package instead of the CDN; it is byte-identical,
 so the page's integrity check still passes.
 
 ```bash
@@ -33,10 +33,10 @@ node t4_corners.js                # optional, slow (~15 min): proves every Daily
 | `t15_parksim` | 10.1 park: upkeep and going broke, themed scenery and rides, on-ride photos, families, the four scenarios |
 | `t16_builder` | 10.1 builder: the roomier piece picker, recent pieces, the force colours, handles |
 | `t20_security` | **10.1 hardening**, each item attacked on 10.1 and, where it shows the problem, on 10.0 for comparison: hostile leaderboard rows, the Content-Security-Policy, park codes with built-in property names, the published code, a park code that unpacks to 12 MB, a flood of fake live visitors, the owner lock, a hostile design, two tabs sharing a sign-in (renewing one after the other and at the same moment, signing out, a renewal still on its way during a sign-out: the account server's answer is held back to make those moments last), sign-in links |
-| `t21_saves` | **10.1 saves**: daily backups and going back to one, a save that cannot be read (with the 10.0 comparison), the same park in two tabs (with the 10.0 comparison), backup files and every way one can be wrong, the warning that stays while saving fails, four screen sizes |
+| `t21_saves` | **10.1 saves**: daily backups and going back to one, a save that cannot be read (with the 10.0 comparison), the same park in two tabs (with the 10.0 comparison), backup files and every way one can be wrong, the warning that stays while saving fails, four screen sizes, and going back: a park saved by 10.1 opened in 10.0 and again in 10.1 |
 | `t22_diag` | **10.1 Diagnostics**: every section and its numbers, recorded errors with tokens cut short, each health warning and its threshold, the report (no tokens, no device key), the on-screen counter, hidden from players, four screen sizes |
 | `t23_builder6` | **10.1 Track Builder**: live numbers and what a change does to them, the status chip, good next pieces by situation, History and named Undo, Test from here, the ten new layouts measured with the builder's own check, sketch matching, the phone layout, four screen sizes |
-| `t24_parkpro` | **10.1 My Park**: the books against the ledger, the week, saving and cleaning a hand-edited save, why visitors went home, the Advisor's rules, the short line, mechanic order and the service policy, recent events, the Visitors tab, the CSV download, a long busy day with families, four screen sizes |
+| `t24_parkpro` | **10.1 My Park**: the books against the ledger, the week, saving and cleaning a hand-edited save, why visitors went home, the Advisor's rules, the short line, mechanic order and the service policy, recent events, the Visitors tab, the CSV download, a long busy day with families, four screen sizes, and the starter park that stops 10.0 with "Maximum call stack size exceeded" (10.1 plays it for three days) |
 
 Most suites can run one section at a time: `T8=C node t8_v10_park.js`, `T9=A node t9_sound.js`, `T11=BC node t11_v10_account.js`,
 `T20=AB node t20_security.js`, `T21=C node t21_saves.js`, `T22=A node t22_diag.js`, `T23=DE node t23_builder6.js`, `T24=H node t24_parkpro.js`.

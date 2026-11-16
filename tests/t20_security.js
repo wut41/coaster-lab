@@ -201,6 +201,19 @@ const code = o => 'CL10J' + Buffer.from(JSON.stringify(o)).toString('base64url')
     const Y = await open(F, { w: 390, h: 844, cloud, storage: { 'coasterlab.v10.park.career': park }, hash: '#access_token=' + s2.access_token + '&expires_in=3600&refresh_token=' + s2.refresh_token + '&token_type=bearer&type=magiclink' });
     await until(Y.page, () => window.__coasterDebug.v80.v10.acct.state().in, null, 8000); await Y.page.waitForTimeout(500); await Y.page.click('#acB [data-ac="linkyes"]'); await idle(Y.page); await until(Y.page, () => window.__coasterDebug.v80.v10.acct.state().synced, null, 8000);
     ok(db.saves.length === 1 && db.saves[0].data.name === 'Victim Park', '“Yes, keep me signed in” carries on as before: the park is saved to the account'); await Y.browser.close();
+    { // the question at the four screen sizes: it fits, a long address shows in full, both answers are on screen and big enough to tap
+      const bad = [], mail = 'mallory.longer-address@example.test';
+      for (const [w, h] of [[320, 568], [390, 844], [844, 390], [1200, 800]]) {
+        const { cloud: c4 } = makeCloud(); c4('auth/signup', { email: mail, password: PW, data: { username: 'Mallory' } }, { query: {} });
+        const s4 = c4('auth/token', { email: mail, password: PW }, { query: { grant_type: 'password' } }).json;
+        const Q = await open(F, { w, h, mobile: w < 1000, cloud: c4, hash: '#access_token=' + s4.access_token + '&expires_in=3600&refresh_token=' + s4.refresh_token + '&token_type=bearer&type=magiclink' });
+        await until(Q.page, () => window.__coasterDebug.v80.v10.acct.state().in, null, 8000); await Q.page.waitForTimeout(700);
+        const r = await Q.page.evaluate(m => { const b = document.querySelector('#acB'), on = sel => { const e = b.querySelector(sel); if (!e) return false; const q = e.getBoundingClientRect(); return q.left >= 0 && q.right <= innerWidth + 1 && q.top >= 0 && q.bottom <= innerHeight + 1 && q.height >= 43.5 };
+          return { asks: /Is this your account/.test(b.textContent) && b.textContent.includes(m), yes: on('[data-ac="linkyes"]'), no: on('[data-ac="linkno"]'), wide: [...b.querySelectorAll('*')].some(e => { const q = e.getBoundingClientRect(); return q.width > 0 && (q.right > innerWidth + 1 || q.left < -1) }), over: Math.max(b.scrollWidth - b.clientWidth, document.documentElement.scrollWidth - innerWidth) } }, mail);
+        const errs = quiet(Q.errors); if (!r.asks || !r.yes || !r.no || r.wide || r.over > 1 || errs.length) bad.push(w + '×' + h + ' ' + JSON.stringify(r) + ' ' + errs.join(' | ').slice(0, 120));
+        await Q.page.screenshot({ path: SH + 'v101_sec_link_' + w + 'x' + h + '.png' }); await Q.browser.close();
+      }
+      ok(bad.length === 0, 'the question fits 320×568, 390×844, 844×390 and 1200×800: a long address shows in full, both answers are on screen and at least 44 px tall, nothing is cut off, no errors' + (bad.length ? ' — NOT: ' + bad.join('; ').slice(0, 400) : '')); }
   }
   console.log(fails ? `\n${fails} FAILED` : '\nall passed'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('FAIL suite crashed: ' + (e.stack || e.message).slice(0, 600)); process.exit(1) });

@@ -61,7 +61,7 @@ attack. Findings marked ☁ only become reachable when that is switched on, whic
 
 | # | Sev. | Finding | Where | Evidence | Fix | Test |
 |---|---|---|---|---|---|---|
-| B1 | **High** | My Park could crash with "Maximum call stack size exceeded" | `47_parksim.js` (a child following a family leader), through `gGo10 → gDecide10 → gArrive10 → gStep10` | **Confirmed, but random**: it stopped a test run of an early 10.1 build whose visitor code was still the upload's, it stopped a seven-day economy run of 10.0 itself (`tests/tools/balance.js`, on day 1) while this report was being finished, and the same crash had already been found and fixed on the `park-build-2` branch. There is no test that makes 10.0 fail every time | The fix from `park-build-2`, plus a safety net that stops any visitor after six nested decisions | `t9`, `t24` H (long busy days with families: no errors) |
+| B1 | **High** | My Park crashed with "Maximum call stack size exceeded" | `47_parksim.js` (a visitor following a family leader), through `gGo10 → gDecide10 → gArrive10 → gStep10` | **Confirmed**: an ordinary starter park (two flat rides, food, drinks, restrooms) stops 10.0 within two park days. It did so in 8 runs of 8; which day depends on which visitors turn up. The old suites never built that park, which is why the 10.0 baseline passed. The same crash had already been found and fixed on the `park-build-2` branch | The fix from `park-build-2`, plus a safety net that stops any visitor after six nested decisions. In the test the safety net is never needed | `t24` J (10.0 stops, 10.1 plays three days), `t24` H, `t9` |
 | B2 | **High** | A save that could not be read was silently replaced by an empty park | `loadPark10` | **Confirmed** on 10.0: a day-3 park became a new day-1 park | The unreadable save is kept, the newest backup is loaded, the player is told | `t21` B |
 | B3 | **High** | With the game open in two tabs, the older tab saved over the newer park | `savePark10` | **Confirmed** on 10.0: two of three benches gone | Saves are numbered; the older tab stops and says why; a background tab catches up | `t21` C |
 | B4 | **Medium** | A failing save (storage full or blocked) gave a passing notice, at most once a minute; nothing on screen showed that the park was still unsaved | `savePark10`, 8.1 `saveFail81` | **Confirmed by reading**; the fix by test | A warning stays on screen until a save works; the Office says what to do | `t21` E |
@@ -107,6 +107,7 @@ Not everything needed changing. These were checked and left alone:
 | The owner lock is a lock on the page | Someone who edits their copy of the page can open the owner tools, which change only their own copy | Nothing needed while owner tools have no server powers. Any future moderation of published parks must be a server role, never this lock |
 | Inline scripts are still allowed by the policy | The game is one file with one large inline script | Serve the script as a separate file with a hash or nonce |
 | The policy is a `<meta>` tag | A single file cannot send response headers, so `frame-ancestors` (who may embed the game) cannot be set | Set the header where the file is hosted |
+| A session's access token works until it runs out, even after "Sign out" | That is how the account service works: signing out ends the session and its renewals, and the game forgets the token, but a token that was copied earlier stays valid until it expires (an hour unless changed) | A shorter token lifetime in the Auth settings, or database functions that check the session still exists (Supabase documents both) |
 | Two tabs saving in the very same instant | Browser storage has no lock; the save counter narrows the window to milliseconds but cannot close it | The Web Locks API, where the browser has it |
 | Park codes and backup files from strangers | They are cleaned field by field on the way in; a new field added carelessly later could bypass that | Keep the rule: every new saved field gets a line in `cleanPark10` |
 | Local saves can be edited by their owner | They are on the owner's device | Nothing: it is their own single-player game. It is why game money must never be sold |
@@ -159,8 +160,12 @@ mark). Park money must not be sold, and a page-only unlock is an honour system a
 - **The online features are still off** in the real project: neither database migration has been applied.
 - **No real phone was used.** Sizes were tested in a desktop browser set to phone dimensions. Frame rates in the
   tests are from software graphics and say nothing about a real device.
-- **The crash fix (B1) is proven by absence.** The crash was random; the long busy-day tests now run clean, but no
-  test makes the old code fail every time.
+- **The crash test (B1) depends on chance in 10.0.** Which visitors turn up decides the day 10.0 stops on. It stopped
+  within two park days in 8 runs of 8, and the test allows a second try, but a 10.0 run that survives three days is
+  possible. The 10.1 half of the test does not depend on chance.
+- **The two-tab sign-in tests use a stand-in for the account server** that refuses a used renewal token at once.
+  The real service, by default, accepts a used token again for 10 seconds (Supabase's documentation), so those
+  moments should be rarer there. They could not be tried against the real service.
 - **Staff "busy" figures, repair times and Recent events live in memory.** They restart when the page is reloaded.
   The week's books, queue settings and the service policy are saved with the park.
 - **A park from before 10.1** has no day counters, so each ride's "today" starts counting when the park is first

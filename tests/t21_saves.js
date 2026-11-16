@@ -1,11 +1,12 @@
 // Coaster Lab 10.1 — saves you can rely on (My Park): the daily backups, going back to one, a save that cannot be
-// read, the same park open in two tabs, backup files and the warning that stays while saving fails.
+// read, the same park open in two tabs, backup files, the warning that stays while saving fails, and going back to
+// 10.0 with a park that 10.1 saved.
 // "(10.0, for comparison)" lines run the same steps on coaster_lab_v10_0.html and PASS when 10.0 shows the problem.
 //   node t21_saves.js          T21=BC node t21_saves.js
 const { open, tab } = require('./harness'), fs = require('fs');
 const ROOT = require('path').join(__dirname, '..') + '/', F = process.env.CL_F || ROOT + 'coaster_lab_v10_1.html', OLD = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
 fs.mkdirSync(SH, { recursive: true });
-const ONLY = process.env.T21 || 'ABCDEF';
+const ONLY = process.env.T21 || 'ABCDEFG';
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const quiet = e => e.filter(x => !/WebSocket|ERR_FAILED|net::|Failed to load resource|could not save|another tab|damaged/.test(x));
 const T = (pg, expr, a) => pg.evaluate(new Function('a', 'const D = window.__coasterDebug.v80.v10, T = D.ty; return ' + expr), a);
@@ -138,6 +139,26 @@ const show = (pg, v) => pg.evaluate(v => { window.__vis = v; const e = new Event
       const r = await page.evaluate(() => { const b = document.querySelector('#pkB'), row = [...b.querySelectorAll('h3')].find(x => /Saves and backups/.test(x.textContent)); if (row) row.scrollIntoView(); return { over: b.scrollWidth - b.clientWidth, has: !!row, btns: [...b.querySelectorAll('[data-x^="sv"]')].every(x => { const q = x.getBoundingClientRect(); return q.width > 0 && q.left >= 0 && q.right <= innerWidth + 1 }) } });
       ok(r.has && r.over <= 1 && r.btns && quiet(errors).length === 0, w + '×' + h + ': Saves and backups fits the Office (no sideways scrolling, every button on screen), no errors'); await page.screenshot({ path: SH + 'v101_saves_' + w + 'x' + h + '.png' }); await browser.close();
     }
+  }
+  // ---------- G. going back: a park saved by 10.1 opens in 10.0, and comes back to 10.1
+  if (ONLY.includes('G')) {
+    const L = require('./tools/park_lib'), P = (pg, expr, a) => pg.evaluate(new Function('a', 'const D = window.__coasterDebug.v80.v10, T = D.ty, P = D.pro; return ' + expr), a);
+    const all = pg => pg.evaluate(() => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k) } return o });
+    // 10.1: a park with a day of books, the service policy switched on and a short line on the carousel
+    let w = await open(F, { w: 1200, h: 800, mobile: false }); await P(w.page, 'T.fresh("career", 60000)'); await P(w.page, 'T.speed(0)');
+    for (const [k, i, j] of [['carousel', 21, 40], ['burger', 26, 43], ['bench', 23, 44]]) { const b = await w.page.evaluate(L.place, [k, i, j, 6]); if (!b.ok) throw new Error('could not build ' + k); await w.page.evaluate(L.connect, [b.id]) }
+    await P(w.page, 'T.time(600)'); await P(w.page, 'T.spawn(40)'); await P(w.page, 'T.ff(100)'); await P(w.page, 'T.dayEnd()'); await w.page.waitForTimeout(150); await w.page.evaluate(() => { const e = document.querySelector('#tyDay'); if (e) e.hidden = true }); await P(w.page, 'T.act("dayx")');
+    await P(w.page, 'P.setPol(1)'); await P(w.page, 'T.act("hq", "rep")'); await w.page.waitForTimeout(500); await w.page.evaluate(() => document.querySelector('#pkB [data-x^="ql:"]').click()); await w.page.waitForTimeout(300); await P(w.page, 'T.save()');
+    const a = await P(w.page, 'T.saved()'), raw = await all(w.page), e1 = quiet(w.errors); await w.browser.close();
+    // 10.0 opens it, lets some park time pass and saves it its own way
+    w = await open(OLD, { w: 1200, h: 800, mobile: false, storage: raw }); await T(w.page, 'T.open("career")'); await w.page.waitForTimeout(1200); const st0 = await T(w.page, 'T.state()'); await T(w.page, 'T.ff(30)'); await T(w.page, 'T.save()');
+    const b = await T(w.page, 'T.saved()'), raw0 = await all(w.page), e0 = quiet(w.errors); await w.browser.close();
+    ok(a.wk && a.wk.length >= 1 && !!a.pol && a.objs[0].ql === 1 && e1.length === 0 && st0.day === a.day && Math.round(st0.money) === Math.round(a.money) && st0.objs === a.objs.length && e0.length === 0, `a park saved by 10.1 (day ${a.day}, $${Math.round(a.money)}, ${a.objs.length} things, a week of books, a staff policy, a short line) opens in 10.0 with the same day, money and things, and no errors` + (e0.length ? ' — errors: ' + e0.join(' | ').slice(0, 200) : ''));
+    ok(!('wk' in b) && !('pol' in b) && b.objs.every(o => o.ql === undefined) && b.objs.length === a.objs.length, 'when 10.0 saves it again, only what 10.0 does not know is gone: the week’s books, the staff policy and the short line');
+    // and back in 10.1
+    w = await open(F, { w: 1200, h: 800, mobile: false, storage: raw0 }); await P(w.page, 'T.open("career")'); await w.page.waitForTimeout(1200);
+    const st1 = await P(w.page, 'T.state()'), sv = await P(w.page, 'D.saves.state()'), wk1 = await P(w.page, 'P.wk()'), e2 = quiet(w.errors); await w.browser.close();
+    ok(st1.day === b.day && Math.round(st1.money) === Math.round(b.money) && st1.objs === b.objs.length && !sv.stale && wk1.length === 0 && e2.length === 0, `back in 10.1 the park is as 10.0 left it (day ${st1.day}, $${Math.round(st1.money)}, ${st1.objs} things): no errors, no “another tab has a newer park” warning, and the books start again` + (e2.length ? ' — errors: ' + e2.join(' | ').slice(0, 200) : ''));
   }
   console.log(fails ? `\n${fails} FAILED` : '\nall passed'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('FAIL suite crashed: ' + (e.stack || e.message).slice(0, 600)); process.exit(1) });

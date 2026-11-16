@@ -79,8 +79,9 @@ Security (details and evidence in `REPORT-10.1.md`):
   grants, visits and ratings that cannot be inflated by reloading.
 
 Bugs:
-- **A crash in My Park** ("Maximum call stack size exceeded"): a child following a family leader could be sent back
-  and forth between two choices until the browser gave up. Fixed, with a safety net behind it.
+- **A crash in My Park** ("Maximum call stack size exceeded"): a visitor following a family leader could be sent back
+  and forth between two choices until the browser gave up. An ordinary starter park stopped 10.0 within two park
+  days in every test run. Fixed, with a safety net behind it that the tests show is never needed.
 - An unreadable save was silently replaced by an empty park (see Saves above).
 - The published park code was forgotten on reload.
 - Importing a design with a built-in property name as a section type stopped with an error instead of a message.
