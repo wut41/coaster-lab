@@ -1,11 +1,11 @@
 // Economy check for My Park: plays whole days at full speed in three parks and prints each day's books.
-//   node tools/balance.js
+//   node tools/balance.js          CL_F=../coaster_lab_v10_0.html node tools/balance.js
 //  · "sensible": a starter park the tutorial leads to (two flat rides, food, drinks, restrooms, a small coaster)
 //  · "neglected": one overpriced ride, no food, no staff
 //  · "grown": the sensible park after reinvesting (more rides, a second coaster, more land)
 // A sensible park should make a modest profit from day 2 or 3; a neglected one should lose money and reputation.
 const { open } = require('../harness'), L = require('./park_lib');
-const F = require('path').join(__dirname, '..', '..') + '/coaster_lab_v10_1.html';
+const F = process.env.CL_F || require('path').join(__dirname, '..', '..') + '/coaster_lab_v10_1.html';// CL_F=…/coaster_lab_v10_0.html compares with 10.0
 (async () => {
   const { browser, page, errors } = await open(F, { w: 1200, h: 800, mobile: false });
   const X = (f, a) => page.evaluate(f, a), T = 'window.__coasterDebug.v80.v10.ty';
