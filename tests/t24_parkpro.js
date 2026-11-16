@@ -1,11 +1,11 @@
 // Coaster Lab 10.1 — My Park: the books (📊 Reports), why visitors went home, the 🧭 Park Advisor, queues and the
-// short line, mechanics and the service policy, 🔔 recent events, the Visitors tab, the CSV download, a long busy day
-// and four screen sizes.
+// short line, mechanics and the service policy, 🔔 recent events, the Visitors tab, the CSV download, a long busy day,
+// four screen sizes, and the starter park that stopped 10.0 with "Maximum call stack size exceeded".
 //   node t24_parkpro.js          T24=AB node t24_parkpro.js
 const { open } = require('./harness'), L = require('./tools/park_lib');
 const ROOT = require('path').join(__dirname, '..') + '/', F = process.env.CL_F || ROOT + 'coaster_lab_v10_1.html', SH = __dirname + '/shots/';
 require('fs').mkdirSync(SH, { recursive: true });
-const ONLY = process.env.T24 || 'ABCDEFGHI';
+const ONLY = process.env.T24 || 'ABCDEFGHIJ';
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m) };
 const near = (a, b, e) => Math.abs(a - b) <= (e == null ? 1.01 : e), sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 // the week's books as text, whatever order the keys are in; a reason nobody had (0) is the same as no entry
@@ -195,6 +195,26 @@ const mk = async (o = {}) => {
       const bad = Object.entries(res).filter(([, q]) => q.over > 1 || q.doc > 1 || q.wide.length || !q.tbl);
       ok(bad.length === 0 && errors.length === 0, w + '×' + h + ': Reports, Overview and Visitors fit the screen: nothing is wider than it, no table needs sideways scrolling on a phone, no number is cut off, no errors' + (bad.length ? ' — NOT: ' + JSON.stringify(bad).slice(0, 300) : '') + (errors.length ? ': ' + errors[0].slice(0, 200) : '')); await browser.close();
     }
+  }
+  // ---------- J. the crash 10.0 had in an ordinary starter park
+  if (ONLY.includes('J')) {
+    // two flat rides, food, drinks, restrooms, bins and benches on the entrance path, played at full speed for three park
+    // days. In 10.0 a visitor following a family leader could be sent back and forth between two choices without end.
+    const starter = async file => {
+      const { browser, page, errors } = await open(file, { w: 1200, h: 800, mobile: false }), X = (f, a) => page.evaluate(f, a);
+      await X(() => window.__coasterDebug.v80.v10.ty.fresh('career')); await page.waitForTimeout(400); await X(() => window.__coasterDebug.v80.v10.ty.path(24, 45, 24, 38));
+      for (const q of [['carousel', 20, 42, 3], ['teacups', 28, 42, 3], ['burger', 26, 45, 2], ['drinks', 22, 45, 2], ['toilet', 26, 39, 2], ['bin', 25, 43, 1], ['bin', 23, 40, 1], ['bench', 25, 41, 1], ['bench', 23, 44, 1]]) { const b = await X(L.place, q); if (!b.ok) throw new Error('could not build ' + q[0]); if (!/^(bench|bin)$/.test(q[0])) await X(L.connect, [b.id]) }
+      await X(() => window.__coasterDebug.v80.v10.ty.speed(1)); const d0 = (await X(() => window.__coasterDebug.v80.v10.ty.state())).day; let crash = '', day = d0;
+      try { for (let k = 0; k < 260; k++) { await X(() => window.__coasterDebug.v80.v10.ty.ff(20)); const st = await X(() => { const q = window.__coasterDebug.v80.v10.ty.state(); return { day: q.day, open: q.open } }); day = st.day; if (st.day >= d0 + 3 && st.open) break } }
+      catch (e) { crash = /Maximum call stack/.test(e.message) ? 'Maximum call stack size exceeded' : 'something else: ' + e.message.slice(0, 120) }
+      // 10.1 keeps a count of visitors its safety net had to stop (it should have nothing to do: the cause itself is fixed)
+      const net = crash ? null : await X(() => { const P = window.__coasterDebug.v80.v10.pro; return P && P.loopStops ? P.loopStops() : null });
+      await browser.close(); return { crash, day, played: day - d0, errors, net } };
+    // (which visitors turn up is chance: when this was written 10.0 stopped within two days in 8 runs of 8; one more try is allowed)
+    let o = await starter(ROOT + 'coaster_lab_v10_0.html'); if (!o.crash) o = await starter(ROOT + 'coaster_lab_v10_0.html');
+    ok(/Maximum call stack/.test(o.crash), '(10.0, for comparison) a starter park with two flat rides stops with “' + o.crash + '” on park day ' + o.day);
+    const n = await starter(F);
+    ok(!n.crash && n.played >= 3 && n.errors.length === 0 && n.net === 0, '10.1: the same park plays three whole days: no crash, no errors, and the safety net behind the fix was never needed (stopped ' + n.net + ' visitors)' + (n.crash ? ' — NOT: ' + n.crash : '') + (n.errors.length ? ' — errors: ' + n.errors.join(' | ').slice(0, 300) : ''));
   }
   console.log(fails ? `\n${fails} FAILED` : '\nall passed'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('FAIL suite crashed: ' + (e.stack || e.message).slice(0, 600)); process.exit(1) });

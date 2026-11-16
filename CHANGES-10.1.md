@@ -71,8 +71,9 @@ Security (details and evidence in `REPORT-10.1.md`):
 - Park loader: thing, weather and style names must be the catalogue's own (`constructor`, `toString` got through).
 - Park codes stop unpacking at 4 MB. Shared copies no longer carry the publisher's cloud code.
 - Live presence: at most 40 people, positions inside the park, six known reactions, one a second, reconnects by itself.
-- Accounts: two tabs share a sign-in without signing each other out; a sign-in link asks "Is this your account?"
-  before anything is synced; sync jobs never overlap.
+- Accounts: two tabs share a sign-in without signing each other out, even when both renew it at the same moment;
+  signing out in one tab signs the other out, and a renewal that was still on its way cannot sign them back in; a
+  sign-in link asks "Is this your account?" before anything is synced; sync jobs never overlap.
 - The owner and moderator locks can no longer be opened by typing the test flag into the console.
 - Database (migration, not yet applied): cleaned names and statistics, shape checks, rate limits, least-privilege
   grants, visits and ratings that cannot be inflated by reloading.
