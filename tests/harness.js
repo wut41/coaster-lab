@@ -26,7 +26,7 @@ async function open(file, { w = 390, h = 844, mobile = true, skipStart = true, s
   await ctx.addInitScript(([st]) => {
     window.__coasterTestHarness = true;
     try { for (const k in st) localStorage.setItem(k, st[k]); } catch (e) {}
-  }, [Object.assign({ 'coasterlab.v10.trailerSeen': '1' }, skipStart ? { 'coasterlab.skipStart': '1' } : {}, storage)]);
+  }, [Object.assign({ 'coasterlab.v10.trailerSeen': '1', 'coasterlab.v10.streak': '{"auto":false}' }, skipStart ? { 'coasterlab.skipStart': '1' } : {}, storage)]);
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
   // The game catches a failing background task and only warns ("Coaster Lab: "background task 6" failed (1×); …"), so the rest keeps

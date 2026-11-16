@@ -4,7 +4,7 @@ const { execFileSync } = require('child_process');
 //  hand. The SQL tests for the cloud run separately on a local PostgreSQL: supabase/tests/run.sh)
 const suites = ['t0_baseline', 't1_gravity', 't2a_same', 't2b_disaster', 't3_evolve', 't4_daily', 't5_regress', 't6_v90', 't7_v10_rides', 't8_v10_park', 't9_sound', 't10_v10_gfx', 't11_v10_account',
   't13_terra', 't14_fx', 't15_parksim', 't16_builder',// 10.1 park and builder suites (they existed but were not in this list)
-  't17_parkbuild', 't17_trailer', 't18_coaster_walk',// merged from the park-build-2 and trailer branches
+  't17_parkbuild', 't17_trailer', 't18_coaster_walk', 't19_streak_logic', 't19_streak_dom', 't19_streak',// merged from the park-build-2, trailer and daily-streak branches
   't20_security', 't21_saves', 't22_diag', 't23_builder6', 't24_parkpro'];// the 10.1 engineering upgrade
 let pass = 0, fail = 0; const rows = [];
 for (const s of suites) {
