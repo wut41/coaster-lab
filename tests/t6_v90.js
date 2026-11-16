@@ -14,14 +14,14 @@ const until = async (page, f, ms = 60000) => { const t = Date.now(); while (Date
     await X(() => { const t = document.querySelector('#b8Tour'); if (t) t.hidden = true });
     ok(await X(() => window.__coasterDebug.v80.bld.state().editing), 'builder opens');
     ok(await X(() => window.__coasterDebug.v80.v90.lvl()) === 'beginner', 'a new player starts in Beginner');
-    const chips = () => X(() => [...document.querySelectorAll('#b8Lib .lbC8 button')].map(b => b.dataset.b8lib || 'MORE'));
+    const chips = () => X(() => window.__coasterDebug.v80.v10.builder.cats().concat(document.querySelector('#b8Lib [data-b8="level"][data-v="intermediate"]') ? ['MORE'] : []));// 10.1: the categories behind the picker tabs
     const keys = () => X(() => [...new Set([...document.querySelectorAll('#b8Ins [data-b8pk]')].map(e => e.dataset.b8pk))]);
     const sel = () => X(() => { window.__coasterDebug.v80.bld.range(1, 1) });
     const c0 = await chips(); ok(c0.includes('MORE') && !c0.includes('xtreme') && !c0.includes('launch') && c0.includes('blue') && c0.includes('hills'), 'Beginner library: essentials + a More chip (' + c0.length + ' chips)');
     await sel(); await page.waitForTimeout(300); const k0 = await keys(), n0 = await X(() => document.querySelectorAll('#b8Ins .nm8').length);
     const acts = () => X(() => [...document.querySelectorAll('#b8Dock .sel8 [data-b8]')].map(b => b.dataset.b8));
     const a0 = await acts(); ok(a0.includes('dup') && a0.includes('del') && !a0.includes('mirror') && !a0.includes('saveBp'), 'Beginner selection bar: duplicate / smooth / height / delete only');
-    await X(() => document.querySelector('#b8Lib .more9').click()); await page.waitForTimeout(300);
+    await X(() => document.querySelector('#b8Lib [data-b8="level"][data-v="intermediate"]').click()); await page.waitForTimeout(300);
     ok(await X(() => window.__coasterDebug.v80.v90.lvl()) === 'intermediate', 'the More chip switches to Intermediate'); await X(() => window.__coasterDebug.v80.v90.level('beginner')); await page.waitForTimeout(200);
     await X(() => document.querySelector('#b8Top .b8lv').click()); await page.waitForTimeout(200);
     ok(await X(() => document.querySelectorAll('#b8Top .mn8 .lv9').length) === 3, 'level button opens a menu with three levels');
@@ -63,7 +63,7 @@ const until = async (page, f, ms = 60000) => { const t = Date.now(); while (Date
     await X(() => window.__coasterDebug.v80.bld.build()); await page.waitForTimeout(500);
     // starter blueprints
     const st = await X(() => window.__coasterDebug.v80.v90.starters()); ok(st.length === 3 && st.every(s => s.crit === 0 && s.warn === 0), 'three starter blueprints, each with no must-fix problems and no warnings: ' + st.map(s => s.id).join(', '));
-    await X(() => document.querySelector('#b8Lib [data-b8lib="blue"]').click()); await until(page, () => { const a = [...document.querySelectorAll('#b8Lib .st9')]; return a.length > 5 && a.every(e => / long /.test(e.textContent)) }, 30000);
+    await X(() => window.__coasterDebug.v80.v10.builder.tab('ideas')); await X(() => document.querySelector('#b8Lib [data-b8lib="blue"]').click()); await until(page, () => { const a = [...document.querySelectorAll('#b8Lib .st9')]; return a.length > 5 && a.every(e => / long /.test(e.textContent)) }, 30000);
     const facts = await X(() => [...document.querySelectorAll('#b8Lib .st9')].map(e => e.textContent)); ok(facts.length >= 21 && facts.every(t => / long · .* tall · /.test(t)), 'every ready-made layout lists its measured length, height, speed and thrill, e.g. "' + facts[0] + '"');
     ok(/Starter/.test(await X(() => document.querySelector('#b8Lib .lb8.bp b').textContent)), 'starter layouts are listed first');
     await page.screenshot({ path: SH + 't6_builder_1200.png' });
@@ -132,7 +132,7 @@ const until = async (page, f, ms = 60000) => { const t = Date.now(); while (Date
     ok(errors.length === 0, 'save compatibility: console errors ' + errors.length); await browser.close();
     const ret = await open(F, { w: 390, h: 844, storage: { 'coasterlab.v80.bWelcome': '1' } });
     await ret.page.evaluate(() => window.__coasterDebug.v80.v86.openBuilder()); await ret.page.waitForTimeout(1000); await ret.page.evaluate(() => window.__coasterDebug.v80.bld.act('add')); await ret.page.waitForTimeout(300);
-    ok(await ret.page.evaluate(() => window.__coasterDebug.v80.v90.lvl() === 'intermediate' && !!document.querySelector('#b8Lib [data-b8lib="evo"]') && !!document.querySelector('#b8Lib [data-b8lib="xtreme"]')), 'a returning 8.6 builder lands on Intermediate once, so no library tab (Evolve, Extreme, …) disappears');
+    ok(await ret.page.evaluate(() => window.__coasterDebug.v80.v90.lvl() === 'intermediate' && window.__coasterDebug.v80.v10.builder.cats().includes('evo') && window.__coasterDebug.v80.v10.builder.cats().includes('xtreme')), 'a returning 8.6 builder lands on Intermediate once, so no library tab (Evolve, Extreme, …) disappears');
     await ret.page.evaluate(() => window.__coasterDebug.v80.v90.level('beginner')); await ret.browser.close();
     const back = await open(OLD, { w: 390, h: 844, storage: { 'coasterlab.v80.settings': JSON.stringify({ bLevel: 'intermediate', bubbles: false }) } });
     ok(back.errors.length === 0 && await back.page.evaluate(() => window.__booted === true), 'going back: 8.6 starts cleanly with settings written by 9.0'); await back.browser.close();

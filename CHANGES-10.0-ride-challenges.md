@@ -38,8 +38,8 @@ Progress is saved in this browser under `coasterlab.v10.rch` and cleaned on load
 
 ## Files
 
-- `src/v10/js/45_rch.js` — the whole feature (rules, saving, rewards, screens, test hooks under `__coasterDebug.v80.v10.rch`)
-- `src/v10/css/45_rch.css` — styles
+- `src/v10/js/49_rch.js` — the whole feature (rules, saving, rewards, screens, test hooks under `__coasterDebug.v80.v10.rch`)
+- `src/v10/css/49_rch.css` — styles
 - `tests/t12_rch.js` — 52 checks: rewards, rules, saving, real laps (built-in ride, Disaster Mode, Track Builder
   playtest), phone layout, and proof that every Gold is reachable
 - `coaster_lab_v10_0.html` — rebuilt with `node build.mjs --check`
