@@ -36,3 +36,17 @@
 .rpS10{max-width:100%;width:100%}
 .rp10{table-layout:auto}
 .rp10 td:first-child{white-space:normal;min-width:96px}
+/* on a phone the report tables fit the screen: the widest columns fold into a line under the name (nothing in the
+   Office may be wider than the screen: tests/t8 checks every tab at 320 and 390 wide) */
+.rp10 td small.rpN10{display:none}
+.rpL10{white-space:normal;overflow-wrap:anywhere}
+@media (max-width:560px){
+  .rp10 .rpW10{display:none}.rp10 td small.rpN10{display:block}
+  .rp10 th:not(:first-child),.rp10 td:not(:first-child){padding-left:6px}
+  .rp10 td:first-child{min-width:0}.rpR10,.rpQT10{table-layout:fixed;width:100%}
+  .rpR10 th:not(:first-child){width:78px}.rpQT10 th:not(:first-child){width:54px}.rpQT10 th:last-child{width:62px}
+  .rpQ10{padding:3px 6px;min-width:0}
+}
+/* keyboard focus is always visible on the new park controls, and the text links in the report are tall enough to tap */
+.rpL10:focus-visible,.ty10pk .tyLi:focus-visible,.tySaveW:focus-visible,.rpQ10:focus-visible{outline:2px solid #7fd4ff;outline-offset:2px;border-radius:6px}
+.rpL10{padding:7px 0;min-height:30px}.rpQ10{min-height:34px}

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Tests the Coaster Lab database migrations on a throw-away local PostgreSQL (nothing is sent to Supabase).
 #   bash supabase/tests/run.sh           # 10.0 migration + 10.1 hardening, then every test
+#   bash supabase/tests/run.sh payments  # the same, then the PROPOSED purchases design in docs/payments (design only:
+#                                        # it is not a migration and is never applied to the real project)
 # Needs PostgreSQL 14 or newer installed locally (initdb, postgres, psql). The real project runs PostgreSQL 17.
 # Order: Supabase stand-in → the tables that already exist in the live project → the migrations → the tests.
 set -uo pipefail
@@ -25,4 +27,13 @@ RES="$("${PSQL[@]}" -f - < "$HERE/10_tests.sql" 2>&1)"; RC=$?
 echo "$RES" | grep -E 'NOTICE:  (PASS|FAIL)' | sed -E 's/^.*NOTICE:  //'
 if [ $RC -ne 0 ]; then echo "FAIL the test script stopped early:"; echo "$RES" | grep -v 'NOTICE:  PASS' | tail -15; fi
 P=$(echo "$RES" | grep -c 'NOTICE:  PASS'); F=$(echo "$RES" | grep -c 'NOTICE:  FAIL'); [ $RC -ne 0 ] && F=$((F+1))
-echo; echo "$((P+1)) passed, $F failed"; [ "$F" = "0" ]
+P=$((P+1))
+if [ "${1:-}" = "payments" ]; then
+  PAY="$HERE/../../docs/payments"; echo; echo "--- proposed purchases design (docs/payments, not a migration)"
+  step "proposed_schema.sql" "$PAY/proposed_schema.sql"; step "proposed_schema.sql (second run)" "$PAY/proposed_schema.sql"; echo "PASS the proposed schema can be run a second time"; P=$((P+1))
+  RES="$("${PSQL[@]}" -f - < "$PAY/proposed_schema_tests.sql" 2>&1)"; RC=$?
+  echo "$RES" | grep -E 'NOTICE:  (PASS|FAIL)' | sed -E 's/^.*NOTICE:  //'
+  if [ $RC -ne 0 ]; then echo "FAIL the payments test script stopped early:"; echo "$RES" | grep -v 'NOTICE:  PASS' | tail -15; F=$((F+1)); fi
+  P=$((P + $(echo "$RES" | grep -c 'NOTICE:  PASS'))); F=$((F + $(echo "$RES" | grep -c 'NOTICE:  FAIL')))
+fi
+echo; echo "$P passed, $F failed"; [ "$F" = "0" ]
