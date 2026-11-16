@@ -149,15 +149,42 @@ const code = o => 'CL10J' + Buffer.from(JSON.stringify(o)).toString('base64url')
       await XB(() => { window.__deaf = false }); let both = false, sa = { in: false };
       if (sb.in) { await XB(() => window.__coasterDebug.v80.v10.acct.expire()); await XB(() => window.__coasterDebug.v80.v10.acct.token(true)); await A.page.waitForTimeout(400); await XA(() => window.__coasterDebug.v80.v10.acct.sync()); await idle(A.page); await XB(() => window.__coasterDebug.v80.v10.acct.sync()); await idle(B.page);
         sa = await XA(() => window.__coasterDebug.v80.v10.acct.state()); const sb3 = await XB(() => window.__coasterDebug.v80.v10.acct.state()); both = sa.in && sb3.in && !sa.syncErr && !sb3.syncErr }
-      // signing out in one tab
-      await XA(() => window.__coasterDebug.v80.v10.acct.signOut()); await idle(A.page); await B.page.waitForTimeout(500); const sb2 = await XB(() => window.__coasterDebug.v80.v10.acct.state());
-      await A.browser.close(); return { in0, ta, tb, b: sb.in, renewals: n1 - n0, both, bAfterOut: sb2.in, msg: sb.msg };
+      // signing out in one tab. The other tab hears of it through the browser's storage event, which only arrives when that
+      // tab's main thread is next free (most of a second under software rendering): wait for it, not for a fixed time.
+      // Then look once more a little later: nothing may have signed either tab back in
+      await XA(() => window.__coasterDebug.v80.v10.acct.signOut()); await idle(A.page); await until(B.page, () => !window.__coasterDebug.v80.v10.acct.state().in, null, 8000); await B.page.waitForTimeout(600);
+      const sb2 = await XB(() => window.__coasterDebug.v80.v10.acct.state()), sa2 = await XA(() => ({ in: window.__coasterDebug.v80.v10.acct.state().in, kept: Object.keys(localStorage).some(k => /\.auth$/.test(k)) }));
+      await A.browser.close(); return { in0, ta, tb, b: sb.in, renewals: n1 - n0, both, bAfterOut: sb2.in, aAfterOut: sa2.in || sa2.kept, bMsg: sb2.msg, msg: sb.msg };
     };
     const o = await two(OLD), n = await two(F);
     ok(o.in0 && o.ta && !o.b, '(10.0, for comparison) with the game open in two tabs, the second tab to renew the session is signed out (“' + o.msg + '”)');
     ok(n.in0 && n.ta && n.tb && n.b && n.renewals === 0, '10.1: a tab that missed the news takes the renewed session from storage instead of spending the used one (no second renewal, nobody is signed out)');
     ok(n.both, '10.1: when either tab renews, the other follows, and both keep syncing with the account');
-    ok(!n.bAfterOut, '10.1: signing out in one tab signs the other tab out too');
+    ok(!n.bAfterOut && !n.aAfterOut, '10.1: signing out in one tab signs the other tab out too (“' + n.bMsg + '”), and no session is left on the device');
+    // two things that can happen while a renewal is on its way. The account server's answer is held back here so that the
+    // moment lasts long enough to do something in the other tab
+    const gated = async () => {
+      const { cloud } = makeCloud(), A = await open(F, { w: 390, h: 844, cloud }), XA = (f, a) => A.page.evaluate(f, a);
+      await XA(([p]) => window.__coasterDebug.v80.v10.acct.signUp('sam@example.test', p, 'Sam'), [PW]); await idle(A.page);
+      const B = await tab(A.ctx, F), held = [];
+      await A.ctx.route(u => /\/auth\/v1\/token/.test(u.href) && /refresh_token/.test(u.href), async route => { if (route.request().method() === 'OPTIONS') return route.fallback(); let go; const p = new Promise(r => go = r); held.push({ pg: route.request().frame().page(), go }); await p; return route.fallback() });
+      const renew = pg => pg.evaluate(() => { const a = window.__coasterDebug.v80.v10.acct; a.expire(); window.__tk = undefined; a.token(true).then(t => window.__tk = t ? 'yes' : 'none'); return 0 });
+      const inFlight = async k => { const t = Date.now(); while (held.length < k && Date.now() - t < 15000) await A.page.waitForTimeout(100); return held.length >= k };
+      const st = pg => pg.evaluate(() => { const q = window.__coasterDebug.v80.v10.acct.state(); return { in: q.in, syncErr: q.syncErr, tk: window.__tk, kept: Object.keys(localStorage).some(k => /\.auth$/.test(k)) } });
+      const answered = pg => until(pg, () => !!window.__tk, null, 10000);
+      return { A, B, XA, held, renew, inFlight, st, answered } };
+    { // 1. tab B is renewing, tab A signs out, and only then does tab B's answer (a brand-new session) arrive
+      const g = await gated(); await g.renew(g.B.page); const fl = await g.inFlight(1);
+      await g.XA(() => window.__coasterDebug.v80.v10.acct.signOut()); await idle(g.A.page); const heard = await until(g.B.page, () => !window.__coasterDebug.v80.v10.acct.state().in, null, 10000);
+      if (g.held[0]) g.held[0].go(); await g.answered(g.B.page); await g.B.page.waitForTimeout(2000); const a = await g.st(g.A.page), b = await g.st(g.B.page); await g.A.browser.close();
+      ok(fl && heard && !a.in && !b.in && !a.kept, '10.1: a sign-out is final: a renewal that was on its way in the other tab signs nobody back in when its answer arrives'); }
+    { // 2. both tabs renew with the same single-use token. Tab A is answered first and tab B hears of it; then tab B is refused
+      const g = await gated(); await g.renew(g.A.page); await g.renew(g.B.page); const fl = await g.inFlight(2), hA = g.held.find(h => h.pg === g.A.page), hB = g.held.find(h => h.pg === g.B.page);
+      if (hA) hA.go(); await g.answered(g.A.page); const heard = await until(g.B.page, () => window.__coasterDebug.v80.v10.acct.state().exp > Date.now() + 60000, null, 10000);
+      if (hB) hB.go(); await g.answered(g.B.page); await g.B.page.waitForTimeout(2000);
+      for (const pg of [g.A.page, g.B.page]) { await pg.evaluate(() => window.__coasterDebug.v80.v10.acct.sync()); await idle(pg) }
+      const a = await g.st(g.A.page), b = await g.st(g.B.page); await g.A.browser.close();
+      ok(fl && !!hA && !!hB && heard && a.in && b.in && b.tk === 'yes' && !a.syncErr && !b.syncErr, '10.1: two tabs renewing at the same moment: the one that is refused uses the other’s new session, nobody is signed out and both keep syncing'); }
     // a link from an email signs in to the LINK's account: nothing is synced until the player has confirmed it
     const { cloud, db } = makeCloud(); cloud('auth/signup', { email: 'mallory@example.test', password: PW, data: { username: 'Mallory' } }, { query: {} });
     const sess = cloud('auth/token', { email: 'mallory@example.test', password: PW }, { query: { grant_type: 'password' } }).json;

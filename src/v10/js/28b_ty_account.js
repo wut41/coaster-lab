@@ -58,7 +58,14 @@ function authTake10() { const st = authStored10(), s = AUTH10.s; if (!st || !s |
 async function token10(force) {
   let s = AUTH10.s; if (!s) return null; if (!force && s.exp - Date.now() > 60000) return s.at;
   if (authTake10()) { s = AUTH10.s; if (s.exp - Date.now() > 60000) return s.at }
-  if (!_ref10) _ref10 = (async () => { try { authSet10(await authApi10('token?grant_type=refresh_token', { refresh_token: s.rt })) } catch (e) { if (e && e.status && e.status < 500 && e.status !== 429 && !(authTake10() && AUTH10.s.exp - Date.now() > 5000)) authClear10('Your sign-in has run out. Please sign in again.') } finally { _ref10 = null } })();
+  // While the renewal is on its way another tab may sign out, sign in as someone else, or renew first. So the answer is
+  // only kept if this tab is still signed in to the account it asked for (a late answer used to sign every tab back in
+  // after a sign-out), and a refusal only signs out if the token that was refused is still the one this tab holds (two
+  // tabs renewing at the same moment used to sign each other out: the refused tab now simply uses the other's session).
+  if (!_ref10) _ref10 = (async () => {
+    try { const j = await authApi10('token?grant_type=refresh_token', { refresh_token: s.rt }); if (AUTH10.s && AUTH10.s.uid === s.uid) authSet10(j) }
+    catch (e) { if (e && e.status && e.status < 500 && e.status !== 429) { authTake10(); if (AUTH10.s && AUTH10.s.rt === s.rt) authClear10('Your sign-in has run out. Please sign in again.') } }
+    finally { _ref10 = null } })();
   await _ref10; return AUTH10.s && AUTH10.s.exp - Date.now() > 5000 ? AUTH10.s.at : null;
 }
 // another tab signed in, signed out or renewed: this tab follows (storage events only arrive from OTHER tabs)
