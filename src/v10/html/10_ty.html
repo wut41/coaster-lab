@@ -1,0 +1,35 @@
+<div id="ty10" hidden>
+ <div id="tyIn" aria-label="Your park: drag to move, pinch to zoom, tap to select or build"></div>
+ <header id="tyTop" class="panel">
+  <button class="tyB" id="tyMenuB" data-ty="hq" aria-label="Park office: money, visitors, staff, goals"><i>🏢</i><span>Office</span></button>
+  <div class="tyName"><b id="tyName">My Park</b><small id="tyClock">Day 1 · 09:00</small></div>
+  <button class="tyStat" data-ty="hq:money" id="tyMoney" title="Money"><i>💰</i><b>$0</b></button>
+  <button class="tyStat" data-ty="hq:guests" id="tyGuests" title="Visitors in the park"><i>👥</i><b>0</b></button>
+  <button class="tyStat" data-ty="hq:home" id="tyRate" title="Park rating"><i>⭐</i><b>0</b></button>
+  <button class="tyStat" data-ty="hq:world" id="tyWx" title="Weather and time"><i>☀️</i></button>
+  <div class="tySpd" role="group" aria-label="Game speed"><button data-ty="sp" data-v="0" aria-label="Pause">⏸</button><button data-ty="sp" data-v="1" aria-label="Normal speed">▶</button><button data-ty="sp" data-v="2" aria-label="Double speed">⏩</button><button data-ty="sp" data-v="4" aria-label="Four times speed">⏭</button></div>
+ </header>
+ <div id="tyBadge" hidden></div>
+ <div id="tyFeed" aria-live="polite"></div>
+ <aside id="tySide">
+  <button class="tyB" data-ty="hq:goals" title="Goals"><i>🎯</i><span>Goals</span></button>
+  <button class="tyB" data-ty="hq:share" title="Share and visit parks"><i>🔗</i><span>Share</span></button>
+  <button class="tyB" data-ty="view" title="Reset the view"><i>🧭</i><span>View</span></button>
+  <button class="tyB" data-ty="exit" title="Back to the rides"><i>🎢</i><span>Rides</span></button>
+ </aside>
+ <div id="tyCard" class="panel" hidden role="dialog" aria-label="Details"></div>
+ <div id="tyTray" class="panel" hidden></div>
+ <div id="tyPlace" class="panel" hidden></div>
+ <nav id="tyBar" class="panel" aria-label="Build tools">
+  <button class="tyB" data-ty="cat" data-v="path"><i>🛤</i><span>Paths</span></button>
+  <button class="tyB" data-ty="cat" data-v="coaster"><i>🎢</i><span>Coasters</span></button>
+  <button class="tyB" data-ty="cat" data-v="flat"><i>🎠</i><span>Rides</span></button>
+  <button class="tyB" data-ty="cat" data-v="shop"><i>🍔</i><span>Shops</span></button>
+  <button class="tyB" data-ty="cat" data-v="deco"><i>🌳</i><span>Scenery</span></button>
+  <button class="tyB" data-ty="cat" data-v="land"><i>🏞</i><span>Land</span></button>
+  <button class="tyB" data-ty="cat" data-v="doze"><i>🧹</i><span>Remove</span></button>
+ </nav>
+ <div id="tyPov" class="panel" hidden><b id="tyPovN"></b><button class="btn primary" data-ty="povx">✕ Leave the ride</button></div>
+ <div id="tyDay" class="panel" hidden role="dialog" aria-label="End of day"></div>
+ <div id="tyTut" class="panel" hidden role="status"></div>
+</div>

@@ -1,11 +1,11 @@
 const { open } = require('./harness');
 const ROOT = require('path').join(__dirname, '..') + '/';
 require('fs').mkdirSync(__dirname + '/shots', { recursive: true });
-const F = ROOT + 'coaster_lab_v8_6.html', SH = __dirname + '/shots/';
+const F = ROOT + 'coaster_lab_v10_0.html', SH = __dirname + '/shots/';
 const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
 (async () => {
   for (const [w, h] of [[390, 844], [844, 390]]) {
-    const { browser, page, errors } = await open(F, { w, h, storage: { 'coasterlab.tut.v2': '1' } });
+    const { browser, page, errors } = await open(F, { w, h, storage: { 'coasterlab.tut.v2': '1', 'coasterlab.v80.bWelcome': '1' } });// a returning builder (9.0: Intermediate, so the 🧬 Evolve tab is in the library)
     const X = (f, a) => page.evaluate(f, a), V6 = 'window.__coasterDebug.v80.v86';
     ok(await X(() => window.__coasterDebug.v80.v86.openBuilder()), `${w}x${h} builder open`);
     await page.waitForTimeout(800);
@@ -14,7 +14,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
     const baseKey = await X(() => window.__coasterDebug.v80.v86.key());
     // open the 🧬 Evolve tab like a player
     await X(() => window.__coasterDebug.v80.bld.act('add')); await page.waitForTimeout(300);
-    await page.click('[data-b8lib="evo"]'); await page.waitForTimeout(300);
+    await page.click('[data-pick10="ideas"]'); await page.waitForTimeout(200); await page.click('[data-b8lib="evo"]'); await page.waitForTimeout(300);
     ok(await page.$('[data-evo86="go"]') != null, 'Evolve tab shows the Evolve button');
     await page.fill('[data-evo86="seed"]', '4242'); await page.dispatchEvent('[data-evo86="seed"]', 'change');
     await page.click('[data-evo86="gens"][data-v="6"]');
