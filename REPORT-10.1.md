@@ -183,8 +183,10 @@ mark). Park money must not be sold, and a page-only unlock is an honour system a
   backup is skipped. The save itself is not affected, and Diagnostics warns when storage is nearly full, but the
   player is not told that a backup was skipped.
 - **Two tabs saving in the same instant** can still collide (section 4).
-- **The full test run takes about 80 minutes** and a few steps depend on timing in a headless browser. A failure
-  there should be re-run on its own before it is believed.
+- **The full test run takes about an hour and a half** and a few steps depend on timing in a headless browser. Run
+  the suites one at a time with nothing else using the machine: a second browser test started next to a run made
+  one suite time out here (section 8). A failure should be re-run on its own and explained before it is dismissed:
+  the one failure in run 2 looked like timing and led to two real defects.
 - **10.1 includes one balance change the uploaded preview did not have** (`832c1c4`, already on the repository's main
   line): visitors who can afford nothing, or leave without a single ride, go home unhappy.
 
