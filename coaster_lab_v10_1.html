@@ -8925,9 +8925,9 @@ function gDecide10(g) {
   let best = null, bs = .22, exp = false, long = false; const here = g.ti;
   for (const o of P_.objs) { const R = o.rt; if (!R || !R.slots || g.skip[o.id] > g.t) continue; const inf = objInfo10(o); if (!rideOpen10(o)) continue;
     const f = field10('o' + o.id, R.entry), d = f[here]; if (d < 0) continue; const fare = fareOf10(o, inf);
-    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; R.tooExp = (R.tooExp || 0) + 1; continue }
+    if (fare > g.cash) continue; if (fare > worth10(inf) * (1.15 + (g.ty === 3 && inf.t === 'coaster' ? .35 : 0)) * (perk10('value1') ? 1.12 : 1) * (perk10('value2') ? 1.12 : 1)) { exp = true; if (!(g.no10 || (g.no10 = {}))['e' + o.id]) { g.no10['e' + o.id] = 1; R.tooExp = (R.tooExp || 0) + 1 } continue }
     const fit = inf.int < T_.lo ? 1 - (T_.lo - inf.int) / 40 : inf.int > T_.hi ? 1 - (inf.int - T_.hi) / 28 : 1; if (fit <= .05) continue;
-    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 8 || R.q.length >= R.qCap) { long = true; R.tooLong = (R.tooLong || 0) + 1; continue }
+    const wait = R.q.length / Math.max(.05, inf.cap / (inf.dur + 14)); if (wait > T_.pat * 8 || R.q.length >= R.qCap) { long = true; if (!(g.no10 || (g.no10 = {}))['l' + o.id]) { g.no10['l' + o.id] = 1; R.tooLong = (R.tooLong || 0) + 1 } continue }// (10.1: each visitor is counted once for a ride, however often they look at it)
     const n = g.did[o.id] || 0, sc = (inf.exc / 55) * (.35 + .65 * fit) * (inf.t === 'coaster' ? T_.coaster : 1) * Math.pow(g.ty === 3 ? .78 : .52, n) * (1 - Math.min(.6, wait / (T_.pat * 9))) * (1 - Math.min(.5, d / 70)) * (.75 + Math.random() * .5) * (g.nausea > 45 ? Math.max(.2, 1 - inf.nau / 60) : 1);
     if (sc > bs) { bs = sc; best = o } }
   if (best) return gGo10(g, { k: 'ride', id: best.id }, 'o' + best.id, best.rt.entry);
@@ -11512,13 +11512,17 @@ DBG10.builder = {
 // ---------------------------------------------------------------------------------------------------------------------
 const PRO10 = { loopStops: 0, log: [], logKey: {}, day: null, staff: null, staffY: null, fix: { sum: 0, n: 0 }, fixY: null, t1: 0, tSay: 0, bench: [-1, false], told: {} };
 // ---- safety net for the visitor loop
+// (the same wrap notes WHY a visitor decides to go home, at the moment they decide: by the time they reach the gate
+// their mood, money and the clock have all moved on)
+const whyNow10 = g => { const P_ = TY.park, hasRides = P_.objs.some(o => o.rt && o.rt.slots); if (g.L && g.L.leave && g.L.why10) return g.L.why10;// a family leaves together, for the leader's reason
+  return g.happy < 16 ? 'unhappy' : g.cash < 2 ? 'broke' : g.energy < 5 ? 'tired' : !parkOpen10() ? 'closing' : !g.rides && hasRides ? 'norides' : g.t > g.stay ? 'done' : g.rides > 0 ? 'enough' : 'other' };
 { const d0 = gDecide10; gDecide10 = function (g) {
   if ((g._dd10 || 0) >= 6) { g.st = 'idle'; g.useT = .5 + Math.random() * .5; g.goal = null; PRO10.loopStops++; return }
-  g._dd10 = (g._dd10 || 0) + 1; try { return d0.apply(this, arguments) } finally { g._dd10-- }
+  const was = g.leave; g._dd10 = (g._dd10 || 0) + 1; try { return d0.apply(this, arguments) } finally { g._dd10--; if (!was && g.leave && !g.why10) try { g.why10 = whyNow10(g) } catch (e) {} }
 } }
 // ---- what is saved with the park
 const tri10 = a => Array.isArray(a) && a.length === 3 && a.every(x => typeof x === 'number' && isFinite(x)) ? [numP10(a[0], 0, 0, 1e9), numP10(a[1], 0, 0, 1e12), numP10(a[2], 0, 0, 1e12)] : null;
-const WHY10 = [['done', '🙂', 'Had a full day'], ['closing', '🌙', 'The park closed'], ['broke', '👛', 'Ran out of money'], ['unhappy', '😡', 'Left unhappy'], ['tired', '🥱', 'Too tired'], ['norides', '🎟', 'Never got on a ride'], ['other', '🚪', 'Other reasons']];
+const WHY10 = [['done', '🙂', 'Had a full day'], ['enough', '🎢', 'Rode what they wanted'], ['closing', '🌙', 'The park closed'], ['broke', '👛', 'Ran out of money'], ['unhappy', '😡', 'Left unhappy'], ['tired', '🥱', 'Too tired'], ['norides', '🎟', 'Never got on a ride'], ['other', '🚪', 'Other reasons']];
 { const c0 = cleanPark10; cleanPark10 = function (o, mode) {
   const P_ = c0(o, mode); if (!P_ || !o || typeof o !== 'object') return P_;
   if (Array.isArray(o.objs)) { const raw = new Map(); for (const q of o.objs) if (q && typeof q === 'object' && Number.isInteger(q.id)) raw.set(q.id, q);
@@ -11534,7 +11538,7 @@ const WHY10 = [['done', '🙂', 'Had a full day'], ['closing', '🌙', 'The park
 const proDay10 = () => { const P_ = TY.park; if (!PRO10.day || PRO10.day.n !== P_.day || PRO10.day.id !== P_.id) PRO10.day = { n: P_.day, id: P_.id, left: 0, spend: 0, rides: 0, why: {} }; return PRO10.day };
 { const l0 = guestLeft10; guestLeft10 = function (g) {
   safe10('leave count', () => { if (TY.visit) return; const P_ = TY.park, d = proDay10(), hasRides = P_.objs.some(o => o.rt && o.rt.slots);
-    const k = g.happy < 16 ? 'unhappy' : g.cash < 2 ? 'broke' : g.energy < 5 ? 'tired' : !g.rides && hasRides ? 'norides' : !parkOpen10() ? 'closing' : g.t > g.stay ? 'done' : 'other';
+    const k = WHY10.some(q => q[0] === g.why10) ? g.why10 : g.L && WHY10.some(q => q[0] === g.L.why10) ? g.L.why10 : !parkOpen10() ? 'closing' : g.happy < 16 ? 'unhappy' : g.cash < 2 ? 'broke' : g.energy < 5 ? 'tired' : !g.rides && hasRides ? 'norides' : g.t > g.stay ? 'done' : g.rides > 0 ? 'enough' : 'other';
     d.why[k] = (d.why[k] || 0) + 1; d.left++; d.spend += g.spent || 0; d.rides += g.rides || 0;
     const w = P_.wk && P_.wk[P_.wk.length - 1]; if (w && w.day === d.n) { w.left = d.left; w.spend = +(d.spend / d.left).toFixed(2); w.rides = +(d.rides / d.left).toFixed(2); w.why = { ...d.why } } });// (the report for a day is written at closing time; the people still walking out are added to it)
   return l0.apply(this, arguments);
@@ -11622,8 +11626,8 @@ function proWatch10() {
 function advice10() {
   const P_ = TY.park, A = [], G_ = TY.guests, n = G_.length, add = (pri, ic, t, why, act) => A.push({ pri, ic, t, why, act }), career = P_.mode === 'career';
   const rides = P_.objs.filter(o => o.rt && o.rt.slots && o.rt.linked), y = (P_.wk || [])[(P_.wk || []).length - 1];
-  for (const o of rides) { const inf = objInfo10(o), R = o.rt, t = sinceD0(o), fare = fareOf10(o, inf), nm = objName10(o), exp = (R.tooExp || 0) + (R.yq ? R.yq.exp : 0), lng = (R.tooLong || 0) + (R.yq ? R.yq.long : 0), up = (R.gaveUp || 0) + (R.yq ? R.yq.up : 0), rode = t[0] + (o.st.y ? o.st.y[0] : 0);
-    if (exp >= 12 && exp > rode * .8 && fare > 0) add(80 + Math.min(15, exp / 4), '💸', nm + ' is priced too high', exp + ' visitors turned it down as too expensive, against ' + rode + ' who rode. Try ' + money10(Math.max(0, fare - 1)) + '.', 'go:' + o.id);
+  for (const o of rides) { const inf = objInfo10(o), R = o.rt, t = sinceD0(o), fare = fareOf10(o, inf), nm = objName10(o), exp = (R.tooExp || 0) + (R.yq ? R.yq.exp : 0), lng = (R.tooLong || 0) + (R.yq ? R.yq.long : 0), up = (R.gaveUp || 0) + (R.yq ? R.yq.up : 0), rode = t[0] + (o.st.y ? o.st.y[0] : 0), fair = Math.max(0, Math.floor(worth10(inf) * 1.15 * 2) / 2);// (the most an ordinary visitor accepts: see gDecide10)
+    if (exp >= 12 && exp > rode * .8 && fare > 0) add(80 + Math.min(15, exp / 4), '💸', nm + ' is priced too high', exp + ' visitors turned it down as too expensive, against ' + rode + ' who rode. ' + (fair < fare ? 'Most visitors will pay up to ' + money10(fair) + ' for it.' : 'Try ' + money10(Math.max(0, fare - 1)) + '.'), 'go:' + o.id);
     else if (rideOpen10(o) && !exp && rode >= 40 && R.q.length >= R.qCap * .8 && fare < worth10(inf) * 1.1) add(55, '💵', nm + ' could cost a little more', 'Its line is nearly full and nobody found it expensive. ' + money10(fare + 1) + ' would bring in about ' + money10(rode / 2) + ' more a day.', 'go:' + o.id);
     if (up + lng >= 14) add(70 + Math.min(15, up), '⏱', 'The wait for ' + nm + ' puts people off', (up ? up + ' gave up in the line' : '') + (up && lng ? ' and ' : '') + (lng ? lng + ' did not join it' : '') + '. ' + (o.up && o.up.cap < 3 ? 'A capacity upgrade moves more people an hour.' : 'Another ride like it nearby would share the crowd.'), 'go:' + o.id);
     if (career && o.st.y) { const p = o.st.y[1] - o.st.y[2] - upkeepOf10(o, inf); if (p < -15 && o.open !== false) add(60 + Math.min(20, -p / 20), '📉', nm + ' lost ' + money10(-p) + ' yesterday', o.st.y[0] < 10 ? 'Only ' + o.st.y[0] + ' people rode it. Is it easy to reach, and is the price right?' : 'It costs more to run and keep up than it takes in tickets.', 'go:' + o.id) }
@@ -11674,7 +11678,9 @@ ${canEdit10() ? `<div class="tySeg">${pkSeg10('polInsp', [['0', '🛠 Service ri
   return `<div class="ty10pk">${h}</div>`;
 }
 function repCsv10() {
-  const P_ = TY.park, q = v_ => '"' + String(v_).replace(/"/g, '""') + '"', L = ['# Coaster Lab ' + TY10.version + ' park report: ' + P_.name.replace(/[\r\n]/g, ' ') + ', day ' + P_.day + ' (game money, simulated values)', '', 'section,name,riders_or_sales_today,profit_today,riders_or_sales_yesterday,profit_yesterday,profit_since_built,build_cost'];
+  // a name is the player's own text (or came with a backup file): a cell that starts like a formula gets a leading ' so a
+  // spreadsheet shows it as text instead of running it
+  const P_ = TY.park, q = v_ => { let t = String(v_).replace(/[\r\n]+/g, ' '); if (/^[=+\-@\t]/.test(t)) t = "'" + t; return '"' + t.replace(/"/g, '""') + '"' }, L = ['# Coaster Lab ' + TY10.version + ' park report: ' + P_.name.replace(/[\r\n]/g, ' ') + ', day ' + P_.day + ' (game money, simulated values)', '', 'section,name,riders_or_sales_today,profit_today,riders_or_sales_yesterday,profit_yesterday,profit_since_built,build_cost'];
   repRides10().forEach(r => L.push(['thing', q(r.name), r.n, Math.round(r.today), r.yn == null ? '' : r.yn, r.yp == null ? '' : Math.round(r.yp), Math.round(r.all), r.cost].join(',')));
   L.push('', 'section,day,visitors,' + INC10.map(k => 'in_' + k[0]).join(',') + ',' + EXP10.map(k => 'out_' + k[0]).join(',')); (P_.wk || []).forEach(d => L.push(['day', d.day, d.guests, ...INC10.map(k => d.inc[k[0]] || 0), ...EXP10.map(k => d.exp[k[0]] || 0)].join(',')));
   return L.join('\n');
@@ -11711,7 +11717,10 @@ Object.assign(DBG10, { pro: {
   advice: () => advice10().map(a => ({ pri: Math.round(a.pri), t: a.t, why: a.why, act: a.act })), rides: () => repRides10().map(r => ({ id: r.o.id, name: r.name, n: r.n, today: Math.round(r.today), yn: r.yn, yp: r.yp == null ? null : Math.round(r.yp), all: Math.round(r.all), back: r.back })),
   day: () => ({ ...proDay10(), why: { ...proDay10().why } }), wk: () => JSON.parse(JSON.stringify(TY.park.wk || [])), log: () => PRO10.log.map(e => e.msg), staff: () => ({ now: PRO10.staff, y: PRO10.staffY, fix: PRO10.fix }), loopStops: () => PRO10.loopStops,
   html: tab => officeHTML10(tab), csv: () => repCsv10(), queue: id => { const o = TY.objById.get(id); return o && o.rt ? { cap: o.rt.qCap, n: o.rt.q.length, short: o.ql === 1, exp: o.rt.tooExp || 0, long: o.rt.tooLong || 0, up: o.rt.gaveUp || 0 } : null },
-  setPol: v_ => { TY.park.pol = { insp: v_ ? 1 : 0 } }, notice: g => proNotice10(g), guests: () => TY.guests
+  setPol: v_ => { TY.park.pol = { insp: v_ ? 1 : 0 } }, notice: g => proNotice10(g), guests: () => TY.guests,
+  jobs: () => TY.staff.map(s_ => ({ k: s_.k, job: s_.job ? s_.job.id : null })), hire: (k, n) => { TY.park.staff[k] = n; staffSync10(); return TY.staff.filter(s_ => s_.k === k).length },
+  thing: (id, o) => { const q = TY.objById.get(id); if (!q) return null; if (o) { if (o.rel != null) q.rel = o.rel; if (o.price != null) q.price = o.price; if (o.name != null) q.name = cleanName(o.name); if (o.broken != null) q.rt.broken = o.broken } return { rel: q.rel, price: q.price, fare: fareOf10(q, objInfo10(q)), broken: q.rt.broken || 0, insp: q.rt.insp || 0, value: Math.round(rideValue10(q)), inc: q.st.inc, run: q.st.run, n: q.st.n, d0: q.st.d0 || null, y: q.st.y || null, ql: q.ql || 0 } },
+  each: o => { let n = 0; for (const g of TY.guests) { Object.assign(g, o); n++ } return n }, toast: (m, k, hi) => toast10(m, k, hi), why: () => WHY10.map(k => k[0]), tick: () => { proStaffTick10(); proWatch10() }
 } });
 
 // ---- [61_saves.js]
