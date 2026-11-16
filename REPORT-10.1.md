@@ -153,7 +153,109 @@ mark). Park money must not be sold, and a page-only unlock is an honour system a
 - Messages say what happened and what to do, in plain words ("That backup is damaged: it does not match its own
   checksum (part of the file may be missing)").
 
-<!-- TESTS -->
+## 8. Tests performed and results
+
+**How the tests run.** Every browser test drives the real game file in headless Chromium (through Playwright) with
+software graphics, at one or two frames a second. The four screen sizes (320×568, 390×844, 844×390, 1200×800) are
+browser window sizes; `tests/README.md` says which suite uses which. The park cloud and the account server are
+played by a stand-in (`tests/tools/cloud_mock.js`). The real Supabase project was never written to. **No physical
+phone or tablet was used, and no browser other than Chromium.**
+
+**Before any change.** The 17 suites that already existed were run on `coaster_lab_v10_0.html`: 653 checks passed,
+0 failed.
+
+**10.1: three full runs of all 22 suites.**
+
+| Run | Build (sha256) | Passed | Failed | What failed |
+|---|---|---:|---:|---|
+| 1 | first complete 10.1 | 865 | 2 | The new Reports tab was wider than a 320 px and a 390 px screen (`t8`, one check at each size). Fixed: on phones the wide columns fold under the name. `t24` I now checks this more strictly |
+| 2 | `5fb782af…` | 866 | 1 | "Signing out in one tab signs the other tab out too" (`t20`), which had passed in run 1 |
+| 3 | `79d65bac…` (the build delivered) | 875 | 0 | Nothing |
+
+Between runs 2 and 3 one more run was started and stopped after seven minutes: another browser test had been started
+next to it, and one suite (`t2b_disaster`) ran out of time waiting for an animation. That was a mistake in how the
+tests were run, not a finding. Run 3 is the complete run made afterwards with nothing else running.
+
+**What the one failure in run 2 led to.** The check waited a fixed half second for the other tab to hear of the
+sign-out; with software graphics that tab can be busy for longer. That was a fault in the test, which now waits for
+the event. Reading the code to rule out a fault in the game found two real ones in the same place (S7's second way
+and S10 in section 2). Both were reproduced on demand by holding the account server's answer back, fixed in one
+function (`token10`), and added as checks. The two new checks were also run against the build from before the fix:
+both fail there.
+
+Three things were added to the suites while finishing, so the last run has more checks than the first two:
+
+- **The crash (B1) now has a before-and-after test** (`t24` J). The economy tool, run on 10.0 to compare the books,
+  stopped with the crash every time. A starter park was then tried five more times on 10.0: it stopped within two
+  park days each time.
+- **Going back to 10.0** (`t21` G): a park saved by 10.1 opens in 10.0 with the same day, money and things; 10.0
+  drops only the week's books, the staff policy and the short line; back in 10.1 it opens without an error.
+- The "Is this your account?" question is checked at all four screen sizes (`t20` I).
+
+**The final run, suite by suite** (build `79d65bac760c065d1ee48727b5215ceb981d8975793faa927fdffe852dd11d2b`):
+
+| Suite | Covers | Passed | Failed | Time |
+|---|---|---:|---:|---:|
+| `t0_baseline` | No console errors at both sizes; measures every ride (it prints measurements, not PASS lines) | ran clean | 0 | 0:32 |
+| `t1_gravity` | Gravity Lab | 32 | 0 | 2:25 |
+| `t2a_same` | Disaster Mode off: rides identical to 8.5 | 1 | 0 | 0:17 |
+| `t2b_disaster` | Disaster Mode | 30 | 0 | 2:28 |
+| `t3_evolve` | Evolve | 36 | 0 | 3:32 |
+| `t4_daily` | Daily Challenge | 31 | 0 | 2:26 |
+| `t5_regress` | Older features next to 8.5 | 27 | 0 | 5:43 |
+| `t6_v90` | 9.0 builder levels, repair, blueprints, sketches, four sizes | 82 | 0 | 6:50 |
+| `t7_v10_rides` | The 10.0 coasters and trains, Generate | 35 | 0 | 6:08 |
+| `t8_v10_park` | My Park: building, ledger, visitors, cloud, four sizes | 135 | 0 | 7:33 |
+| `t9_sound` | Sound | 29 | 0 | 2:53 |
+| `t10_v10_gfx` | Graphics extras and quality ladder | 26 | 0 | 1:38 |
+| `t11_v10_account` | Accounts and cloud saves, four sizes | 82 | 0 | 10:11 |
+| `t13_terra` | Hills and lakes | 25 | 0 | 1:00 |
+| `t14_fx` | Park effects, fireworks | 25 | 0 | 0:59 |
+| `t15_parksim` | Upkeep, themes, photos, families, scenarios | 29 | 0 | 1:28 |
+| `t16_builder` | Roomier builder, force colours | 28 | 0 | 1:13 |
+| `t20_security` | **New.** Every hardening item attacked, with 10.0 for comparison; two tabs sharing a sign-in | 34 | 0 | 9:07 |
+| `t21_saves` | **New.** Backups, damaged saves, two tabs, backup files, going back to 10.0, four sizes | 36 | 0 | 7:00 |
+| `t22_diag` | **New.** Diagnostics, four sizes | 33 | 0 | 2:21 |
+| `t23_builder6` | **New.** Track Builder additions, four sizes | 46 | 0 | 3:53 |
+| `t24_parkpro` | **New.** Reports, Advisor, queues, staff, the 10.0 crash, four sizes | 73 | 0 | 10:10 |
+| **Total** | 22 suites | **875** | **0** | 90 min |
+
+**Database tests** (`bash supabase/tests/run.sh`, on a local PostgreSQL 16 with a stand-in for Supabase's roles):
+64 passed, 0 failed. That is 63 checks of the 10.0 and 10.1 migrations (privileges, player names, publishing,
+ratings and visits, saves, rate limits, deleting an account) and "every migration can be run a second time". With
+the purchases proposal (`bash supabase/tests/run.sh payments`): 112 passed, 0 failed, which adds its 47 checks and
+"the proposed schema can be run a second time".
+
+**Other checks that were run**
+
+- `node build.mjs --check`: every text patch matched exactly once and the built page's script parses.
+- The economy tool (`tests/tools/balance.js`) on 10.1: a sensible starter park lost $6,158 on its building day and
+  then made $608, $648 and $297 a day; after growing it made $1,144 and $929 a day; a neglected park fell to
+  reputation 20.6. No errors. **The same run on 10.0 could not be finished**: it stopped with the crash (B1) in
+  three attempts out of three. The one first day 10.0 completed had books close to 10.1's (income $2,419 against
+  $2,348, 48 visitors against 46, rating 56 against 57). The statement that no price, cost, wage or reward changed
+  rests on reading the changed lines of the simulation, not on a seven-day comparison.
+
+**What was not tested**
+
+- Real phones and tablets, touch, Safari and Firefox.
+- The real Supabase project with the migrations applied, the real account server and its emails.
+- The two payment reference functions (never run), and anything involving a payment provider.
+- `t4_corners` (an optional 15-minute proof that every Daily Challenge theme can be passed) was not run; nothing it
+  covers was changed.
+
+**Screenshots.** The suites save pictures as they go. These are from the final run (headless Chromium, software
+graphics), copied to `docs/report-10.1/`:
+
+| | |
+|---|---|
+| ![Builder](docs/report-10.1/v101_builder_1200x800.jpg) Track Builder: live numbers in the top bar, force colours on the track | ![Suggestions](docs/report-10.1/v101_builder_suggest_1200x800.jpg) "Good next pieces" for the speed the train has there |
+| ![History](docs/report-10.1/v101_builder_history_1200x800.jpg) History: tap a step to go back to it | ![Builder, wide phone](docs/report-10.1/v101_builder_844x390.jpg) The builder at 844×390 |
+| ![Reports](docs/report-10.1/v101_reports_1200x800.jpg) Park Office → Reports: yesterday's books, each ride's earnings | ![Advisor](docs/report-10.1/v101_advisor_1200x800.jpg) Overview: what makes the rating, and the Advisor's notes |
+| ![Visitors](docs/report-10.1/v101_visitors_1200x800.jpg) Visitors: who is in the park and how they feel | ![Saves](docs/report-10.1/v101_saves_1200x800.jpg) Saves and backups: save now, backup file, restore |
+| ![Diagnostics](docs/report-10.1/v101_diag_1200x800.jpg) Owner Control Center → Diagnostics (the frame times are the test machine's software graphics) | ![Is this your account?](docs/report-10.1/v101_sec_link_390x844.jpg) The question a sign-in link now asks first (390×844) |
+| ![Builder, phone](docs/report-10.1/v101_builder_390x844.jpg) The builder at 390×844 | ![Reports, small phone](docs/report-10.1/v101_reports_320x568.jpg) Reports at 320×568 |
+| ![Diagnostics, phone](docs/report-10.1/v101_diag_390x844.jpg) Diagnostics at 390×844 | ![Saving fails](docs/report-10.1/v101_saves_failing_390x844.jpg) The warning that stays while saving fails |
 
 ## 9. Known issues and limits
 

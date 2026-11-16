@@ -14,7 +14,7 @@ in a browser (made for iPhone, works on desktop). No install, no build step need
 | `supabase/migrations/` | The database set-up for the park cloud and accounts (10.0) and its hardening (10.1). **Neither is applied to the real project yet** |
 | `supabase/tests/` | The migrations run and tested on a throw-away local PostgreSQL (`bash supabase/tests/run.sh`) |
 | `docs/payments/` | Payment readiness: a design, a locally tested database proposal, two reference server functions. Design only: nothing is switched on |
-| `REPORT-10.1.md`, `CHANGES-10.1.md` | The 10.1 upgrade: audit findings and evidence, what was fixed, what is new, test results, what is left |
+| `REPORT-10.1.md`, `CHANGES-10.1.md` | The 10.1 upgrade: audit findings and evidence, what was fixed, what is new, test results, what is left (screenshots in `docs/report-10.1/`) |
 | `REPORT-10.0.md` | The development report for the 10.0 upgrade: what is playable, what is partial, test results, what the owner still has to do (screenshots in `docs/report-10.0/`) |
 | `CHANGES-10.0.md` | What 10.0 adds, how it is built, known limits, what is left |
 | `CHANGES-9.0.md`, `CHANGES-8.6.md`, `PLAN-8.6.md` | Notes for the older versions |
