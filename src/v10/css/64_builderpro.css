@@ -36,3 +36,6 @@
 @media (prefers-reduced-motion:reduce){.bs10 em{animation:none}}
 /* the coaster's name keeps its place next to the numbers */
 @media (min-width:561px){#b8Top .b8nm{min-width:112px}}
+/* on a phone the dock never moves sideways (the piece library and the details panel are sheets), so it must not slide in
+   from the computer layout when the builder opens: 10.0 showed it squeezed to a 2px column for about a third of a second */
+#b8.nar #b8Dock{transition:none}

@@ -1260,6 +1260,9 @@ body.ty10pov #tyTop,body.ty10pov #tyBar,body.ty10pov #tySide,body.ty10pov #tyCar
 @media (prefers-reduced-motion:reduce){.bs10 em{animation:none}}
 /* the coaster's name keeps its place next to the numbers */
 @media (min-width:561px){#b8Top .b8nm{min-width:112px}}
+/* on a phone the dock never moves sideways (the piece library and the details panel are sheets), so it must not slide in
+   from the computer layout when the builder opens: 10.0 showed it squeezed to a 2px column for about a third of a second */
+#b8.nar #b8Dock{transition:none}
 </style>
 </head>
 <body>
@@ -12154,7 +12157,9 @@ function bpPlayFrom10() {
 } }
 // the welcome card steps aside as soon as you start building
 b8.addEventListener('click', e => { const t = $('#b8Tour'); if (!t || t.hidden || !t.classList.contains('wel8')) return; if (e.target.closest('[data-b8it],[data-b8tool],[data-b8sec],[data-b8q],[data-b8bp]')) t.hidden = true }, true);
-// ---- twelve more ready-made layouts: the tuned 10.0 park coasters (each passes the full check; tests/t20 proves it)
+// ---- ten more ready-made layouts: the tuned 10.0 park coasters that fit the builder's 190 m build area. Each passes
+// the builder's full check with no must-fix problems and no warnings (tests/t23 section D measures every one). The two
+// flagship rides, Thunder Comet and Nova Giant, are about 270 m across and cannot fit, so they are not offered here.
 const BPX10 = [
   ['Dipper', '🧸', 'Little Dipper', 'A first coaster: a small lift, a gentle drop and a spiral.', 'Little Dipper', 1],
   ['Cheddar', '🧀', 'Cheddar Chase', 'A wild mouse: tight flat turns one after another, then a sudden drop.', 'Cheddar Chase', 1],
@@ -12165,9 +12170,7 @@ const BPX10 = [
   ['Talon', '🦅', 'Talon Strike', 'A dive coaster: a straight-down drop, an Immelmann and a second dive.', 'Talon Strike', 0],
   ['Nightshade', '🦇', 'Nightshade', 'Hanging below the track through two loops, a weightless roll and two corkscrews.', 'Nightshade', 0],
   ['Aurora', '🌌', 'Aurora Wing', 'Launched into an Immelmann, then a weightless roll, a corkscrew and a barrel roll.', 'Aurora Wing', 0],
-  ['Hydra', '🐉', 'Hydra', 'Seven times upside down: Immelmann, dive loop, loop, weightless roll and three corkscrews.', 'Hydra', 0],
-  ['Comet2', '☄️', 'Thunder Comet', 'A launch into a lift, a big drop, a barrel roll and a second launch.', 'Thunder Comet', 0],
-  ['Nova2', '🌟', 'Nova Giant', 'A very tall lift, a huge airtime hill, a loop and a weightless roll.', 'Nova Giant', 0]];
+  ['Hydra', '🐉', 'Hydra', 'Seven times upside down: Immelmann, dive loop, loop, weightless roll and three corkscrews.', 'Hydra', 0]];
 safe10('blueprints', () => {
   const hx = n => typeof n === 'number' ? '#' + (n & 0xffffff).toString(16).padStart(6, '0') : undefined;
   for (const [key, ic, name, desc, ride, beg] of BPX10) {
@@ -12187,18 +12190,23 @@ function skmNorm10(pts) {// [[x, z], …] → N points along the line, centred, 
   for (let k = 0; k < N; k++) { const d = L_ * k / (N - 1); while (j < pts.length - 2 && cum[j + 1] < d) j++; const a = (d - cum[j]) / Math.max(1e-9, cum[j + 1] - cum[j]); out.push([pts[j][0] + (pts[j + 1][0] - pts[j][0]) * a, pts[j][1] + (pts[j + 1][1] - pts[j][1]) * a]) }
   let cx = 0, cz = 0; for (const p of out) { cx += p[0]; cz += p[1] } cx /= N; cz /= N; let rr = 0; for (const p of out) { p[0] -= cx; p[1] -= cz; rr += Math.hypot(p[0], p[1]) } rr = rr / N || 1; for (const p of out) { p[0] /= rr; p[1] /= rr } return out;
 }
+// how "wide" a shape is next to how long it is (0 = a straight line, 1 = as wide as it is long). A line that does not
+// turn is not the plan of a coaster, so it is never compared: without this a straight stroke scored 83% against the
+// first stretch of an out-and-back layout.
+function skmWide10(n) { let xx = 0, zz = 0, xz = 0; for (const p of n) { xx += p[0] * p[0]; zz += p[1] * p[1]; xz += p[0] * p[1] } const tr = xx + zz, det = xx * zz - xz * xz, q = Math.sqrt(Math.max(0, tr * tr / 4 - det)), hi = tr / 2 + q, lo = tr / 2 - q; return hi > 1e-9 ? Math.sqrt(Math.max(0, lo) / hi) : 0 }
+const SKM_WIDE10 = .08;
 function skmDist10(a, b) {// smallest average gap over turning, mirroring and direction
   const N = a.length; let best = 1e9;
   for (const mir of [1, -1]) for (const rev of [0, 1]) for (let r = 0; r < 24; r++) { const c = Math.cos(r * PI / 12), s_ = Math.sin(r * PI / 12); let d = 0; for (let i = 0; i < N && d < best * N; i++) { const q = b[rev ? N - 1 - i : i], x = q[0] * mir, z = q[1]; d += Math.hypot(a[i][0] - (x * c - z * s_), a[i][1] - (x * s_ + z * c)) } d /= N; if (d < best) best = d }
   return best;
 }
 const SKM_CUT10 = [1, .9, .8, .7, .6];// a drawing usually stops where the return track would begin: each layout is also tried cut short
-function skmTpl10(t) { const k = t.id; if (SKM10.tpl.has(k)) return SKM10.tpl.get(k); let n = null; try { const g = generate(mkD(t.name, t.els)); if (!g.bad && g.P && g.P.length > 8) { const all = g.P.map(p => [p.x, p.z]); n = SKM_CUT10.map(f => skmNorm10(all.slice(0, Math.max(4, Math.round(all.length * f))))).filter(Boolean) } } catch (e) {} SKM10.tpl.set(k, n && n.length ? n : null); return SKM10.tpl.get(k) }
+function skmTpl10(t) { const k = t.id; if (SKM10.tpl.has(k)) return SKM10.tpl.get(k); let n = null; try { const g = generate(mkD(t.name, t.els)); if (!g.bad && g.P && g.P.length > 8) { const all = g.P.map(p => [p.x, p.z]); n = SKM_CUT10.map(f => skmNorm10(all.slice(0, Math.max(4, Math.round(all.length * f))))).filter((q, k) => q && (k === 0 || skmWide10(q) >= SKM_WIDE10)) } } catch (e) {} SKM10.tpl.set(k, n && n.length ? n : null); return SKM10.tpl.get(k) }
 function skmMatch10(strokes) {
   const pts = []; for (const s_ of (strokes || [])) if (s_ && Array.isArray(s_.pts)) for (const p of s_.pts) if (Array.isArray(p) && isFinite(p[0]) && isFinite(p[1])) pts.push([p[0], p[1]]);
   if (pts.length < 6) return []; let L_ = 0; for (let i = 1; i < pts.length; i++) L_ += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (L_ < 30) return [];
   const key = pts.length + ':' + Math.round(L_) + ':' + Math.round(pts[0][0] + pts[pts.length - 1][1]) + ':' + TEMPLATES.length; if (key === SKM10.key) return SKM10.res;
-  const a = skmNorm10(pts), res = []; if (!a) return [];
+  const a = skmNorm10(pts), res = []; if (!a) return []; if (skmWide10(a) < SKM_WIDE10) { SKM10.key = key; return SKM10.res = [] }
   TEMPLATES.forEach((t, i) => { if (t.id === 'blank' || t.id === 't9starter') return; const bs = skmTpl10(t); if (!bs) return; let d = 1e9; for (const b of bs) d = Math.min(d, skmDist10(a, b)); res.push({ i, id: t.id, name: t.name, ic: t.ic, d, pct: Math.round(clamp(1 - d / .9, 0, 1) * 100) }) });
   res.sort((p, q) => p.d - q.d); SKM10.key = key; return SKM10.res = res.slice(0, 3).filter(q => q.pct >= 35);
 }
