@@ -11719,7 +11719,8 @@ Object.assign(DBG10, { pro: {
 //  · Damaged saves: a save that cannot be read is never thrown away and never silently replaced by an empty park.
 //    Its text is kept, the newest backup that reads is loaded instead, and the player is told what happened.
 //  · Two tabs: when the same park is open twice, the tab holding the older copy stops saving instead of overwriting
-//    the newer one, and offers to load it.
+//    the newer one. A tab that was in the background loads the newer park by itself when you come back to it; a tab
+//    you were looking at asks first.
 //  · Backup files: a full copy of the park to keep outside the browser, checked (kind, checksum, every field) before
 //    it is accepted back.
 // Storage: coasterlab.v10.bak.<slot>.<0-2> (backups), coasterlab.v10.park.<slot>.rv (save counter),
@@ -11746,13 +11747,28 @@ function bakMake10(slot, why, raw) {
   SAVE10.bakAt = Date.now(); return true;
 }
 // ---- the save counter: every save of a slot is numbered, with the tab that made it
+// Another tab saved a newer version of the park this tab has open. This tab stops saving it. If this tab was in the
+// background at the time (or has only just come back), nothing was being done here, so it simply loads the newer park
+// and says so. If the player was looking at this tab, it asks instead.
+// A tab that has just come back to the front does not save for a moment: the tab the player just left saves as it is
+// hidden, and browsers pass that news between tabs with a small delay. Waiting lets it arrive first.
+SAVE10.visAt = -1e9; SAVE10.away = false; SAVE10.hold = 0;
+const saveHold10 = () => { SAVE10.hold = performance.now() + 1500 }; addEventListener('pageshow', saveHold10); addEventListener('focus', saveHold10);
+// loading the newer park also makes this tab the one that saves: it saves once straight away, which tells the other tab to stop
+function saveTakeOver10(slot) { const ok = tyOpen10(slot); if (ok && TY.slot === slot && !SAVE10.stale) { SAVE10.hold = 0; savePark10() } return ok }
+function saveCatchUp10() { const slot = TY.slot; SAVE10.away = false; if (!TY.on || TY.visit || !slot || !SAVE10.stale) return; const el = $ty10('tyDay'); if (el && el.querySelector('[data-ty="svLoad"]')) el.hidden = true; saveTakeOver10(slot); toast10('🗂 Loaded the newer park from your other tab', 'svCatch', true) }
+addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') return; SAVE10.visAt = performance.now(); saveHold10(); if (SAVE10.stale && SAVE10.away) safe10('catch up', saveCatchUp10) });
 function saveStale10(slot) {
-  if (SAVE10.stale) return; SAVE10.stale = true; console.warn('10.1 saves: this park was saved by another tab; this tab has stopped saving it'); if (!TY.on) return; const el = $ty10('tyDay'); if (!el) return;
-  el.innerHTML = `<h3>🗂 This park is open somewhere else</h3><p>Another tab or window saved a newer version of <b>${html10(TY.park ? TY.park.name : 'this park')}</b>. So that the two do not overwrite each other, this one has stopped saving.</p><div class="tyRow"><button class="btn primary" data-ty="svLoad">Load the newer park here</button></div><p class="tyNote">Nothing is lost: the newer park is the one that is saved.</p>`;
+  if (SAVE10.stale) return; SAVE10.stale = true; if (!TY.on) return;
+  if (document.visibilityState !== 'visible') { SAVE10.away = true; saveChip10(); return }
+  if (performance.now() - SAVE10.visAt < 3000) { SAVE10.away = true; safe10('catch up', saveCatchUp10); return }
+  console.warn('10.1 saves: this park was saved by another tab; this tab has stopped saving it'); const el = $ty10('tyDay'); if (!el) return;
+  el.innerHTML = `<h3>🗂 This park is open somewhere else</h3><p>Another tab or window saved a newer version of <b>${html10(TY.park ? TY.park.name : 'this park')}</b>. So that the two do not overwrite each other, this one has stopped saving.</p><div class="tyRow"><button class="btn primary" data-ty="svLoad">Carry on here with the newer park</button></div><p class="tyNote">Nothing is lost: the newer park is the one that is saved. The other tab will stop saving once you carry on here.</p>`;
   el.hidden = false; saveChip10();
 }
 { const s0 = savePark10; savePark10 = function () {
   const P_ = TY.park, slot = TY.slot; if (!P_ || TY.visit || !slot || RESTORE80) return false; if (SAVE10.stale) return false;
+  if (performance.now() < SAVE10.hold && document.visibilityState === 'visible') return false;// just back in front: the next save is a moment away
   const rv = rvGet10(slot), base = SAVE10.base[slot] || 0; if (rv.sid && rv.sid !== SAVE10.sid && rv.n > base) { saveStale10(slot); return false }
   const ok = s0.apply(this, arguments);
   if (ok) { const n = Math.max(rv.n, base) + 1; SAVE10.base[slot] = n; try { localStorage.setItem(pkKey10(slot) + '.rv', JSON.stringify({ n, sid: SAVE10.sid, t: Date.now() })) } catch (e) {} SAVE10.at = Date.now(); SAVE10.n++; if (!SAVE10.ok) { SAVE10.ok = true; saveChip10() } }
@@ -11763,7 +11779,7 @@ function saveStale10(slot) {
 addEventListener('storage', e => { if (!TY.on || TY.visit || !TY.slot || e.key !== pkKey10(TY.slot) || e.newValue == null) return; const rv = rvGet10(TY.slot); if (rv.sid !== SAVE10.sid) saveStale10(TY.slot) });
 // write a park that did not come from this tab's own play (a backup, a file): counted like a save by this tab
 function parkPut10(slot, raw) { try { localStorage.setItem(pkKey10(slot), raw) } catch (e) { saveFail81('v10.park', e); return false } const n = Math.max(rvGet10(slot).n, SAVE10.base[slot] || 0) + 1; SAVE10.base[slot] = n; try { localStorage.setItem(pkKey10(slot) + '.rv', JSON.stringify({ n, sid: SAVE10.sid, t: Date.now() })) } catch (e) {} return true }
-{ const e0 = tyEnter10; tyEnter10 = function (slot, park) { const ok = e0.apply(this, arguments); if (ok && slot) { SAVE10.stale = false; SAVE10.base[slot] = rvGet10(slot).n; SAVE10.ok = true; saveChip10() } return ok } }
+{ const e0 = tyEnter10; tyEnter10 = function (slot, park) { const ok = e0.apply(this, arguments); if (ok && slot) { SAVE10.stale = false; SAVE10.away = false; SAVE10.base[slot] = rvGet10(slot).n; SAVE10.ok = true; saveChip10() } return ok } }
 // ---- a save that cannot be read: keep its text, load the newest backup that reads, say so
 { const l0 = loadPark10; loadPark10 = function (slot) {
   const raw = lsGet10(pkKey10(slot)); if (raw == null) return l0(slot);
@@ -11836,7 +11852,7 @@ ${dmg && dmg.text ? `<p class="tyNote">🛟 A save from ${html10(new Date(numP10
   const [k, v_] = String(a).split(':'), slot = TY.slot, mine = TY.park && !TY.visit && slot, done = () => { if (UI72.pk === 'ty10') renderPk72(false) };
   if (!/^sv[A-Z]/.test(k)) { if (k === 'wipe' && mine) safe10('backup', () => { savePark10(); bakMake10(slot, 'wipe') }); return a0.call(this, a, t) }
   if (!mine) return false; SAVE10.msg = '';
-  if (k === 'svNow') { const ok = savePark10(); say(ok ? '💾 Saved' : SAVE10.stale ? 'Not saved: this park is open in another tab' : 'Could not save: this browser’s storage is full or blocked'); done(); return false }
+  if (k === 'svNow') { SAVE10.hold = 0; const ok = savePark10(); say(ok ? '💾 Saved' : SAVE10.stale ? 'Not saved: this park is open in another tab' : 'Could not save: this browser’s storage is full or blocked'); done(); return false }
   if (k === 'svFile') { const txt = bakFileText10(); if (!txt || !fileSave10((TY.park.name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'park') + '-day-' + TY.park.day + '.coasterbackup.json', txt)) say('Could not make the backup file'); else say('⬇ Backup file saved to your downloads'); return false }
   if (k === 'svFileIn') { filePick10(async (txt, why) => { if (why) SAVE10.msg = why; else if (await bakFileLoad10(txt)) { closePk72(); return } done() }); return false }
   if (k === 'svBak') { const i = +v_; if (Number.isInteger(i) && i >= 0 && i < BAK_N10 && await bakRestore10(slot, i)) { closePk72(); return false } done(); return false }
@@ -11844,7 +11860,7 @@ ${dmg && dmg.text ? `<p class="tyNote">🛟 A save from ${html10(new Date(numP10
   if (k === 'svDmgDel') { if (await ask7('Delete the damaged save that was kept? This cannot be undone.', 'Delete it', 'Keep it', true)) { try { localStorage.removeItem(pkKey10(slot) + '.damaged') } catch (e) {} SAVE10.note = ''; } done(); return false }
   return false;
 } }
-{ const a0 = tyAct10; tyAct10 = function (a, v_) { if (a === 'svLoad') { const el = $ty10('tyDay'); if (el) el.hidden = true; const s_ = TY.slot; if (s_) tyOpen10(s_); return } return a0.apply(this, arguments) } }
+{ const a0 = tyAct10; tyAct10 = function (a, v_) { if (a === 'svLoad') { const el = $ty10('tyDay'); if (el) el.hidden = true; const s_ = TY.slot; if (s_) saveTakeOver10(s_); return } return a0.apply(this, arguments) } }
 Object.assign(DBG10, { saves: {
   state: () => ({ at: SAVE10.at, ok: SAVE10.ok, n: SAVE10.n, fails: SAVE10.fails, stale: SAVE10.stale, sid: SAVE10.sid, base: { ...SAVE10.base }, note: SAVE10.note, msg: SAVE10.msg || '', bakErr: SAVE10.bakErr, chip: (() => { const c = $ty10('tySaveW'); return c && !c.hidden ? c.textContent : '' })() }),
   list: slot => bakList10(slot || TY.slot).map(b => ({ i: b.i, day: b.day, why: b.why, name: b.name, things: b.things, bytes: b.data.length })), make: why => bakMake10(TY.slot, why || 'day'), rv: slot => rvGet10(slot || TY.slot),
