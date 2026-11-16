@@ -71,8 +71,13 @@ patch('escape apostrophes too', `const esc=t=>String(t).replace(/[&<>"]/g,m=>({'
 {
   const share = fs.readFileSync(path.join(SRC, 'js', '28_ty_share.js'), 'utf8'), m = /const CLOUD10 = \{ url: 'https:\/\/([a-z0-9]+\.supabase\.co)'/.exec(share);
   if (!m) throw new Error('CSP: the cloud address was not found in 28_ty_share.js');
+  // The trailer (post/10_trailer.js) streams its video and poster from one CDN host. That host, read from the trailer's own
+  // source, is allowed for pictures and video only: never for script, styles or connections.
+  const TR = path.join(SRC, 'post', '10_trailer.js'), trHosts = fs.existsSync(TR) ? [...new Set([...fs.readFileSync(TR, 'utf8').matchAll(/\b(?:src|poster): 'https:\/\/([a-z0-9.-]+)\//g)].map(x => x[1]))] : [];
+  if (fs.existsSync(TR) && !trHosts.length) throw new Error('CSP: the trailer host was not found in post/10_trailer.js');
+  const trailer = trHosts.map(h => ' https://' + h).join('');
   const CSP = ["default-src 'none'", "script-src 'unsafe-inline' https://cdn.jsdelivr.net", "script-src-attr 'none'", "style-src 'unsafe-inline' https://fonts.googleapis.com", "font-src https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob:", "media-src 'self' data: blob:", `connect-src https://${m[1]} wss://${m[1]} https://cdn.jsdelivr.net data: blob:`, "object-src 'none'", "frame-src 'none'", "worker-src 'none'", "base-uri 'none'", "form-action 'none'", "manifest-src 'self'"].join('; ');
+    "img-src 'self' data: blob:" + trailer, "media-src 'self' data: blob:" + trailer, `connect-src https://${m[1]} wss://${m[1]} https://cdn.jsdelivr.net data: blob:`, "object-src 'none'", "frame-src 'none'", "worker-src 'none'", "base-uri 'none'", "form-action 'none'", "manifest-src 'self'"].join('; ');
   patch('content security policy', '<meta charset="utf-8">\n', `<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${CSP}">\n`);
 }
 
