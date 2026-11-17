@@ -5,8 +5,8 @@ in a browser (made for iPhone, works on desktop). No install, no build step need
 
 | File | What it is |
 |---|---|
-| `coaster_lab_v10_1.html` | **Current version (10.1)**: 10.0 with its security and save problems fixed, a Diagnostics page for the owner, live numbers, History and suggestions in the Track Builder, and Reports and an Advisor in My Park. See `CHANGES-10.1.md` and `REPORT-10.1.md` |
-| `coaster_lab_v10_0.html` | Version 10.0 (the "Coaster Lab 3.0" upgrade: My Park, 10 new coasters, park sharing, accounts), kept untouched |
+| `coaster_lab_v10_1.html` | **Current version (10.1)**: 10.0 with its security and save problems fixed, a Diagnostics page for the owner, live numbers, History and suggestions in the Track Builder, and Reports and an Advisor in My Park. The `park-build-2`, `trailer` and `daily-streak` branches are merged in (move and undo, entertainers, Swan Boats, new stalls, Weekly Park Awards; a first-visit trailer; daily streak and rewards). See `CHANGES-10.1.md`, `REPORT-10.1.md` and `CHANGES-STREAK.md` |
+| `coaster_lab_v10_0.html` | Version 10.0 (the "Coaster Lab 3.0" upgrade: My Park, 10 new coasters, park sharing, accounts), kept untouched. The tests use it as the "before" in their before-and-after checks |
 | `backup/coaster_lab_preview_v2_original.html` | The preview build that was uploaded for the 10.1 upgrade, kept untouched |
 | `coaster_lab_v9_0.html` | The previous version, kept untouched as a backup. 10.0 is built from this file |
 | `coaster_lab_v8_6.html`, `coaster_lab_v8_5.html` | Older versions, also untouched |

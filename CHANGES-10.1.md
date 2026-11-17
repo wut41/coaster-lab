@@ -121,9 +121,11 @@ the only things the page loads, as before.
 - **The uploaded preview and this repository differ by one commit.** The preview build is the merged source without
   the small My Park balance change `832c1c4` (visitors who can afford nothing, or leave without a ride, go home
   unhappy). That change was already on the repository's main line, so 10.1 includes it.
-- **Three other branches have work that is not in the preview and not in 10.1**: `coaster-lab-daily-streak`,
-  `park-build-2` and `trailer`. Only the crash fix was taken from `park-build-2`. Bringing the rest together is the
-  first item of the recommended next phase.
+- **Three branches were merged in afterwards**: `park-build-2` (move, undo, entertainers, Swan Boats, four new
+  stalls, Weekly Park Awards), `trailer` (a first-visit trailer) and `coaster-lab-daily-streak` (daily streak and
+  rewards). What had to be reconciled, and the test run on the merged build, are in `REPORT-10.1.md` section 12.
+  The trailer streams its video from an outside host; the content security policy allows that one host for
+  pictures and video only.
 - **The database migrations are not applied to the real project** (neither 10.0's nor 10.1's). Publishing,
   leaderboards and cloud saves therefore still say they are not switched on. Run both, in order, when ready.
 - The two flagship rides (Thunder Comet, Nova Giant) are about 270 m across; the builder's area is 190 m. They stay

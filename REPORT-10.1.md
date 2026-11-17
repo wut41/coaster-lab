@@ -4,9 +4,9 @@
 The upgrade is built as `coaster_lab_v10_1.html`. It is the game you uploaded with its weak points closed, saves you
 can rely on, a Diagnostics page for you, and new tools in the Track Builder and My Park. Nothing was removed.
 
-**Three things need you** (section 11): the database changes are written and tested but **not applied** to the real
-Supabase project; a few Supabase settings could not be checked from here; and three other branches hold work that
-is not in this build.
+**Two things need you** (section 11): the database changes are written and tested but **not applied** to the real
+Supabase project, and a few Supabase settings could not be checked from here. The three branches that held work
+missing from this build were merged in afterwards, at your request: see the addendum, section 12.
 
 Words used in this report: **confirmed** means it was reproduced by a test that is in the repository, or by a query
 against the real project. **Confirmed by reading** means the code plainly does it but no attack was run.
@@ -108,6 +108,7 @@ Not everything needed changing. These were checked and left alone:
 | Inline scripts are still allowed by the policy | The game is one file with one large inline script | Serve the script as a separate file with a hash or nonce |
 | The policy is a `<meta>` tag | A single file cannot send response headers, so `frame-ancestors` (who may embed the game) cannot be set | Set the header where the file is hosted |
 | A session's access token works until it runs out, even after "Sign out" | That is how the account service works: signing out ends the session and its renewals, and the game forgets the token, but a token that was copied earlier stays valid until it expires (an hour unless changed) | A shorter token lifetime in the Auth settings, or database functions that check the session still exists (Supabase documents both) |
+| The trailer's video comes from an outside host (added by the merge, section 12) | The trailer branch streams it from a CDN address on a player's first visit. That host sees the visitor's network address, and whoever controls that address decides what plays. The policy lets that host serve pictures and video only, never script. If the video is ever removed, the trailer closes by itself and the game starts as usual | Host the video next to the game |
 | Two tabs saving in the very same instant | Browser storage has no lock; the save counter narrows the window to milliseconds but cannot close it | The Web Locks API, where the browser has it |
 | Park codes and backup files from strangers | They are cleaned field by field on the way in; a new field added carelessly later could bypass that | Keep the rule: every new saved field gets a line in `cleanPark10` |
 | Local saves can be edited by their owner | They are on the owner's device | Nothing: it is their own single-player game. It is why game money must never be sold |
@@ -294,8 +295,8 @@ graphics), copied to `docs/report-10.1/`:
 
 ## 10. Recommended next phase
 
-1. **Bring the branches together.** `coaster-lab-daily-streak`, `park-build-2` and `trailer` each hold work that is in
-   neither the preview nor 10.1. Merge them onto 10.1 one at a time, running the suites after each.
+1. **Bring the branches together.** **Done** (section 12): `coaster-lab-daily-streak`, `park-build-2` and `trailer` are
+   merged. Other branches exist in the repository and were not looked at.
 2. **Switch the cloud on properly.** Apply both migrations to a Supabase branch, run `supabase/tests`, then apply
    them to the real project. Switch on leaked-password protection, check the Auth settings, then try publishing, a
    leaderboard and a cloud save against the real project (the automated suites use a stand-in).
@@ -316,6 +317,111 @@ graphics), copied to `docs/report-10.1/`:
 |---|---|---|
 | Apply the two database migrations (branch first) | Changing the real project is your decision; nothing was applied | `supabase/migrations/`, README "Cloud & accounts" |
 | Switch on leaked-password protection; check Auth settings | Dashboard only; could not be read from here | Supabase dashboard → Authentication |
-| Decide what happens to the three other branches | They hold features this build does not have | Section 10, item 1 |
 | Decide whether to open a pull request for this work | None was opened | Branch `claude/coaster-lab-engineering-upgrade-mbxjoc` |
 | Try 10.1 on your own phone | No real device was available | `coaster_lab_v10_1.html` |
+
+## 12. Addendum: the three branches merged
+
+After this report was finished you asked for the three branches named in section 10 to be merged. They were merged
+into this branch one at a time, each as its own merge commit, and each branch's own tests were run on the merged
+build before the next one was started.
+
+| Branch | What it brings |
+|---|---|
+| `park-build-2` | My Park: move anything you built, undo, entertainers, Swan Boats, four new stalls (Pizza Slice, Cotton Candy, Balloon Stand, ATM) and the Weekly Park Awards |
+| `trailer` | A trailer that plays on the first visit, and a "Watch the trailer" button on the title screen |
+| `daily-streak` | Daily streak and rewards: a 7-day ladder, a streak freeze, the Inferno train skin, a claim popup and a chip on the HUD (see `CHANGES-STREAK.md`) |
+
+**What had to be reconciled.** Git reported conflicts in three files: the test list, one passage of the simulation
+that both sides had changed in the same way, and the rebuilt 10.0 file. The rest it could not have known about:
+
+- **The crash safety net existed twice.** 10.1 had already taken the crash fix from `park-build-2`, including the net
+  that stops a visitor after six decisions in a row. Merged as they were, the two copies shared one counter, so
+  every decision would have counted twice and the net would have tripped after three. One copy is kept
+  (`60_parkpro.js`).
+- **The 10.1 content security policy would have blocked the trailer.** The trailer streams its video and poster
+  from a CDN address. `build.mjs` now reads that host from the trailer's own source and allows it for pictures and
+  video only. `t25` checks that the host appears under no other heading.
+- **`coaster_lab_v10_0.html` was left as it was.** The branches had rebuilt that file with their features in it. The
+  10.1 tests use it as "10.0" for their before-and-after checks, so it stays the plain 10.0. The merged features are
+  built into `coaster_lab_v10_1.html` only.
+- **The branches' tests opened `coaster_lab_v10_0.html`.** They now open the 10.1 build.
+- **Already there:** the sharper-graphics work that `daily-streak` carried was in 10.1 before the merge.
+
+The new code was read against the rules of section 2: saved fields are cleaned on the way in (entertainers, the
+week's tallies and the trophy cabinet each have their lines), and text is escaped before it goes into the page.
+Nothing needed fixing there.
+
+**One new test dependency:** `jsdom`, used only by `t19_streak_dom`. It is not part of the game.
+
+**What the merge changes in the earlier sections**
+
+- **Section 5** says no price, cost, wage or reward was changed. That is true of the 10.1 work. `park-build-2` brings
+  things of its own that touch the park's money: four stalls, Swan Boats, entertainers with a wage, and cash prizes
+  with the Weekly Park Awards (up to $500 a trophy). Their balance was not re-tuned or measured here.
+- **Section 4** has a new row: the trailer's video comes from an outside host.
+- **The daily streak** pays coins and XP by the device's own clock and is stored on the device only. Like park money,
+  its owner can edit it, so it must never be sold (section 6).
+- **Going back to 10.0** (`t25`): a 10.1 park that uses the merged things opens in 10.0 without an error. 10.0 does
+  not have the merged stalls (the test uses Cotton Candy), so it drops them; when it saves, the entertainers and the
+  trophy cabinet are gone too. Back in 10.1 the park opens as 10.0 left it. Going back is safe, but it is not lossless.
+- **Section 8** describes the build before the merge (`79d65bac…`). The build delivered now is the merged one.
+
+**Tests on the merged build** (`cd9ccd2643bb5dbd179449174f7fed9838f016fa0bad56838dc9e1314753fd34`). All 22 suites of section 8 were run again, with
+the six suites the branches brought and one new suite, `t25_merged`. It covers what the branches' own tests leave
+out: their park controls at 320×568, 390×844 and 844×390 (their own suites run at 1200×800), the trip to 10.0 and
+back, and the trailer host in the policy.
+
+| Suite | Covers | Passed | Failed | Time |
+|---|---|---:|---:|---:|
+| `t0_baseline` | No console errors at both sizes; measures every ride (prints measurements, not PASS lines) | ran clean | 0 | 0:38 |
+| `t1_gravity` | Gravity Lab | 32 | 0 | 3:05 |
+| `t2a_same` | Disaster Mode off: rides identical to 8.5 | 1 | 0 | 0:20 |
+| `t2b_disaster` | Disaster Mode | 30 | 0 | 2:57 |
+| `t3_evolve` | Evolve | 36 | 0 | 4:09 |
+| `t4_daily` | Daily Challenge | 31 | 0 | 2:45 |
+| `t5_regress` | Older features next to 8.5 | 27 | 0 | 6:10 |
+| `t6_v90` | 9.0 builder levels, repair, blueprints, sketches | 82 | 0 | 9:55 |
+| `t7_v10_rides` | The 10.0 coasters and trains, Generate | 35 | 0 | 8:09 |
+| `t8_v10_park` | My Park: building, ledger, visitors, cloud | 135 | 0 | 6:50 |
+| `t9_sound` | Sound | 29 | 0 | 3:58 |
+| `t10_v10_gfx` | Graphics extras and quality ladder | 26 | 0 | 2:03 |
+| `t11_v10_account` | Accounts and cloud saves | 82 | 0 | 10:38 |
+| `t13_terra` | Hills and lakes | 25 | 0 | 1:17 |
+| `t14_fx` | Park effects, fireworks | 25 | 0 | 1:10 |
+| `t15_parksim` | Upkeep, themes, photos, families, scenarios | 29 | 0 | 1:20 |
+| `t16_builder` | Roomier builder, force colours | 28 | 0 | 1:28 |
+| `t17_parkbuild` | **Merged.** Move, undo, Swan Boats, new stalls, entertainers, Weekly Park Awards | 43 | 0 | 2:52 |
+| `t17_trailer` | **Merged.** The first-visit trailer | 15 | 0 | 2:30 |
+| `t18_coaster_walk` | **Merged.** Crowds walking to coasters: no crash | 10 | 0 | 2:27 |
+| `t19_streak_logic` | **Merged.** Daily streak rules (plain node) | 28 | 0 | 0:00 |
+| `t19_streak_dom` | **Merged.** Streak popup, chip and card (jsdom) | 37 | 0 | 0:26 |
+| `t19_streak` | **Merged.** Daily streak in the real game, four sizes | 22 | 0 | 1:39 |
+| `t20_security` | Every hardening item attacked; two tabs sharing a sign-in | 34 | 0 | 8:19 |
+| `t21_saves` | Backups, damaged saves, two tabs, going back to 10.0 | 36 | 0 | 8:06 |
+| `t22_diag` | Diagnostics | 33 | 0 | 2:42 |
+| `t23_builder6` | Track Builder additions | 46 | 0 | 4:39 |
+| `t24_parkpro` | Reports, Advisor, queues, staff, the 10.0 crash | 73 | 0 | 11:17 |
+| `t25_merged` | **New.** The merged park controls at phone sizes; a park with merged things in 10.0 and back; the trailer host in the policy | 17 | 0 | 2:08 |
+| **Total** | 29 suites | **1047** | **0** | 114 min |
+
+**How this table came about.** It is not one unbroken run, and the first pass was not clean. The machine restarted
+three times while the suites ran, and was slower afterwards (several suites took 20 to 45% longer than in section
+8). Results were kept suite by suite. On the first pass 24 of the 29 suites passed and five did not. Each of the
+five was looked into and run again on its own; the table shows those later runs for `t2b`, `t5`, `t20`, `t21` and
+`t24`.
+
+- `t5` stopped: the merged streak chip sits in the middle of the Home button, so the test's click on the middle of
+  that button opened the streak popup. The logo and the name still go Home. The test now clicks the logo side. This
+  is how the streak branch designed it; moving the chip is a decision for you.
+- `t2b` ran out of time waiting for the Incident Report. The same step took about 24 s on the build from before the
+  merge on this machine, against a 30 s limit. The wait is now 90 s.
+- `t20` failed one two-tab check on the first pass and a different check on the second. The second was a fault in
+  the test: a park whose weather name is refused starts sunny, and the weather may then change by itself before the
+  test looks. The test now asks for a real weather name. The first did not happen again.
+- `t21` (three two-tab checks) and `t24` (one check of visitor remarks) passed when run again with no change. They
+  depend on timing, and the cause of the first failures was not pinned down beyond that.
+
+Not run again: the database tests (no database file changed) and the economy tool. As before: headless Chromium
+only, no physical phone, and the real Supabase project was not touched. The trailer tests swap the real video for a
+small test clip, so the real video on its real host was not played here.
