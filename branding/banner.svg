@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1440" width="2560" height="1440">
 <defs>
     <radialGradient id="bg" cx="50%" cy="40%" r="70%">
-      <stop offset="0" stop-color="#2b1470"/>
-      <stop offset="0.6" stop-color="#140a3d"/>
-      <stop offset="1" stop-color="#070418"/>
+      <stop offset="0" stop-color="#9be1ff"/>
+      <stop offset="0.6" stop-color="#4fb3f6"/>
+      <stop offset="1" stop-color="#2479d6"/>
     </radialGradient>
     <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#00f0ff"/>
@@ -25,11 +25,11 @@
       <path d="M445 150 H555 V300 L720 590 Q745 640 690 650 H310 Q255 640 280 590 L445 300 Z"/>
     </clipPath>
   </defs>
-  <radialGradient id="bbg" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#2b1470"/><stop offset=".6" stop-color="#140a3d"/><stop offset="1" stop-color="#070418"/></radialGradient>
+  <radialGradient id="bbg" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#9be1ff"/><stop offset=".6" stop-color="#4fb3f6"/><stop offset="1" stop-color="#2479d6"/></radialGradient>
   <rect width="2560" height="1440" fill="url(#bbg)"/>
   <!-- big faint background track -->
-  <path d="M-50 900 C400 900 700 760 1000 820 S1700 980 2000 720 S2400 560 2650 640" fill="none" stroke="#ffd400" stroke-width="26" opacity=".14"/>
-  <path d="M-50 900 C400 900 700 760 1000 820 S1700 980 2000 720 S2400 560 2650 640" fill="none" stroke="#ffd400" stroke-width="26" stroke-dasharray="6 16" opacity=".14"/>
+  <path d="M-50 900 C400 900 700 760 1000 820 S1700 980 2000 720 S2400 560 2650 640" fill="none" stroke="#ffd400" stroke-width="26" opacity=".3"/>
+  <path d="M-50 900 C400 900 700 760 1000 820 S1700 980 2000 720 S2400 560 2650 640" fill="none" stroke="#ffd400" stroke-width="26" stroke-dasharray="6 16" opacity=".3"/>
   <g transform="translate(560 505) scale(0.46)"><!-- stars / sparkles -->
   <g fill="#ffffff">
     <circle cx="210" cy="230" r="5" opacity=".8"/>
@@ -39,9 +39,11 @@
     <circle cx="300" cy="120" r="3" opacity=".5"/>
     <circle cx="720" cy="110" r="3" opacity=".5"/>
     <path d="M770 300 l8 22 22 8 -22 8 -8 22 -8 -22 -22 -8 22 -8z" fill="#ffd400"/>
-    <path d="M225 330 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z" fill="#00f0ff"/>
+    <path d="M225 330 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z" fill="#ffffff"/>
   </g>
 
+  <path d="M445 150 H555 V300 L720 590 Q745 640 690 650 H310 Q255 640 280 590 L445 300 Z" fill="#ffffff" fill-opacity=".18" stroke="#070418" stroke-width="34" stroke-linejoin="round"/>
+  <rect x="412" y="120" width="176" height="46" rx="23" fill="#070418"/>
   <!-- flask liquid -->
   <g clip-path="url(#flaskClip)">
     <path d="M200 480 Q300 455 400 480 T600 480 T800 480 V700 H200 Z" fill="url(#liquid)" opacity=".95"/>
@@ -60,7 +62,7 @@
   <!-- glass shine -->
   <path d="M470 175 V305 L330 560" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity=".35"/>
   <!-- bubbles rising out of neck -->
-  <g fill="none" stroke="#00f0ff" stroke-width="6">
+  <g fill="none" stroke="#ffffff" stroke-width="6">
     <circle cx="530" cy="95" r="14"/>
     <circle cx="480" cy="60" r="9"/>
     <circle cx="545" cy="40" r="6"/>
@@ -97,9 +99,11 @@
   </g>
 
   </g>
-  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="#070418" stroke="#070418" stroke-width="30" stroke-linejoin="round">COASTER</text>
-  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="url(#txt)">COASTER</text>
+  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="#070418" stroke="#070418" stroke-width="30" stroke-linejoin="round">C<tspan fill-opacity="0" stroke-opacity="0">O</tspan>ASTER</text>
+  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="url(#txt)">C<tspan fill-opacity="0" stroke-opacity="0">O</tspan>ASTER</text>
+  <!-- the O is a coaster loop -->
+  <g><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#070418" stroke-width="41.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#ffd400" stroke-width="24.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#d18f00" stroke-width="24.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3.9 15.4" stroke-linecap="butt"/><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#fff8c4" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" /></g>
   <rect x="1060" y="768" width="330" height="96" rx="48" fill="url(#pill)" stroke="#070418" stroke-width="8"/>
   <text x="1225" y="840" text-anchor="middle" font-family="Inter Display, Inter" font-weight="900" font-size="80" letter-spacing="14" fill="#ffffff">LAB</text>
-  <text x="1420" y="832" font-family="Inter" font-weight="700" font-size="46" fill="#c9d6ff">Build it. Ride it. Break it. 🎢</text>
+  <text x="1420" y="832" font-family="Inter" font-weight="700" font-size="46" fill="#0b2a5c">Build it. Ride it. Break it. 🎢</text>
 </svg>
