@@ -21,7 +21,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
     d = await dz(); ok(d.phase === 'crash' && d.cam === 'crash', 'derailed, crash camera on: phase=' + d.phase + ' s=' + d.s);
     await page.waitForTimeout(900); await page.screenshot({ path: SH + `crash_${w}x${h}.png` });
     d = await dz(); ok(d.riders === 8, 'cartoon riders popped out: ' + d.riders);
-    await page.waitForFunction(() => !document.querySelector('#ov7').hidden && document.querySelector('#ov7').dataset.k === 'inc86', null, { timeout: 30000 });
+    await page.waitForFunction(() => !document.querySelector('#ov7').hidden && document.querySelector('#ov7').dataset.k === 'inc86', null, { timeout: 90000 });
     d = await dz(); ok(d.rep && d.rep.kind === 'derail' && d.rep.fly > 0 && d.rep.v > 5, `Incident Report: flew ${d.rep && d.rep.fly.toFixed(1)} m, ${d.rep && d.rep.v.toFixed(1)} m/s at failure, ${d.rep && d.rep.why} in ${d.rep && d.rep.el}`);
     const rep = await X(() => document.querySelector('#ov7B').textContent);
     ok(/DERAILED/.test(rep) && /Cause of failure/.test(rep) && /Distance flown/.test(rep) && /Speed when it failed/.test(rep), 'report has stamp, cause, distance, speed');

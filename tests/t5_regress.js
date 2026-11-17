@@ -20,7 +20,7 @@ const probe = async (file, w, h) => {
   await X(() => { const b = document.querySelector('#layout'); for (let i = 0; i < 5; i++) b.click() }); await page.waitForTimeout(400); r.owner = await X(() => window.__coasterDebug.v7.owner().pw);
   await X(() => { document.querySelector('#pw7X').click(); document.querySelector('#menuClose').click() });
   // builder: open, playtest, back, exit
-  await page.click('#brandBtn'); await page.waitForTimeout(400); await page.click('[data-go="build"]'); await page.waitForTimeout(1200); await X(() => { document.querySelectorAll('#b8Tour').forEach(e => e.hidden = true) });
+  await page.click('#brandBtn', { position: { x: 20, y: 20 } }); await page.waitForTimeout(400); await page.click('[data-go="build"]'); await page.waitForTimeout(1200); await X(() => { document.querySelectorAll('#b8Tour').forEach(e => e.hidden = true) });
   r.builder = await X(() => window.__coasterDebug.v80.bld.state().editing);
   await X(() => window.__coasterDebug.v80.bld.play()); await page.waitForTimeout(800); r.play = await X(() => window.__coasterDebug.v80.bld.state().mode);
   await X(() => window.__coasterDebug.v80.bld.build()); await page.waitForTimeout(400); await X(() => window.__coasterDebug.v80.bld.act('exit')); await page.waitForTimeout(600);
