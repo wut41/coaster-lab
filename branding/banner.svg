@@ -99,10 +99,8 @@
   </g>
 
   </g>
-  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="#070418" stroke="#070418" stroke-width="30" stroke-linejoin="round">C<tspan fill-opacity="0" stroke-opacity="0">O</tspan>ASTER</text>
-  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="url(#txt)">C<tspan fill-opacity="0" stroke-opacity="0">O</tspan>ASTER</text>
-  <!-- the O is a coaster loop -->
-  <g><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#070418" stroke-width="41.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#ffd400" stroke-width="24.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#d18f00" stroke-width="24.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3.9 15.4" stroke-linecap="butt"/><path d="M1216.6 720.8 Q1244.9 720.8 1268.0 716.9 A53.9 53.9 0 1 0 1268.0 609.1 A53.9 53.9 0 0 0 1260.3 716.4 Q1291.1 720.8 1319.4 720.8" fill="none" stroke="#fff8c4" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" /></g>
+  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="#070418" stroke="#070418" stroke-width="30" stroke-linejoin="round">COASTER</text>
+  <text x="1060" y="735" font-family="Inter Display, Inter" font-weight="900" font-size="190" letter-spacing="3" fill="url(#txt)">COASTER</text>
   <rect x="1060" y="768" width="330" height="96" rx="48" fill="url(#pill)" stroke="#070418" stroke-width="8"/>
   <text x="1225" y="840" text-anchor="middle" font-family="Inter Display, Inter" font-weight="900" font-size="80" letter-spacing="14" fill="#ffffff">LAB</text>
   <text x="1420" y="832" font-family="Inter" font-weight="700" font-size="46" fill="#0b2a5c">Build it. Ride it. Break it. 🎢</text>

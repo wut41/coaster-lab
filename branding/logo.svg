@@ -30,6 +30,7 @@
   <rect width="1000" height="1000" fill="url(#bg)"/>
   <circle cx="500" cy="430" r="330" fill="#ffffff" opacity="0.25" filter="url(#glow)"/>
 
+  <g transform="translate(500 500) scale(0.84) translate(-500 -500)">
   <!-- stars / sparkles -->
   <g fill="#ffffff">
     <circle cx="210" cy="230" r="5" opacity=".8"/>
@@ -100,12 +101,11 @@
 
   <!-- wordmark -->
   <text x="500" y="828" text-anchor="middle" font-family="Inter Display, Inter" font-weight="900"
-        font-size="148" letter-spacing="2" fill="#070418" stroke="#070418" stroke-width="26" stroke-linejoin="round">C<tspan fill-opacity="0" stroke-opacity="0">O</tspan>ASTER</text>
+        font-size="148" letter-spacing="2" fill="#070418" stroke="#070418" stroke-width="26" stroke-linejoin="round">COASTER</text>
   <text x="500" y="828" text-anchor="middle" font-family="Inter Display, Inter" font-weight="900"
-        font-size="148" letter-spacing="2" fill="url(#txt)">C<tspan fill-opacity="0" stroke-opacity="0">O</tspan>ASTER</text>
-  <!-- the O is a coaster loop -->
-  <g><path d="M259.0 816.0 Q281.0 816.0 299.0 813.0 A42.0 42.0 0 1 0 299.0 729.0 A42.0 42.0 0 0 0 293.0 812.6 Q317.0 816.0 339.0 816.0" fill="none" stroke="#070418" stroke-width="32.0" stroke-linecap="round" stroke-linejoin="round" /><path d="M259.0 816.0 Q281.0 816.0 299.0 813.0 A42.0 42.0 0 1 0 299.0 729.0 A42.0 42.0 0 0 0 293.0 812.6 Q317.0 816.0 339.0 816.0" fill="none" stroke="#ffd400" stroke-width="19.0" stroke-linecap="round" stroke-linejoin="round" /><path d="M259.0 816.0 Q281.0 816.0 299.0 813.0 A42.0 42.0 0 1 0 299.0 729.0 A42.0 42.0 0 0 0 293.0 812.6 Q317.0 816.0 339.0 816.0" fill="none" stroke="#d18f00" stroke-width="19.0" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3.0 12.0" stroke-linecap="butt"/><path d="M259.0 816.0 Q281.0 816.0 299.0 813.0 A42.0 42.0 0 1 0 299.0 729.0 A42.0 42.0 0 0 0 293.0 812.6 Q317.0 816.0 339.0 816.0" fill="none" stroke="#fff8c4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" /></g>
+        font-size="148" letter-spacing="2" fill="url(#txt)">COASTER</text>
   <rect x="355" y="848" width="290" height="96" rx="48" fill="url(#pill)" stroke="#070418" stroke-width="8"/>
   <text x="500" y="920" text-anchor="middle" font-family="Inter Display, Inter" font-weight="900"
         font-size="80" letter-spacing="14" fill="#ffffff">LAB</text>
+  </g>
 </svg>
