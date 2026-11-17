@@ -59,7 +59,7 @@ const code = o => 'CL10J' + Buffer.from(JSON.stringify(o)).toString('base64url')
     };
     const o = await run(OLD), n = await run(F);
     ok(o.errors.length > 0 || !o.st || o.st.objs.some(k => k !== 'carousel') || o.st.wx !== 'sunny', '(10.0, for comparison) a park code using “constructor”, “toString”… as thing and weather names gets them past the checks (things kept: ' + (o.st ? o.st.objs.join(', ') : 'none') + '; weather: ' + (o.st && o.st.wx) + '; errors: ' + o.errors.length + (o.errors[0] ? ' — ' + o.errors[0].slice(0, 110) : '') + ')');
-    ok(n.w === '' && n.st && n.st.vis && n.st.objs.join() === 'carousel' && n.st.wx === 'sunny' && n.tabs === '✓✓✓' && n.errors.length === 0, '10.1: the same park opens with only its real carousel, sunny weather, working Office tabs and no errors (' + (n.st ? n.st.objs.join(', ') : '') + (n.errors[0] ? ' — ' + n.errors[0].slice(0, 160) : '') + ')');
+    ok(n.w === '' && n.st && n.st.vis && n.st.objs.join() === 'carousel' && typeof n.st.wx === 'string' && /^[a-z]+$/.test(n.st.wx) && !(n.st.wx in {}) && n.tabs === '✓✓✓' && n.errors.length === 0, '10.1: the same park opens with only its real carousel, real weather (it starts sunny and may change by itself a moment later), working Office tabs and no errors (' + (n.st ? n.st.objs.join(', ') + '; weather ' + n.st.wx + '; tabs ' + n.tabs + '; message “' + n.w + '”' : '') + (n.errors[0] ? ' — ' + n.errors[0].slice(0, 160) : '') + ')');
     ok(n.st && n.st.vis && !/[<>]/.test(n.st.vis.name), 'its name is shown without markup: “' + (n.st && n.st.vis && n.st.vis.name) + '”');
   }
   // ---------- D. the published code survives a reload, and never travels with a shared copy
