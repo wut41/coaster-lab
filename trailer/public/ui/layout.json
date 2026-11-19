@@ -1,0 +1,87 @@
+{
+  "start": {
+    "panel": ".stIn",
+    "x": 16,
+    "y": 24,
+    "width": 620,
+    "height": 1041.78125
+  },
+  "gravity": {
+    "panel": "#ov7 .ov7In, #ov7 > div",
+    "x": 600,
+    "y": 94.75,
+    "width": 720,
+    "height": 890.5
+  },
+  "reportData": {
+    "kind": "derail",
+    "why": "lat",
+    "g": 4.202090263366699,
+    "v": 17.2218284901728,
+    "el": "Banked turn",
+    "s": 94.61146545410156,
+    "ride": "Looping Adventure",
+    "planet": "🌍 Earth gravity",
+    "earth": true,
+    "seed": 3645932799,
+    "fly": 21.835409405017227,
+    "end": 24.957465818942783,
+    "up": 2,
+    "hang": 1.1083333333333318,
+    "maxH": 3.7332243687331417,
+    "cars": 4
+  },
+  "report": {
+    "panel": "#ov7 .ov7In, #ov7 > div",
+    "x": 600,
+    "y": 236.203125,
+    "width": 720,
+    "height": 607.59375
+  },
+  "evolveData": [
+    {
+      "sc": 56.667,
+      "st": {
+        "thrill": 61,
+        "comfort": 77,
+        "g": 4.7,
+        "air": 1.9,
+        "inv": 0
+      }
+    },
+    {
+      "sc": 54.86,
+      "st": {
+        "thrill": 57,
+        "comfort": 87,
+        "g": 4.56,
+        "air": 1.8,
+        "inv": 0
+      }
+    },
+    {
+      "sc": 54.586,
+      "st": {
+        "thrill": 57,
+        "comfort": 86,
+        "g": 4.57,
+        "air": 1.75,
+        "inv": 0
+      }
+    }
+  ],
+  "evolve": {
+    "panel": "#__evoPanel",
+    "x": 11,
+    "y": 327,
+    "width": 298,
+    "height": 742
+  },
+  "daily": {
+    "panel": "#ov7 .ov7In, #ov7 > div",
+    "x": 600,
+    "y": 241.34375,
+    "width": 720,
+    "height": 597.3125
+  }
+}
