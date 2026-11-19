@@ -12,8 +12,8 @@ import { EASE, SpeedBlur, mix, ramp } from '../lib/Polish';
 // ---------- bumper ----------
 const CUTS: { clip: string; at: number }[] = [
   { clip: 'pov', at: 50 },   // straight down the first drop
-  { clip: 'crash', at: 66 }, // derail: riders parachuting down
-  { clip: 'moon', at: 60 },  // creeping over the crest on the Moon
+  { clip: 'crashchase', at: 40 }, // derail: wheels leave the track in sparks
+  { clip: 'cine', at: 55 },  // wide: the whole park and the loop
 ];
 const push = (f: number, start: number) => interpolate(f, [start, start + 9], [1, 1.04], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
@@ -132,7 +132,7 @@ export const Wordmark: React.FC = () => {
         <div style={{ opacity: clamp01(logo * 1.4), transform: `scale(${mix(0.4, 1, logo)}) rotate(${mix(-20, 0, logo)}deg)` }}>
           <LogoMark size={84} />
         </div>
-        <div style={{ font: `800 50px ${FONT.ui}`, color: C.ink2, letterSpacing: '0.01em', opacity: sub, transform: `translateY(${((1 - sub) * 12).toFixed(2)}px)` }}>
+        <div style={{ font: `800 60px ${FONT.ui}`, color: C.ink2, letterSpacing: '0.01em', opacity: sub, transform: `translateY(${((1 - sub) * 12).toFixed(2)}px)` }}>
           Build it. <span style={{ color: C.ink }}>Ride it.</span> <span style={{ color: C.danger }}>Break it.</span>
         </div>
       </div>

@@ -4,13 +4,18 @@ import { C, FONT, alpha } from '../brand';
 import { Eyebrow, Finish, Footage } from '../components';
 import { EASE, bezier, mix, ramp } from '../lib/Polish';
 import layout from '../../public/ui/layout.json';
+import { CRASH_STOP_FRAME } from '../data/speeds';
 
-// Shot 9 · Disaster Mode crash (real footage: the crash camera swoops to the derailed cars, riders parachute down)
+// Shot 9 · Disaster Mode: chase camera kept on the train through the derail (capture/footage.js crashchase):
+// banked turn → wheels leave the track in sparks → confetti burst → cars fly, riders' parachutes open.
+// 0.6× slow motion (blended) so the derail reads; the music's full groove drops on frame 0.
+const CRASH_SRC = (f: number) => 28 + f * 0.6;
+export const CRASH_DERAIL = Math.round((CRASH_STOP_FRAME - 28) / 0.6); // output frame the wheels let go
 export const Crash: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill>
-      <Footage clip="crash" src={(f) => 38 + f * 0.93} blend scale={1 + 0.03 * ramp(frame, 0, 120, EASE.smooth)} />
+      <Footage clip="crashchase" src={CRASH_SRC} blend scale={1 + 0.04 * ramp(frame, 0, 124, EASE.smooth)} />
       <Eyebrow text="NEW · 💥 DISASTER MODE" color={C.danger} start={2} />
       <Finish />
     </AbsoluteFill>
@@ -75,7 +80,7 @@ export const ReportSlam: React.FC = () => {
   return (
     <AbsoluteFill style={{ overflow: 'hidden', background: C.night }}>
       {/* the crash site, frozen and darkened behind the report */}
-      <Footage clip="crash" src={() => 120} scale={1.08} style={{ filter: 'blur(16px) brightness(0.45) saturate(0.8)' }} />
+      <Footage clip="crashchase" src={() => 104} scale={1.08} style={{ filter: 'blur(16px) brightness(0.45) saturate(0.8)' }} />
       <AbsoluteFill style={{ background: `radial-gradient(ellipse 55% 60% at 50% 50%, ${alpha(C.danger, 0.12)}, rgba(5,10,22,0.6) 75%)` }} />
       <div style={{ position: 'absolute', inset: -40, transform: `translate(${shakeX.toFixed(2)}px, ${shakeY.toFixed(2)}px)` }}>
         <div style={{ position: 'absolute', inset: 40, transform: `scale(${push.toFixed(5)})` }}>

@@ -11,7 +11,7 @@ agent decides direction, shots and edit without stage-by-stage sign-off).
 | Audience | Players and friends the owner shares the game with (social posts, a link in a chat) |
 | Job of the film | Make people want to open the link: show that it is a real 3D ride, then the four new 8.6 features |
 | Must show | Riding a coaster (POV, the loop), the park, 🪐 Gravity Lab, 💥 Disaster Mode, 🧬 Evolve, 📅 Daily Challenge |
-| Format | 1920×1080, 30 fps, about 45 s, English, two renders: with music and without music (SFX only) |
+| Format | 1920×1080, 30 fps, 47 s, English, two renders: with music and without music (SFX only) |
 | Data | Everything on screen is the game's own fictional content (ride names, cartoon riders). No personal data. Saves come from a fresh test profile |
 
 ### Requirement → execution decisions
@@ -21,7 +21,7 @@ agent decides direction, shots and edit without stage-by-stage sign-off).
 | Real 3D gameplay, not mock-ups (Q1) | Capture the real game with Playwright: fake clock + one WebGL draw per video frame, seeded `Math.random`, so every clip is reproducible frame by frame. UI shots are real 2x screenshots of the game's panels |
 | No GPU in the build machine | Software WebGL (SwiftShader) at 1.5 s per 1080p frame; record only the frames the edit needs, fast-forward physics between them |
 | It's a game, energy is high | "Bold & energetic" motion preset (below), trailer grammar: cold-open bumper, slams, a freeze-frame |
-| Sound | Freesound blocks this cloud machine (HTTP 403 from the site), so SFX are synthesized locally (ffmpeg; original, no licence needed). BGM: Mixkit "Cat Walk" (house, ~129 BPM, bundled with the skill, Mixkit free licence) |
+| Sound | Freesound blocks this cloud machine (HTTP 403 from the site), so SFX are synthesized locally (ffmpeg, noise-based foley; original, no licence needed; hashes and levels in `public/audio/sfx/audio-manifest.json`). BGM: Mixkit "Cat Walk" (house, 129.96 BPM measured by `audio/beats.py`), trimmed so its full groove drops on the crash seam; the report slam, Evolve merge and outro stamp sit within 0.5 f of a kick |
 | CTA | No public URL in the repo, so the end card says "Free · plays in your browser · works on iPhone" |
 
 ## 1. Visual direction
@@ -57,8 +57,8 @@ footage itself is the frame.
 | Ride (POV drop) | real footage, `shot-transitions · flash-cut` into it | The core promise; footage carries the shot |
 | The loop | `speed-ramp-freeze · freeze-annotate` | Freeze the train upside-down at the top of the loop, marker circle + note |
 | Park | real Cinema-camera footage + `blur-slide` caption | Breadth: 12 coasters, 10 worlds, a living park |
-| 🪐 Gravity Lab | `segmented-thumb-hero` (Earth → Moon), then Moon footage | A two-option switch is exactly what the card is best at |
-| 💥 Disaster Mode | crash footage, then `slam-entrance-moves · score-slam` with the real Incident Report | Weight: the report slams down like a final score |
+| 🪐 Gravity Lab | `segmented-thumb-hero` (Earth → Moon), then an Earth-vs-Moon split screen | The switch is the card's sweet spot; the split screen (two captures from the same start frame, live mph from the game) makes "low gravity" visible |
+| 💥 Disaster Mode | chase-camera derail (0.6×), then `slam-entrance-moves · score-slam` with the real Incident Report | The derail itself on camera; the report slams down like a final score |
 | 🧬 Evolve | `cloner-depth-echo` on the real Evolve panel | One track → many generations → the best one |
 | 📅 Daily Challenge | real panel, `blur-slide` title | Short, calm beat before the finale |
 | Outro | `outro-group-photo-launch` | Every feature sends one element to the group photo around the wordmark |
@@ -67,21 +67,25 @@ Title cards between beats use `blur-slide` (the default calm reveal).
 
 ## 3. Storyboard (30 fps)
 
-| # | Time | Shot | Key motion |
+| # | Frames | Shot | Key motion |
 |---|---|---|---|
-| 1 | 0:00–0:01.1 | Cold open | POV drop / crash / Moon float, 9f each, 1→1.04 push; 6f black |
-| 2 | 0:01.1–0:05.1 | Wordmark | COASTER LAB letters drop and bounce, snap upright, logo tile, tagline "Build it. Ride it. Break it."; hold ≥ 1 s |
-| 3 | 0:05.1–0:10.5 | POV ride | Crest of the lift hill → first drop; caption "Ride 12 wild coasters" |
-| 4 | 0:10.5–0:15.8 | Freeze on the loop | Side camera, freeze at the top: "Upside down. Real physics." |
-| 5 | 0:15.8–0:19.0 | Park flyby | Cinema camera; caption "Build your own park" |
-| 6 | 0:19.0–0:20.8 | Title card | "New in 8.6" |
-| 7 | 0:20.8–0:24.3 | Gravity switch | 🌍 Earth → 🌙 Moon segmented control |
-| 8 | 0:24.3–0:28.3 | Moon ride | Chase camera, floaty drop, planet chip "🌙 1.62 m/s²" |
-| 9 | 0:28.3–0:32.3 | Crash | Disaster Mode derail, riders fly; caption "💥 Disaster Mode" |
-| 10 | 0:32.3–0:36.3 | Incident Report slam | Real report panel slams in |
-| 11 | 0:36.3–0:40.5 | Evolve | Evolve panel clones into generations and merges |
-| 12 | 0:40.5–0:43.0 | Daily Challenge | Real panel push-in, "A new challenge every day" |
-| 13 | 0:43.0–0:48.0 | Outro | Group photo + wordmark, "Free · plays in your browser · works on iPhone", hold 1 s |
+| 1 | 0–33 | Cold open | POV drop / derail sparks / wide park, 9f each, 1→1.04 push; 6f silent black |
+| 2 | 33–163 | Wordmark | COASTER LAB letters drop and bounce, snap upright, logo tile, "Build it. Ride it. Break it."; hold ≥ 1 s; music starts |
+| 3 | 163–263 | POV ride | Crest → first drop → upside down through the loop; caption "Ride 12 wild coasters" |
+| 4 | 263–387 | Freeze on the loop | Chase camera, frozen upside down: shutter tick, brackets, PAUSED, marker circle, "Upside down"; thaw |
+| 5 | 387–483 | Park flyby | Cinema camera; caption "Build and run your own park" |
+| 6 | 483–554 | Title card | "New in 8.6" + four feature chips |
+| 7 | 554–664 | Gravity switch | 🌍 Earth → 🌙 Moon segmented control, 9.81 → 1.62 m/s² |
+| 8 | 664–784 | Earth vs Moon | Split screen, same hill, live mph; "Same hill. A sixth of the gravity." |
+| 9 | 784–908 | Crash | Music drop + flash; chase camera through the derail, confetti, parachutes; "Off the rails…" |
+| 10 | 908–1030 | Incident Report slam | Real report panel slams in on a kick |
+| 11 | 1030–1168 | Evolve | Evolve panel clones into 5 generations and merges on a kick: "×6 generations", "Breed better rides." |
+| 12 | 1168–1254 | Daily Challenge | Real panel push-in, "One challenge. Every day." |
+| 13 | 1254–1414 | Outro | Group photo + wordmark (stamp on a kick), "Free · Plays in your browser · Works on iPhone", hold, 15f fade |
+
+**Deliberate deviations (recorded per the aesthetic rules):** the freeze-annotate shot opens already frozen
+(the chase camera flies through supports until the top of the loop; the preceding POV shot provides the
+"flow"); full-frame hits are limited to the crash flash-cut, the report slam shake and a light freeze shutter.
 
 Frame-level timeline lives in `src/timeline.ts` (`SHOTS` is the single source of truth;
 captions, SFX and transitions are derived from it).

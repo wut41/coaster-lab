@@ -21,14 +21,14 @@ gen wind 2.6 "$N*(min(t/1.2,1))*(1-max(0,(t-2.0)/0.6))" "highpass=f=120,lowpass=
 gen impact 1.6 "0.9*sin(2*PI*(55+60*exp(-t*18))*t)*exp(-t*3.2)+0.6*$N*exp(-t*28)" "lowpass=f=6000,volume=1.2"
 # riser: rising tone + noise building to a cut
 gen riser 1.8 "(0.35*sin(2*PI*(200+900*(t/1.8)^2)*t)+0.25*$N)*(t/1.8)^2" "highpass=f=180,volume=1.6"
-# sparkle: three bright decaying sine tones
-gen sparkle 1.2 "0.3*sin(2*PI*2093*t)*exp(-t*5)+0.25*sin(2*PI*2637*(t-0.06))*exp(-max(0,t-0.06)*5)*gte(t,0.06)+0.22*sin(2*PI*3136*(t-0.12))*exp(-max(0,t-0.12)*5)*gte(t,0.12)" "volume=1.1"
+# shimmer: airy high-band noise bloom with a fast flutter (replaces a synth arpeggio, S1)
+gen shimmer 1.1 "$N*(1-exp(-t*40))*exp(-t*3.2)*(0.7+0.3*sin(2*PI*23*t))" "highpass=f=5500,lowpass=f=14000,aecho=0.6:0.5:40|70:0.35|0.2,volume=2.2"
 # letter landing thud (wordmark): short low knock
 gen thud 0.35 "0.9*sin(2*PI*(90+120*exp(-t*40))*t)*exp(-t*14)+0.25*$N*exp(-t*60)" "lowpass=f=2500,volume=1.3"
 # UI click (switch press)
 gen click 0.12 "$N*exp(-t*90)+0.5*sin(2*PI*1800*t)*exp(-t*120)" "highpass=f=900,volume=0.9"
-# pop (icon springs in)
-gen pop 0.2 "0.8*sin(2*PI*(900-500*t/0.2)*t)*exp(-t*18)" "volume=0.9"
+# tick: a tactile plastic tick (noise transient + short low body), for things snapping into place
+gen tick 0.16 "$N*exp(-t*160)+0.7*sin(2*PI*320*t)*exp(-t*55)" "highpass=f=180,lowpass=f=7000,volume=1.1"
 # camera shutter (freeze-frame): two clicks
 gen shutter 0.25 "$N*(exp(-t*120)+0.7*exp(-max(0,t-0.08)*120)*gte(t,0.08))" "highpass=f=1200,volume=1.0"
 # marker scribble: band-passed noise, wobbling
@@ -39,4 +39,5 @@ gen chain 2.4 "($N*exp(-mod(t,0.142)*70)+0.5*sin(2*PI*700*t)*exp(-mod(t,0.142)*9
 gen crash 2.0 "0.8*sin(2*PI*(48+40*exp(-t*12))*t)*exp(-t*2.5)+0.5*$N*exp(-t*3)+0.25*sin(2*PI*1430*t)*sin(2*PI*1517*t)*exp(-t*2)" "lowpass=f=7000,volume=1.3"
 # slide (segmented thumb)
 gen slide 0.3 "$N*sin(PI*t/0.3)" "bandpass=f=1800:width_type=h:w=1200,volume=1.0"
-ls -la "$OUT"
+# manifest: hash + measured peak/mean of every file (S5 / sfx-sourcing record keeping)
+python3 -I audio/manifest.py "$OUT"

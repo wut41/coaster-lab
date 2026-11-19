@@ -65,13 +65,14 @@ async function grab(page, file) {
 }
 
 // Record n frames of the clean WebGL canvas into dir.
-async function record(env, dir, n, { before } = {}) {
+async function record(env, dir, n, { before, after } = {}) {
   fs.mkdirSync(dir, { recursive: true });
   const t0 = Date.now();
   for (let i = 0; i < n; i++) {
     if (before) await before(i);
     await env.step(1);
     await grab(env.page, path.join(dir, String(i).padStart(4, '0') + '.jpg'));
+    if (after) await after(i);
     if (i % 30 === 29) console.log(path.basename(dir), i + 1, '/', n, ((Date.now() - t0) / 1000).toFixed(0) + 's');
   }
 }

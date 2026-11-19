@@ -7,12 +7,12 @@ import { BlurWords } from './Gravity';
 import { panelSize } from './Disaster';
 
 // Shot 11 · cloner-depth-echo (demos/ui-entrance/cloner-depth-echo/ClonerDepthEcho.tsx)
-// The real Evolve panel "photocopies" 7 clones back along Z (perspective 1500, vanishing point moved to the
+// The real Evolve panel "photocopies" 5 clones (counter ends at ×6 = the 6-generation run that was captured) back along Z (perspective 1500, vanishing point moved to the
 // top-left corner — the 命门: a centred VP hides every clone behind the hero), 250px apart, opacity
 // 100% → 28%, fill fades to an accent outline. Spread: spring stagger 2.2f each (damping 15, one light
 // overshoot); hold 32f with a 2% push; merge: strong ease-in 10f, all together; on landing a single
 // 1.06 pulse + one accent rim flash (14f). Counter "×N" rolls one notch per clone.
-const N = 7, GAP_Z = 250, SPREAD = 24, EACH = 2.2, MERGE = 76, MERGE_DUR = 10, LAND = MERGE + MERGE_DUR;
+const N = 5, GAP_Z = 250, SPREAD = 24, EACH = 2.2, MERGE = 76, MERGE_DUR = 10, LAND = MERGE + MERGE_DUR;
 export const EVOLVE_LAND = LAND;
 export const EVOLVE_SPREAD = SPREAD;
 const PERSP = 1500, VP = { x: 360, y: 120 };
@@ -27,7 +27,9 @@ const depthOf = (f: number, idx: number) => spreadOf(f, idx) * (1 - mergeOf(f));
 
 export const Evolve: React.FC = () => {
   const frame = useCurrentFrame();
-  const P = panelSize('evolve', 860, 760);
+  const CROP = 0.8; // show 'Your coaster now' + results #1 and #2, cut above #3
+  const P0 = panelSize('evolve', 860 / CROP, 760);
+  const P = { width: P0.width, height: P0.height * CROP };
   const CX = 1340 - P.width / 2, CY = 540 - P.height / 2 + 20; // hero top-left corner
   const enter = ramp(frame, 0, 16, EASE.snappy);
   const press = ramp(frame, 16, 8, EASE.swift) * (1 - ramp(frame, SPREAD, 10, EASE.overshoot));
@@ -43,8 +45,16 @@ export const Evolve: React.FC = () => {
   const drift = 14 * ramp(frame, 40, 40, EASE.smooth) * (1 - mergeOf(frame));
   const label = ramp(frame, 6, 16, EASE.out);
   const panel = (op: number, outline: number, key: React.Key, extra: React.CSSProperties = {}) => (
-    <div key={key} style={{ position: 'absolute', left: CX, top: CY, width: P.width, height: P.height, borderRadius: 26, ...extra }}>
-      <Img src={staticFile('ui/evolve-panel.png')} style={{ width: '100%', height: '100%', display: 'block', borderRadius: 26, opacity: op }} />
+    <div key={key} style={{ position: 'absolute', left: CX, top: CY, width: P.width, height: P.height, borderRadius: 26, overflow: outline ? 'visible' : 'hidden', ...extra }}>
+      {outline > 0
+        ? <div style={{ position: 'absolute', inset: 0, borderRadius: 26, background: `linear-gradient(180deg, ${alpha('#16203a', op)} 0%, ${alpha('#0a101e', op * 0.6)} 100%)` }}>
+            {/* clones keep only the silhouette: a header bar and a track line, never the readouts (card rule) */}
+            <div style={{ position: 'absolute', left: 22, right: 22, top: 22, height: 26, borderRadius: 8, background: alpha(C.ok, 0.35) }} />
+            <svg width="100%" height="40%" viewBox="0 0 100 40" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, top: '30%' }}>
+              <path d="M5 34 C20 34 22 8 35 8 C48 8 46 30 60 26 C72 22 74 12 95 30" fill="none" stroke={alpha(C.gold, 0.8)} strokeWidth={2.2} vectorEffect="non-scaling-stroke" />
+            </svg>
+          </div>
+        : <Img src={staticFile('ui/evolve-panel.png')} style={{ width: '100%', height: P0.height, display: 'block', opacity: op }} />}
       {outline > 0 && <div style={{ position: 'absolute', inset: 0, borderRadius: 26, border: `2px solid ${alpha(C.acc, 0.55 + 0.3 * outline)}`, boxShadow: `0 0 ${(18 + 20 * outline).toFixed(0)}px ${alpha(C.acc, 0.14 + 0.1 * outline)}` }} />}
     </div>
   );
@@ -91,9 +101,9 @@ export const Evolve: React.FC = () => {
       {/* headline lands after the merge */}
       <div style={{ position: 'absolute', left: 110, top: 220 }}>
         <BlurWords dy={56} blur={16} style={{ font: `italic 900 104px ${FONT.display}`, textTransform: 'uppercase', color: C.ink, lineHeight: 1, justifyContent: 'flex-start' }}
-          words={[{ text: 'Breed', start: LAND + 4, dur: 20 }, { text: 'better', start: LAND + 8, dur: 20 }]} />
+          words={[{ text: 'Breed', start: LAND - 6, dur: 20 }, { text: 'better', start: LAND - 2, dur: 20 }]} />
         <BlurWords dy={56} blur={16} style={{ font: `italic 900 104px ${FONT.display}`, textTransform: 'uppercase', color: C.ok, lineHeight: 1.05, justifyContent: 'flex-start' }}
-          words={[{ text: 'rides.', start: LAND + 14, dur: 24 }]} />
+          words={[{ text: 'rides.', start: LAND + 4, dur: 24 }]} />
       </div>
       <Finish vignette={0.3} />
     </AbsoluteFill>

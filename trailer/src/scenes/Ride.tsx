@@ -20,11 +20,11 @@ export const POV: React.FC = () => {
 // (average slope > 1 makes up the held time) → 1×. Pause signals: 3f shutter flash, corner brackets,
 // LIVE → PAUSED timecode. Marker: one-stroke super-ellipse 10f (1.08 turns, not closed) + feTurbulence,
 // arrow shaft 6f + head 3f, 68px+ bold note, underline, byline. Ink fades 104–112, thaw 112–134.
-// Adaptation: the chase camera flies through the loop's supports until 3 frames before the top, so the
-// flow segment is a 10f step-printed run-up instead of 45f at 1× (the POV shot before it already showed the
-// ride at full speed); the freeze itself is still instant (slope 0).
+// Adaptation: the chase camera flies through the loop's supports until the frame it reaches the top, so the
+// "flow" half of the move is the POV shot right before it (full speed, through the same loop); this shot
+// opens already frozen on the pause signal, then thaws. Ink holds 70f so the note can be read (R3).
 export const FZ = 27;          // source frame (loop clip, chase camera): train upside down at the top
-export const FREEZE = 10, THAW = FREEZE + 67, LAND = THAW + 22;
+export const FREEZE = 0, THAW = FREEZE + 78, LAND = THAW + 22;
 const THAW_SRC = 30;
 const srcAt = (f: number) => {
   if (f <= FREEZE) return FZ - Math.round(0.3 * (FREEZE - f)); // step-printed 0.3× run-up (frames 24→27)
@@ -65,14 +65,14 @@ export const LoopFreeze: React.FC = () => {
   const rough = `rough-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const frozen = frame >= FREEZE && frame < THAW;
   const focus = ramp(frame, FREEZE, 10, EASE.snappy) * (1 - ramp(frame, THAW - 8, 12, EASE.swift));
-  const flash = frame >= FREEZE ? 1 - ramp(frame, FREEZE, 4, EASE.out) : 0;
-  const bracket = (frame >= FREEZE ? Math.min(1.1, springish(frame, FREEZE)) : 0) * (1 - ramp(frame, FREEZE + 59, 8, EASE.exit));
+  const flash = frame >= FREEZE ? 1 - ramp(frame, FREEZE, 2, EASE.out) : 0; // shutter tick, not a full-frame flash (R4)
+  const bracket = (frame >= FREEZE ? Math.min(1.1, springish(frame, FREEZE)) : 0) * (1 - ramp(frame, FREEZE + 70, 8, EASE.exit));
   const draw = ramp(frame, FREEZE + 9, 10, EASE.swift);
   const shaft = ramp(frame, FREEZE + 19, 6, EASE.out);
   const head = ramp(frame, FREEZE + 25, 3, EASE.out);
-  const under = ramp(frame, FREEZE + 35, 10, EASE.swift);
-  const sign = ramp(frame, FREEZE + 41, 12, EASE.out);
-  const fade = 1 - ramp(frame, FREEZE + 59, 8, EASE.out);
+  const under = ramp(frame, FREEZE + 26, 10, EASE.swift);
+  const sign = ramp(frame, FREEZE + 30, 12, EASE.out);
+  const fade = 1 - ramp(frame, FREEZE + 70, 8, EASE.out);
   const showInk = frame >= FREEZE + 9 && fade > 0.001;
   const note = ramp(frame, FREEZE + 19, 14, EASE.snappy);
   // arrow: from the note (bottom-right) to the circle's lower-right edge
@@ -83,7 +83,7 @@ export const LoopFreeze: React.FC = () => {
   const lift = 1 + 0.04 * focus;
   return (
     <AbsoluteFill>
-      <Footage clip="loop" src={srcAt} scale={lift} origin={`${TRAIN.x}px ${TRAIN.y}px`} blend={frame > THAW} />
+      <Footage clip="loop" src={srcAt} scale={lift} origin={`${TRAIN.x}px ${TRAIN.y}px`} blend={false} />
       {/* everything but the train recedes while frozen */}
       <AbsoluteFill style={{
         background: `radial-gradient(ellipse ${TRAIN.rx * 2.6}px ${TRAIN.ry * 2.8}px at ${TRAIN.x}px ${TRAIN.y}px, rgba(5,10,22,0) 45%, rgba(5,10,22,0.42) 100%)`,
@@ -95,14 +95,14 @@ export const LoopFreeze: React.FC = () => {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderRadius: 14,
           background: frozen ? C.gold : 'rgba(9,20,39,0.7)', color: frozen ? '#1a1406' : C.ink,
-          font: `800 26px ${FONT.ui}`, letterSpacing: '0.14em',
+          font: `800 34px ${FONT.ui}`, letterSpacing: '0.14em',
         }}>
           {frozen
             ? <span style={{ display: 'flex', gap: 5 }}><span style={{ width: 7, height: 22, background: '#1a1406', borderRadius: 1 }} /><span style={{ width: 7, height: 22, background: '#1a1406', borderRadius: 1 }} /></span>
             : <span style={{ width: 14, height: 14, borderRadius: 7, background: C.danger }} />}
           {frozen ? 'PAUSED' : 'LIVE'}
         </div>
-        <span style={{ font: `700 32px ui-monospace, Menlo, monospace`, color: frozen ? C.gold : C.ink, textShadow: '0 2px 8px rgba(0,0,0,.5)' }}>{timecode(frame)}</span>
+        <span style={{ font: `700 36px ui-monospace, Menlo, monospace`, color: frozen ? C.gold : C.ink, textShadow: '0 2px 8px rgba(0,0,0,.5)' }}>{timecode(frame)}</span>
       </div>
       {showInk && (
         <svg width={1920} height={1080} style={{ position: 'absolute', inset: 0, opacity: fade }}>
@@ -145,7 +145,7 @@ export const LoopFreeze: React.FC = () => {
           <Bracket x={1872} y={1032} sx={-1} sy={-1} s={bracket} />
         </AbsoluteFill>
       )}
-      {flash > 0.001 && <AbsoluteFill style={{ background: '#fff', opacity: 0.7 * flash }} />}
+      {flash > 0.001 && <AbsoluteFill style={{ background: '#fff', opacity: 0.3 * flash }} />}
     </AbsoluteFill>
   );
 };

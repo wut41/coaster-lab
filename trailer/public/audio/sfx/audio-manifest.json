@@ -1,0 +1,107 @@
+{
+  "chain.wav": {
+    "sha256": "41402ee122b183e720028710ca8d669457316d754740bf3a079e3ae7ea6efc70",
+    "seconds": 2.4,
+    "peak_db": -1.2,
+    "mean_db": -22.9,
+    "rms_peak_ms": 1140,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "click.wav": {
+    "sha256": "f22aaf1b70e12ba5f8be621ed0faf098bd09a3a78b4d49b86e0d6215b3d60520",
+    "seconds": 0.12,
+    "peak_db": -0.0,
+    "mean_db": -19.7,
+    "rms_peak_ms": 0,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "crash.wav": {
+    "sha256": "70cd611457ee643c54eb25c6f014f41d1d8e0c58e0738a6fea911bcae1a66134",
+    "seconds": 2.0,
+    "peak_db": 0.0,
+    "mean_db": -13.2,
+    "rms_peak_ms": 100,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "impact.wav": {
+    "sha256": "a2046724135b7d67d5957acd4473bc8b3965d037c10b056d4554c8d0a726574d",
+    "seconds": 1.6,
+    "peak_db": 0.0,
+    "mean_db": -12.5,
+    "rms_peak_ms": 60,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "marker.wav": {
+    "sha256": "7c8af23951f459cc1310ee1643f41e6713ab4b0b4bb6d2632995b13373d4aa6e",
+    "seconds": 0.4,
+    "peak_db": -1.2,
+    "mean_db": -16.7,
+    "rms_peak_ms": 230,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "riser.wav": {
+    "sha256": "4c95890bcf5c24e7dc8ace08f0fd37763b44e17a17b7e244cddd16bc93f324a8",
+    "seconds": 1.8,
+    "peak_db": -0.0,
+    "mean_db": -13.4,
+    "rms_peak_ms": 1780,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "shimmer.wav": {
+    "sha256": "66e2e93d68f5b62be0a9b7dee5d1dd493c86e18a19369e289825f870abff5729",
+    "seconds": 1.17,
+    "peak_db": -3.6,
+    "mean_db": -23.4,
+    "rms_peak_ms": 100,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "shutter.wav": {
+    "sha256": "e806ecd8f6659acc06a78e910ea46c4f62173e84440992bd412d86a4c0311c1c",
+    "seconds": 0.25,
+    "peak_db": -0.0,
+    "mean_db": -21.6,
+    "rms_peak_ms": 0,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "slide.wav": {
+    "sha256": "c6898b01e1be658ec5b93b12ddd07188660aa333461bf6620e7ab90096cd60bb",
+    "seconds": 0.3,
+    "peak_db": -4.8,
+    "mean_db": -18.7,
+    "rms_peak_ms": 150,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "thud.wav": {
+    "sha256": "b0d06f83ae559572171150377290c1f85479fc55dca8d37298b4c8b3d4da433f",
+    "seconds": 0.35,
+    "peak_db": -0.0,
+    "mean_db": -12.1,
+    "rms_peak_ms": 10,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "tick.wav": {
+    "sha256": "53b17118eeb1467f7fa4f7266454444b5c838594d2aa3426e06a8a42b087da01",
+    "seconds": 0.16,
+    "peak_db": -0.0,
+    "mean_db": -18.4,
+    "rms_peak_ms": 0,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "whoosh.wav": {
+    "sha256": "385ddbd9d367a0894e48e345ea0ef41ec509bebb8c8eaf2e00623cc068a15d23",
+    "seconds": 0.7,
+    "peak_db": 0.0,
+    "mean_db": -12.1,
+    "rms_peak_ms": 420,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "wind.wav": {
+    "sha256": "db7f90a8ae48813f296dfde76d6a1223e209e89d2cc6c38db54c4ac46ce19225",
+    "seconds": 2.6,
+    "peak_db": 0.0,
+    "mean_db": -13.2,
+    "rms_peak_ms": 1320,
+    "source": "synthesized by audio/make-sfx.sh (original, no third-party audio)"
+  },
+  "_note": "Output track offset: SFX are placed 1 frame early (Main.tsx OUT=1) for AAC priming; independent review measured 0-frame residuals for click/shutter/thud on the rendered file (2026-11-19, Remotion 4.0.484, h264+aac 48 kHz, mp4)."
+}

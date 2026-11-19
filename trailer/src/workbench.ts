@@ -3,7 +3,7 @@
 import React from 'react';
 import { Caption, FlashCut } from './components';
 import { SFX, Trailer } from './Main';
-import { CAPTIONS, FLASH_CUTS, SHOTS, TOTAL } from './timeline';
+import { BGM_IN_S, CAPTIONS, FLASH_CUTS, SHOTS, TOTAL } from './timeline';
 import { Bumper, Wordmark } from './scenes/ColdOpen';
 import { LoopFreeze, POV, Park } from './scenes/Ride';
 import { GravitySwitch, MoonRide, NewIn } from './scenes/Gravity';
@@ -39,7 +39,7 @@ export const WORKBENCH = {
   transitions: FLASH_CUTS.map((f, i) => ({ id: `flash${i + 1}`, label: `Flash ${i + 1}`, from: f.from, duration: f.dur, component: FlashUnit, durationProp: 'duration', cardId: 'flash' })),
   overlays: [],
   sfx: SFX.map((s) => ({ from: Math.max(0, s.at - 1), duration: s.dur ?? 90, src: `audio/sfx/${s.src}.wav`, volume: s.volume })),
-  bgm: [{ from: SHOTS.wordmark.from, duration: TOTAL - SHOTS.wordmark.from, src: 'audio/bgm/cat-walk.mp3', volume: 0.5, trimBefore: 28 * 30 }],
+  bgm: [{ from: SHOTS.wordmark.from, duration: TOTAL - SHOTS.wordmark.from, src: 'audio/bgm/cat-walk.mp3', volume: 0.5, trimBefore: Math.round(BGM_IN_S * 30) }],
   order: ['transitions', 'captions', 'overlays'],
   original: Trailer,
 };

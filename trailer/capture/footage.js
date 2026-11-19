@@ -35,6 +35,26 @@ const CLIPS = {
     await e.X(() => { const d = window.__coasterDebug; for (let i = 0; i < 4000 && d.state().s < 27; i++) d.v72.ff(0.025); });
     await e.step(SETTLE);
   } },
+  // front-row POV on Earth and on the Moon from the same spot (before the crest), for the split screen
+  povearth: { n: 120, async setup(e) {
+    await e.X(() => { const d = window.__coasterDebug; d.select(0); d.v72.useCam('ride'); });
+    await e.manual(); await e.step(2); await drainHold(e);
+    await e.X(() => { const d = window.__coasterDebug; for (let i = 0; i < 4000 && d.state().s < 22; i++) d.v72.ff(0.025); });
+    await e.step(45);
+  } },
+  povmoon: { n: 120, async setup(e) {
+    await e.X(() => { const d = window.__coasterDebug; d.v80.v86.setGrav('moon', null, true); d.select(0); d.v72.useCam('ride'); });
+    await e.manual(); await e.step(2); await drainHold(e);
+    await e.X(() => { const d = window.__coasterDebug; for (let i = 0; i < 4000 && d.state().s < 22; i++) d.v72.ff(0.025); });
+    await e.step(45);
+  } },
+  // Disaster Mode, chase camera kept on the train through the derail (the game would cut to its crash camera)
+  crashchase: { n: 110, async setup(e) {
+    await e.X(() => { const d = window.__coasterDebug; d.v80.v86.setDz(true); d.select(0); d.v72.useCam('chase'); });
+    await e.manual(); await e.step(2); await drainHold(e);
+    await e.X(() => { const d = window.__coasterDebug; for (let i = 0; i < 4000 && d.state().s < 52; i++) d.v72.ff(0.025); });
+    await e.step(40); // camera settles while the train runs the loop; derail (~95 m) comes ~1.2 s into the clip
+  }, async before(e) { await e.X(() => { const d = window.__coasterDebug; if (d.v72.cam().mode !== 'chase') d.v72.useCam('chase'); }); } },
   // Disaster Mode: derail on the banked turn (s ~ 95 m), crash camera, parachuting riders
   crash: { n: 150, async setup(e) {
     await e.X(() => { const d = window.__coasterDebug; d.v80.v86.setDz(true); d.select(0); d.v72.useCam('chase'); });
@@ -52,7 +72,11 @@ const CLIPS = {
   await c.setup(env);
   console.log(name, 'recording from', JSON.stringify(await env.X(() => { const s = window.__coasterDebug.state(); return { rideT: +s.rideT.toFixed(2), s: +s.s.toFixed(1), v: +s.v.toFixed(1) }; })));
   await clean(env.page, true);
-  await record(env, path.join(OUT, name), n, { before: c.before && (i => c.before(env, i)) });
+  const meta = [];
+  await record(env, path.join(OUT, name), n, { before: async (i) => { if (c.before) await c.before(env, i); }, after: async () => {
+    meta.push(await env.X(() => { const s = window.__coasterDebug.state(); return [+s.rideT.toFixed(3), +s.s.toFixed(2), +s.v.toFixed(3)]; }));
+  } });
+  require('fs').writeFileSync(path.join(OUT, name, 'meta.json'), JSON.stringify({ fields: ['rideT', 's', 'v'], frames: meta }));
   const info = await env.X(() => ({ st: window.__coasterDebug.state(), dz: window.__coasterDebug.v80.v86.dz().phase, cam: window.__coasterDebug.v72.cam().mode }));
   console.log(name, 'done', JSON.stringify(info), 'errors:', env.errors.slice(0, 3));
   await env.browser.close();

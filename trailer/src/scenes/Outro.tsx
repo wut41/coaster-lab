@@ -13,7 +13,7 @@ import { Footage, frameUrl } from '../components';
 import { EASE, Grain, SpeedBlur, ramp, velocity } from '../lib/Polish';
 import { panelSize } from './Disaster';
 
-export const OUTRO_DUR = 150;
+export const OUTRO_DUR = 160;
 const FLY_EASE = Easing.bezier(0.34, 1.4, 0.44, 1);
 const CRANE_EASE = Easing.bezier(0.3, 0, 0.2, 1);
 
@@ -28,10 +28,10 @@ const ui = (key: string, name: string, maxH: number, cx: number, cy: number, rot
 const ELS: El[] = [
   photo('pov', 'pov', 56, 300, 210, -5, -500, -100, 4),
   photo('park', 'cine', 60, 1620, 200, 4, 500, -100, 7),
-  ui('report', 'report', 400, 1650, 660, 5, 480, 200, 10),
-  photo('moon', 'moon', 60, 235, 700, -3, -460, 120, 13, 380),
+  ui('report', 'report', 400, 1730, 800, 5, 480, 200, 10),
+  photo('moon', 'povmoon', 70, 190, 790, -3, -460, 120, 13, 320),
   ui('evolve', 'evolve', 360, 560, 890, 3, -300, 320, 16),
-  photo('crash', 'crash', 70, 1330, 920, -4, 380, 320, 19, 380),
+  photo('crash', 'crashchase', 66, 1330, 920, -4, 380, 320, 19, 380),
   ui('daily', 'daily', 330, 1130, 170, -2, 160, -320, 22),
   photo('loop', 'loop', 27, 760, 160, 3, -160, -320, 25, 360),
   ui('gravity', 'gravity', 300, 930, 960, -2, 0, 360, 28),
@@ -48,7 +48,7 @@ export const OUTRO_RULE = 58;
 
 export const Outro: React.FC = () => {
   const frame = useCurrentFrame();
-  const fadeOut = 1 - ramp(frame, OUTRO_DUR - 12, 11, EASE.exit);
+  const fadeOut = 1 - ramp(frame, OUTRO_DUR - 16, 15, EASE.exit);
   const recede = interpolate(frame, [42, 50], [0, 1], cl);
   const craneT = interpolate(frame, [0, 40], [0, 1], { ...cl, easing: CRANE_EASE });
   const pushT = ramp(frame, 36, OUTRO_DUR - 36, EASE.smooth);
@@ -138,7 +138,7 @@ export const Outro: React.FC = () => {
                 <div style={{ position: 'absolute', top: 3, height: 1.5, left: '100%', width: 190 * ruleExt, background: C.violet, opacity: ruleExtFade }} />
               </>}
             </div>
-            <div style={{ font: `800 44px ${FONT.ui}`, color: C.ink, marginTop: 34, letterSpacing: '0.04em', opacity: tag, transform: `translateY(${(1 - tag) * 8}px)`, textShadow: '0 4px 20px rgba(0,0,0,.6)' }}>
+            <div style={{ display: 'inline-block', font: `800 52px ${FONT.ui}`, color: C.ink, marginTop: 34, letterSpacing: '0.04em', opacity: tag, transform: `translateY(${(1 - tag) * 8}px)`, padding: '12px 36px', borderRadius: 999, background: 'rgba(9,20,39,0.8)', border: '1.5px solid rgba(255,255,255,0.12)', boxShadow: '0 20px 50px -18px rgba(0,0,0,0.8)' }}>
               Free <span style={{ color: C.acc }}>·</span> Plays in your browser <span style={{ color: C.acc }}>·</span> Works on iPhone
             </div>
           </div>

@@ -3,6 +3,7 @@ import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoCon
 import { C, FONT, alpha, glass } from '../brand';
 import { Eyebrow, Finish, Footage } from '../components';
 import { EASE, SpeedBlur, mix, ramp, velocity } from '../lib/Polish';
+import { POVEARTH_MPH, POVMOON_MPH } from '../data/speeds';
 
 // Shot 6 · blur-slide title card (demos/typography/blur-slide/BlurSlide.tsx):
 // opacity / translateY / blur all bound to ONE progress p (EASE.out); words 4f apart; the subtitle
@@ -95,7 +96,7 @@ export const GravitySwitch: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: C.night, overflow: 'hidden' }}>
       <AbsoluteFill>
-        <Footage clip="moon" src={() => 40} scale={1.1} style={{ filter: `blur(18px) brightness(${mix(0.75, 0.45, night)})` }} />
+        <Footage clip="povmoon" src={() => 60} scale={1.1} style={{ filter: `blur(18px) brightness(${mix(0.75, 0.45, night)})` }} />
         <AbsoluteFill style={{ background: `radial-gradient(ellipse 60% 50% at 50% 46%, ${alpha('#0a1430', 0.2)}, ${alpha('#050a16', 0.75)})` }} />
       </AbsoluteFill>
       <Eyebrow text="NEW · 🪐 GRAVITY LAB" />
@@ -130,7 +131,7 @@ export const GravitySwitch: React.FC = () => {
       {/* gravity readout swaps with the switch */}
       <div style={{ position: 'absolute', left: 0, right: 0, top: CT + CH + 70, display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 24, opacity: floatT, transform: `translateY(${ctrlY}px)` }}>
         <span style={{ font: `800 40px ${FONT.ui}`, color: C.ink2, letterSpacing: '0.12em' }}>GRAVITY</span>
-        <span style={{ position: 'relative', display: 'inline-block', width: 230, height: 96 }}>
+        <span style={{ position: 'relative', display: 'inline-block', width: 196, height: 96 }}>
           <span style={{ position: 'absolute', left: 0, bottom: 0, font: `italic 900 96px ${FONT.display}`, color: C.ink, opacity: 1 - readout, transform: `translateY(${-40 * readout}px)`, filter: readout > 0.01 ? `blur(${6 * readout}px)` : undefined }}>9.81</span>
           <span style={{ position: 'absolute', left: 0, bottom: 0, font: `italic 900 96px ${FONT.display}`, color: C.gold, opacity: readout, transform: `translateY(${40 * (1 - readout)}px)`, filter: readout < 0.99 ? `blur(${6 * (1 - readout)}px)` : undefined }}>1.62</span>
         </span>
@@ -142,19 +143,51 @@ export const GravitySwitch: React.FC = () => {
   );
 };
 
-// Shot 8 · Moon ride (real footage, Moon gravity with "realistic planet" on), planet chip top-right
+// Shot 8 · split screen: the same lift-hill crest and drop, captured twice from the same start frame —
+// left on Earth, right on the Moon (Gravity Lab, "realistic planet" on). Both halves run the same source
+// frame numbers (same ride time); the live mph readouts come from the game's own speed each frame.
+const MOON_SRC = (f: number) => 24 + f * 0.8; // gentle 0.8× so the Moon side's creep can be read
+export const MOON_EARTH_DROP = 38;           // output frame where the Earth train tips into the drop
+const Half: React.FC<{ clip: string; side: 0 | 1; label: string; icon: string; g: string; mph: number[]; color: string }> = ({ clip, side, label, icon, g, mph, color }) => {
+  const frame = useCurrentFrame();
+  const v = mph[Math.min(mph.length - 1, Math.round(MOON_SRC(frame)))];
+  const inP = ramp(frame, side * 4, 16, EASE.snappy);
+  return (
+    <div style={{ position: 'absolute', top: 0, left: side * 960, width: 960, height: 1080, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: -480, width: 1920, height: 1080 }}>
+        <Footage clip={clip} src={MOON_SRC} blend />
+      </div>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: 70, display: 'flex', justifyContent: 'center', opacity: inP, transform: `translateY(${mix(-20, 0, inP)}px)` }}>
+        <div style={{ ...glass(999), padding: '14px 30px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <span style={{ fontSize: 48 }}>{icon}</span>
+          <span style={{ font: `italic 900 52px ${FONT.display}`, textTransform: 'uppercase' }}>{label}</span>
+          <span style={{ font: `800 38px ${FONT.ui}`, color }}>{g}</span>
+        </div>
+      </div>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 84, display: 'flex', justifyContent: 'center', opacity: inP }}>
+        <div style={{ ...glass(28), padding: '10px 34px 14px', display: 'flex', alignItems: 'baseline', gap: 14 }}>
+          <span style={{ font: `italic 900 110px ${FONT.display}`, color, fontVariantNumeric: 'tabular-nums', minWidth: 150, textAlign: 'right' }}>{Math.round(v)}</span>
+          <span style={{ font: `800 44px ${FONT.ui}`, color: C.ink2 }}>mph</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 export const MoonRide: React.FC = () => {
   const frame = useCurrentFrame();
-  const chip = ramp(frame, 4, 16, EASE.snappy);
+  const line = ramp(frame, 0, 14, EASE.snappy);
+  const title = ramp(frame, 50, 18, EASE.out);
   return (
-    <AbsoluteFill>
-      <Footage clip="moon" src={(f) => 22 + f * 0.58} blend scale={1 + 0.025 * ramp(frame, 0, 120, EASE.smooth)} />
-      <div style={{ position: 'absolute', right: 96, top: 84, ...glass(999), padding: '16px 30px', display: 'flex', gap: 16, alignItems: 'center', opacity: chip, transform: `translateX(${mix(40, 0, chip)}px)` }}>
-        <span style={{ fontSize: 46 }}>🌙</span>
-        <span style={{ font: `800 42px ${FONT.ui}` }}>Moon gravity</span>
-        <span style={{ font: `800 42px ${FONT.ui}`, color: C.gold }}>1.62 m/s²</span>
+    <AbsoluteFill style={{ background: C.night }}>
+      <Half clip="povearth" side={0} label="Earth" icon="🌍" g="9.81 m/s²" mph={POVEARTH_MPH} color={C.ink} />
+      <Half clip="povmoon" side={1} label="Moon" icon="🌙" g="1.62 m/s²" mph={POVMOON_MPH} color={C.gold} />
+      <div style={{ position: 'absolute', left: 957, top: 0, width: 6, height: 1080, background: `linear-gradient(180deg, ${C.acc}, ${C.violet})`, transform: `scaleY(${line})`, boxShadow: `0 0 24px ${alpha(C.acc, 0.6)}` }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, top: 470, display: 'flex', justifyContent: 'center', opacity: title, transform: `scale(${mix(0.92, 1, title)})` }}>
+        <div style={{ ...glass(26), padding: '18px 40px', font: `italic 900 64px ${FONT.display}`, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+          Same hill. <span style={{ color: C.gold }}>A sixth of the gravity.</span>
+        </div>
       </div>
-      <Finish />
+      <Finish vignette={0.25} />
     </AbsoluteFill>
   );
 };

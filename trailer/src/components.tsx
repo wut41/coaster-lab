@@ -5,7 +5,7 @@ import { EASE, Grain, Vignette, mix, ramp } from './lib/Polish';
 
 // Real gameplay footage, captured frame by frame (capture/footage.js).
 // `src` maps the local frame to a source frame (float → nearest + optional crossfade for slow-mo).
-export const CLIP_LEN: Record<string, number> = { pov: 168, loop: 102, cine: 120, moon: 132, crash: 150 };
+export const CLIP_LEN: Record<string, number> = { pov: 168, loop: 102, cine: 120, moon: 132, crash: 150, crashchase: 110, povearth: 120, povmoon: 120 };
 const pad = (n: number) => String(n).padStart(4, '0');
 export const frameUrl = (clip: string, i: number) =>
   staticFile(`footage/${clip}/${pad(Math.max(0, Math.min(CLIP_LEN[clip] - 1, Math.round(i))))}.jpg`);
