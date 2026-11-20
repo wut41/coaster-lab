@@ -20,6 +20,7 @@ node t4_corners.js                # optional, slow (~15 min): proves every Daily
 | `t2b_disaster` | Derail, parachute riders, crash camera, Incident Report, rollback, reset, achievements |
 | `t3_evolve` | Evolve: valid results only, repeatable seeds, preview → Place it → Undo, Cancel, time cap |
 | `t4_daily` | Daily Challenge: same challenge for everyone, Submit, Earth physics, streak, share fallbacks, saving |
+| `t6_vip` | 8.7 👑 VIP pack (`coaster_lab_v8_7.html`): locked VIP cards open the VIP page, unlock from a server "yes", VIP colours in Train Studio + Track Builder, gold graphics on the 3 golden coasters (laps complete), progress reset keeps VIP, revoke locks again, 0 errors |
 | `t5_regress` | Older features next to 8.5: start screen, Lab, Goals, Settings, Park & tools, builder, sketch studio, owner prompt |
 
 Screenshots land in `tests/shots/`. The suites use the game's built-in test hooks, which only switch on inside a
