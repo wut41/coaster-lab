@@ -10,3 +10,5 @@ A 3D roller coaster simulator in a single HTML file (three.js 0.160 from a CDN).
 | `CHANGES-8.6.md` | What changed in 8.6, known limits, an iPhone test checklist, leaderboard ideas |
 | `PLAN-8.6.md` | The plan written before building 8.6 |
 | `tests/` | Headless browser tests (see `tests/README.md`) |
+| `arcade/neon-arcade.html` | **Neon Arcade**: Neon Breakout (10 stages + boss), Neon Duel, Neon Serpent and Neon Swarm in one file |
+| `arcade/tests/bot_playthrough.js` | Bots play every arcade game headlessly and report crashes (`node arcade/tests/bot_playthrough.js`) |
