@@ -115,6 +115,21 @@ a{color:var(--s1)}
 .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 25%,transparent)}
 .pill.live .dot{background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent);animation:pulse 2s infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 6px transparent}}
+.pill.snap .dot{background:var(--s1);box-shadow:0 0 0 3px var(--s1-wash)}
+.goal{display:flex;flex-direction:column;gap:7px}
+.goal-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink2);font-weight:550}
+.goal-head b{color:var(--ink);font-size:14px}
+.meter{height:8px;border-radius:999px;background:color-mix(in srgb,var(--s1) 20%,transparent);overflow:hidden}
+.meter div{height:100%;border-radius:999px;background:var(--s1);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.goal small{font-size:12px;color:var(--muted)}
+.switch{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
+.switch input{appearance:none;-webkit-appearance:none;width:36px;height:21px;border-radius:999px;margin:0;background:var(--axis);position:relative;cursor:pointer;transition:background .2s}
+.switch input::after{content:"";position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch input:checked{background:var(--s1)}
+.switch input:checked::after{transform:translateX(15px)}
+.switch input:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+.brk{stroke:var(--surface);stroke-width:2.5;fill:none}
+.switch[hidden],.btn[hidden]{display:none}
 .tints{display:flex;gap:6px;padding:4px;border-radius:999px;background:var(--glass-hi);border:1px solid var(--hair)}
 .tint{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
 .tint[aria-pressed="true"]{border-color:var(--ink)}
@@ -294,10 +309,10 @@ footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
   </header>
 
   <div class="banner glass" id="demoBanner">
-    <span aria-hidden="true">✨</span>
-    <div><b>You're looking at demo data.</b> Add a free YouTube Data API key to pull @cerealsquad1's real numbers straight into this page.</div>
-    <div class="spacer"></div>
-    <button class="btn" id="bannerConnect">Connect</button>
+    <span aria-hidden="true" id="bannerIcon">📸</span>
+    <div id="bannerText" style="flex:1 1 320px"></div>
+    <label class="switch" id="outlierWrap"><input type="checkbox" id="outlierToggle"> <span id="outlierLabel">Hide viral hit</span></label>
+    <button class="btn" id="bannerConnect">Refresh live</button>
   </div>
 
   <main class="grid" id="grid">
@@ -311,6 +326,11 @@ footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
         <div class="hero-num" id="heroSubs">—</div>
       </div>
       <div class="hero-meta" id="heroMeta"></div>
+      <div class="goal" id="goal" role="group" aria-label="Progress to one million views">
+        <div class="goal-head"><span>Road to 1M views 🎯</span><b id="goalPct"></b></div>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="1000000" id="goalBar"><div id="goalFill" style="width:0"></div></div>
+        <small id="goalNext"></small>
+      </div>
       <p class="desc" id="chanDesc"></p>
     </section>
 
@@ -323,7 +343,7 @@ footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
         <div class="legend" aria-label="Legend">
           <span><i class="f1" style="background:var(--s1)"></i>Long-form</span>
           <span><i style="background:var(--s2)"></i>Shorts</span>
-          <span><i class="line" style="background:var(--s3)"></i>5-upload average</span>
+          <span><i class="line" style="background:var(--s3)"></i>5-upload median</span>
         </div>
         <div class="seg" role="group" aria-label="View as">
           <button data-view="chart" aria-pressed="true">Chart</button><button data-view="table" aria-pressed="false">Table</button>
@@ -363,7 +383,7 @@ footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
     </section>
   </main>
 
-  <footer id="foot">Demo data is generated for layout preview only and does not reflect the real channel.</footer>
+  <footer id="foot"></footer>
 </div>
 
 <div class="tip" id="tip" hidden role="status" aria-live="polite"></div>
@@ -382,7 +402,7 @@ footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
     <label class="check"><input type="checkbox" id="rememberInput"> Remember key on this device</label>
     <div class="err" id="dlgErr"></div>
     <div class="dlg-actions">
-      <button class="btn" type="button" id="demoBtn">Use demo data</button>
+      <button class="btn" type="button" id="demoBtn">Use saved snapshot</button>
       <button class="btn" type="button" id="cancelBtn">Cancel</button>
       <button class="btn primary" type="submit" id="loadBtn">Load stats</button>
     </div>
@@ -463,14 +483,21 @@ function columnChart(el, items, opt = {}){
   const m = {t:18, r:opt.endLabel?40:10, b:28, l:44};
   const iw = W - m.l - m.r, ih = H - m.t - m.b, n = items.length;
   if (!n){ el.innerHTML = `<p class="sub">No data</p>`; return; }
-  const top = Math.max(...items.map(d => d.value), ...(opt.line || []));
+  const sorted = items.map(d => d.value).sort((a, b) => b - a);
+  const clipAt = opt.clip && n > 2 && sorted[0] > 3 * sorted[1] ? sorted[1] * 1.15 : Infinity;
+  const top = Math.max(Math.min(sorted[0], clipAt), ...(opt.line || []).map(v => Math.min(v, clipAt)));
   const {max, step} = nice(top);
   const band = iw / n, bw = Math.max(1.5, Math.min(24, band - 2));
   const y = v => m.t + ih - v/max*ih;
   let s = yAxis(m, iw, ih, max, step, opt.yFmt || axisNum);
   items.forEach((d, i) => {
-    const h = Math.max(0, d.value/max*ih), x = m.l + i*band + (band - bw)/2;
+    const clipped = d.value > max, h = Math.max(0, Math.min(d.value, max)/max*ih), x = m.l + i*band + (band - bw)/2;
     if (h > 0) s += `<path class="bar ${d.cls||'f1'}" data-i="${i}" d="${roundTop(x, m.t+ih-h, bw, h, 4)}"/>`;
+    if (clipped){
+      s += `<path class="brk" d="M${x-2},${m.t+16}l${bw+4},-5M${x-2},${m.t+23}l${bw+4},-5"/>`;
+      const lx = Math.max(m.l + 20, Math.min(m.l + iw - 20, x + bw/2));
+      s += `<text class="endlabel" x="${lx}" y="${m.t-6}" text-anchor="middle">${fmt(d.value)} ↑</text>`;
+    }
   });
   if (opt.line){
     const pts = opt.line.map((v, i) => `${(m.l + i*band + band/2).toFixed(1)},${y(v).toFixed(1)}`);
@@ -566,36 +593,20 @@ function spark(vals){
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linejoin="round" opacity=".7"/><circle cx="${lx}" cy="${ly}" r="3.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="1.5"/></svg>`;
 }
 
-/* ───────── Demo data ───────── */
-function demoData(){
-  let seed = 20261123;
-  const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  const gauss = () => Math.sqrt(-2*Math.log(rnd()+1e-9)) * Math.cos(2*Math.PI*rnd());
-  const cereals = ['Froot Loops','Cap’n Crunch','Lucky Charms','Cinnamon Toast Crunch','Cocoa Puffs','Frosted Flakes','Honey Nut Cheerios','Fruity Pebbles','Reese’s Puffs','Trix','Corn Pops','Apple Jacks'];
-  const longT = ['Ranking every %c ever made','I ate only %c for 24 hours','Blind taste test: %c vs store brand','We built a cereal tier list (chaos)','Rating weird cereals from around the world','The %c mystery finally solved','Making a giant bowl of %c','Cereal squad reacts to your hot takes','Is %c actually healthy?','Trying discontinued cereals'];
-  const shortT = ['%c but it’s ASMR','POV: you pour milk first','%c speedrun 🥣','Rating %c in 10 seconds','The crunch test: %c','Cereal hack nobody talks about'];
-  const vids = [], start = new Date(2025, 8, 3), end = new Date(2026, 10, 21);
-  let t = start.getTime(), i = 0;
-  while (t < end.getTime()){
-    const isShort = rnd() < .52, c = cereals[Math.floor(rnd()*cereals.length)];
-    const tpl = (isShort ? shortT : longT)[Math.floor(rnd()*(isShort?shortT:longT).length)];
-    const growth = 1 + i/26;
-    let views = (isShort ? 2400 : 1500) * growth * Math.exp(gauss() * (isShort ? .75 : .5));
-    if (i === 23 || i === 51) views *= 7.5;
-    views = Math.round(views);
-    const lr = (isShort ? .034 : .052) * Math.exp(gauss()*.18), cr = (isShort ? .0025 : .0075) * Math.exp(gauss()*.3);
-    const d = new Date(t); d.setHours(16 + Math.floor(rnd()*3));
-    vids.push({ id:'demo'+i, title: tpl.replace('%c', c), published: d, views, likes: Math.round(views*lr), comments: Math.round(views*cr),
-      durationSec: isShort ? 20 + Math.floor(rnd()*40) : 360 + Math.floor(rnd()*720), isShort, thumb: null });
-    t += (3 + Math.floor(rnd()*7)) * 864e5; i++;
-  }
-  const total = vids.reduce((a, v) => a + v.views, 0);
+/* ───────── Snapshot (pulled from the YouTube Data API on Nov 23, 2026) ───────── */
+const SNAP_DATE = new Date('2026-11-23T14:45:00Z');
+const SNAP_VIDEOS = [["8qhIFSnsFqE","Releasing in a month #dev","2026-11-07T22:11:43Z",102,4,0,"PT1M1S"],["KFYlkld-Tqc","Claude vs Codex: the weekly limit showdown 🎮⛔","2026-11-04T00:16:08Z",1449,14,1,"PT16S"],["5DkyAxn79AI","Claude said \"small,\" I heard \"theme park\" 🎢","2026-11-03T21:11:24Z",1625,17,0,"PT32S"],["XkdAq2YyoXo","Sorry Daniel 😊","2026-10-12T14:26:22Z",1171,14,2,"PT13S"],["yvwpIxvjuIM","Luck #brawlstars","2026-10-03T12:58:23Z",1185,11,5,"PT13S"],["a6rcHOlREm0","“Post my drafts” here you go #brawlstars","2026-09-19T00:36:20Z",1216,5,1,"PT22S"],["3q8YF4RmDB8","Scan this QR code for free Wendy box","2026-09-15T22:18:45Z",351,2,0,"PT7S"],["gJPmlddd9BA","Scan this QR code for a free Wendy box in Brawl Stars","2026-08-22T14:36:42Z",1279,10,2,"PT8S"],["ibh42MgzrV8","The new brawler Wendy #brawlstars","2026-08-13T14:59:12Z",2375,20,0,"PT13S"],["c9TKyOAph2U","#idk #idk #idk","2026-08-07T21:41:26Z",767,3,0,"PT9S"],["grPD5n_MVNI","How to win this puzzle","2026-08-04T20:16:44Z",308,2,0,"PT15S"],["ulU95QMXMwk","#supercellpartner #brawlstars","2026-08-02T13:57:54Z",1350,11,3,"PT20S"],["TLgjm3D2ruI","Open da door #openthedoor","2026-08-01T00:55:08Z",138,3,0,"PT6S"],["AGrDIxXjAJg","Corny ahh joke","2026-07-29T19:37:27Z",1481,10,2,"PT6S"],["TrYOaYJEumQ","How to get a cool cube in Geometry Dash  #shorts #fyp","2026-07-26T20:54:09Z",2491,36,4,"PT1M"],["lIcWQgh-B5c","…it finally happend","2026-07-25T21:20:04Z",496,4,0,"PT9S"],["YQk8tLkGaYo","Literal air","2026-07-23T11:58:26Z",1164,6,0,"PT4S"],["UQfNMB7mKbA","#football #FifaWorldCup #miami #soccer #shorts","2026-07-19T14:17:31Z",796,9,4,"PT6S"],["mTjoDP-VENQ","Nori box give away #BrawlStars #NoriBox #CyberPunkJaeYong","2026-07-18T02:31:44Z",1247,4,2,"PT6S"],["rZNBCZVKdgI","🤦‍♂️ #fyp #shorts","2026-07-17T23:20:15Z",1174,4,0,"PT4S"],["fGCOlayShn4","3 mythic deals!?","2026-07-16T20:48:57Z",890,8,0,"PT9S"],["4LI3uWQepeA","Mafia cookie","2026-07-14T19:00:49Z",405,19,0,"PT16S"],["KXEh77GTTHM","Goodbye old thumbs up button #fyp #likebutton #shorts","2026-07-13T23:01:59Z",1145,70,15,"PT12S"],["1tDww1_PmlY","World Cup official mascot #dog #fifa #worldcup","2026-07-13T22:02:46Z",3209,28,1,"PT14S"],["8AmiEs090O4","Subbing to my subs #subscribers #subbingtomysubs","2026-07-13T20:34:39Z",1114,9,5,"PT12S"],["FuL9npyj-kU","Mobile ads be like #fyp #shorts","2026-07-13T19:19:01Z",1304,10,0,"PT13S"],["30-gZNacIPU","FIFA goal #worldcup #viral #futbol #fifa","2026-07-10T16:45:27Z",961,3,0,"PT5S"],["hQPjmO5MtNU","Insane nori box luck #brawlstars","2026-07-09T17:12:47Z",1510,11,0,"PT11S"],["4IRbBFkkRvQ","Luckiest day #brawlstars","2026-07-06T17:06:44Z",1762,6,1,"PT5S"],["f09aWVLwwEQ","When google says “I think” #fyp #memes","2026-07-05T22:04:01Z",1300,4,0,"PT4S"],["zw-mZ5Wlopg","Good morning","2026-07-04T20:03:35Z",476,2,0,"PT7S"],["0CPw5i8uGSg","Crazy side eye","2026-07-03T14:47:06Z",29,1,0,"PT3S"],["pDafBhFZazI","Bot behavior #brawlstars","2026-07-03T14:44:55Z",1194,3,0,"PT6S"],["Z7jz1eKsqyA","Brawl Stars new season gameplay #brawlstars","2026-07-02T17:42:48Z",15,3,0,"PT10M38S"],["yZea7aLdxRk","Turn of events… #brawlstars","2026-07-02T12:31:36Z",1106,7,0,"PT11S"],["YMG1B7OVapM","HELP PLS","2026-07-01T16:31:38Z",996,12,0,"PT9S"],["kcy2OJOVjR8","YouTube vs Cereal Squad wallpaper","2026-07-01T13:35:19Z",640,2,0,"PT6S"],["D7koCB0trjs","Should I make a discord server","2026-06-27T22:01:08Z",54,1,1,"PT3S"],["LBUFVE5yMMk","My YouTube Screen Time 😬","2026-06-25T17:44:48Z",1106,5,2,"PT10S"],["-RCYDe_W8Z8","Who made this","2026-06-25T11:49:43Z",1031,12,1,"PT11S"],["JCjxSGYpwpA","#viral #newtrend #helpmybro","2026-06-21T15:47:33Z",1719,12,0,"PT4S"],["XWYWYe1JGqY","Stages of an ice cream cones life","2026-06-18T16:55:15Z",1946,6,7,"PT10S"],["gpeClDE74zs","I’m uninstalling 😭","2026-06-17T15:20:18Z",100,1,3,"PT5S"],["FJi5xjx2h14","I shrunk","2026-06-17T14:39:11Z",1409,8,3,"PT5S"],["hZ1l4g18aZA","Nice resort?","2026-06-17T10:30:44Z",230,3,3,"PT5S"],["xPrE4eru_sY","#mrbeast #teamair","2026-06-15T07:21:58Z",71,1,0,"PT3S"],["9Q8t8MpPHwY","Time traveler","2026-06-11T13:54:07Z",56,1,0,"PT3S"],["Dgu2D9NA1ww","#brawl #bug","2026-06-11T12:01:11Z",22370,32,4,"PT5S"],["6DrklrSlwIk","Edgar is a banana","2026-06-10T15:24:32Z",1021,6,3,"PT8S"],["ARSMbdCK0Qw","Guys, I got the iPhone 1 and you don’t","2026-06-07T21:56:40Z",962,9,0,"PT7S"],["khgJPyVJ6J0","Wrong MJ","2026-06-06T19:40:46Z",2012,10,0,"PT10S"],["yGL_x84WQyw","POV: somebody faking an injury","2026-06-06T16:05:01Z",136,2,0,"PT3S"],["2CXKswIV1vU","POV soccer players when they get a bad call from the ref","2026-06-05T22:32:10Z",1323,10,0,"PT5S"],["-_f8sUO4QKA","Water for my 97 subs","2026-06-05T17:42:40Z",617,5,6,"PT6S"],["dtHufohFeDw","What is aura","2026-06-04T21:41:08Z",343,5,0,"PT10S"],["LW69F3J7Ge4","🪩","2026-06-04T01:36:42Z",82,4,1,"PT14S"],["IwVZPk0TPEM","So real","2026-06-04T01:36:01Z",46,2,0,"PT10S"],["_0ozZnket2Q","I’ll actually do it","2026-06-01T21:33:51Z",62,2,1,"PT3S"],["yvXaGl3m0yk","Can we beat that?","2026-05-31T14:35:35Z",920,10,0,"PT21S"],["_pCRqMJo0is","11111 trophies","2026-05-31T01:54:28Z",49,1,0,"PT3S"],["5WVznClAdbo","How to get $1 million dollars","2026-05-30T22:11:04Z",135,2,0,"PT5S"],["mvMR81QENQg","Oop there goes gravity","2026-05-30T19:16:55Z",1448,8,0,"PT6S"],["L9HBQ0AXk0o","My block blast video was wrong😢","2026-05-28T16:41:32Z",510,7,5,"PT11S"],["UcKFwLbSrhA","Da CapCut edit","2026-05-27T23:28:31Z",95,3,3,"PT11S"],["En33sVWl0fU","#baseball","2026-05-27T23:25:53Z",67,3,0,"PT3S"],["jrO5gNd6Ji8","The remote has survived war🫡","2026-05-26T22:40:21Z",1329,6,2,"PT5S"],["xN03cwqh1WA","Finally a free offer","2026-05-26T20:48:35Z",842,9,0,"PT13S"],["GY0p-vVg_u4","May 26, 2026","2026-05-26T19:54:42Z",9,1,0,"PT11S"],["xxluTRrMUho","Which one is better?","2026-05-25T00:53:17Z",56,3,0,"PT6S"],["lhcwrFanM8w","Is this good?","2026-05-24T20:17:03Z",405,3,2,"PT7S"],["1uQdvAeARl0","Ooooooooooo","2026-05-24T15:17:48Z",41,1,0,"PT10S"],["YTeqqw8PiN0","Very cheap💰","2026-05-24T15:15:05Z",770,8,0,"PT6S"],["sv00DEFVcTk","Hypercharge","2026-05-23T13:45:43Z",370,1,0,"PT4S"],["EojAkOmslT4","My gang","2026-05-23T00:55:59Z",1129,20,0,"PT10S"],["Dyfm8l1WZA4","Minions","2026-05-22T18:51:42Z",929,9,0,"PT15S"],["U0kqU7u7PHA","My morning, skin care routine routine","2026-05-22T15:08:56Z",77,3,0,"PT5S"],["gqOJnav8dz4","Guys I’m sorry, but","2026-05-22T13:40:59Z",392,9,0,"PT8S"],["jiRUOeJqxe0","Professional singer","2026-05-21T19:05:12Z",532,3,0,"PT6S"],["QQlZEsA2FSs","The drippy day","2026-05-21T11:12:19Z",651,10,1,"PT11S"],["VmLAHTb4cOQ","My first edit","2026-05-17T22:37:38Z",905,6,0,"PT6S"],["JJMg1XTcPkQ","Was this microphone worth it?","2026-05-17T22:20:21Z",1151,11,3,"PT10S"],["bFM0unww-j0","Sub to join","2026-05-17T22:13:26Z",85,2,0,"PT15S"],["AQjn2VhX4NQ","An unhealthy amount of YouTuber candy","2026-05-16T15:04:21Z",593,4,0,"PT7S"],["c5ix-oRFL5w","My first one","2026-05-15T23:39:43Z",117,1,0,"PT13S"],["OrSD-zTKQEU","#trendy #funny","2026-05-13T20:31:21Z",653,9,0,"PT16S"],["ZJUIoc50WvE","What are the chances?","2026-05-10T21:44:20Z",40,2,0,"PT12S"],["099j_Aws_Yo","Only an epic skin!?","2026-05-09T20:47:36Z",1336,14,2,"PT6S"],["aWlGv6NhMxg","6 eliminations","2026-05-09T20:46:48Z",64,4,0,"PT3S"],["CTy9Ga3ejLQ","First star nova drop","2026-05-07T21:46:01Z",322,5,0,"PT7S"],["BqkJ2xI7IfQ","New season","2026-05-07T11:00:58Z",115,4,0,"PT13S"],["pwJ5If3vJwk","Tesla gun versus balloon","2026-05-07T00:32:50Z",598,4,0,"PT57S"],["9BX4mSUj4Fs","Goodbye $10","2026-05-05T21:09:46Z",192,4,0,"PT32S"],["ztyAR4jJVeE","Can you guys watch all of it at once?","2026-05-05T00:20:21Z",276,3,0,"PT14S"],["S86NMUNYZ8Y","This is from a live stream","2026-05-04T23:42:38Z",670,9,1,"PT14S"],["crIxFgE1RYQ","The unicorn kingdom","2026-05-03T12:52:01Z",124,3,0,"PT18S"],["knN5pWvWuRw","#roblox","2026-05-01T13:39:01Z",1277,10,0,"PT8S"],["37tsvHRnR9c","#DreamTrackAI Opening a mythic chaos drop in brawl stars","2026-05-01T12:37:24Z",1331,13,0,"PT16S"],["iaM8mkP4fsw","#brawlstars #waste of bling and Gems","2026-04-30T23:10:57Z",1847,15,0,"PT15S"],["v7dy9HKzMoI","Daily compensation","2026-04-30T21:52:33Z",1565,8,0,"PT4S"],["QD--01Zi79s","Sonny, the puppy","2026-04-28T22:29:16Z",75,3,0,"PT9S"],["jZ3J02PQ0ZY","Too many nerfs","2026-04-28T21:33:31Z",245,3,0,"PT18S"],["k_K60BC_9eU","#duolingo","2026-04-26T19:00:17Z",57,2,0,"PT13S"],["kE6D3KygzXA","April 26, 2026","2026-04-26T15:26:47Z",378,2,0,"PT5S"],["cJ15xilO9KM","Angelic vs demon drop","2026-04-26T14:50:54Z",809,14,0,"PT11S"],["MGjKNlmhVeE","#memes #AI","2026-04-26T13:46:59Z",182,3,0,"PT7S"],["4ma80UEwDeI","Do it","2026-04-25T13:41:41Z",58,2,2,"PT9S"],["Qax6TtGRRkw","Spin ship","2026-04-25T01:59:30Z",949,2,1,"PT16S"],["wjm_x9M7_kc","Ranking the trophy box","2026-04-24T11:35:03Z",52,2,1,"PT18S"],["K9QsfgiRSJw","Potato rabbit","2026-04-22T22:03:06Z",243,4,0,"PT21S"],["XWCT6OyNi6Q","Crazy realization","2026-04-19T17:13:01Z",294,4,0,"PT16S"],["D6MdTEA93QY","Luck","2026-04-18T17:26:34Z",2011,11,1,"PT21S"],["PXNFySgi250","#Brawl stars #relatable","2026-04-16T23:03:21Z",32670,103,13,"PT14S"],["mN3okNQ_chg","World record","2026-04-14T22:07:24Z",79,2,0,"PT17S"],["2bZf8oVFDCM","Subscribe to Mr.Flash","2026-04-14T21:46:12Z",67,3,0,"PT15S"],["ABIXblQAp_Y","Luck","2026-04-14T21:43:22Z",952,9,0,"PT6S"],["A-PP_MBrkgk","How to add photos to block blast","2026-04-12T21:06:45Z",247928,1478,162,"PT13S"],["IeciBv2eyV4","Touch grass","2026-04-12T02:39:29Z",293,3,0,"PT6S"],["LxLv6kV_bQo","Yummy","2026-04-12T02:37:46Z",336,3,0,"PT11S"],["x7GFYKqRcDI","New player","2026-04-12T02:33:51Z",54,2,0,"PT2S"],["5FCucCbNNJA","#","2026-04-11T16:39:07Z",33,3,0,"PT9S"],["OyYzReBuqhc","Confusion","2026-04-11T14:06:09Z",36,3,0,"PT9S"],["-Fj97N_yrKM","Movie","2026-04-11T02:51:29Z",42,4,0,"PT9S"],["5sKd3ZDJIKw","Future driver","2026-04-11T02:46:42Z",47,3,0,"PT9S"],["2aOi6azNFgA","Yum","2026-04-11T02:44:29Z",2397,12,0,"PT9S"],["FCHvcdwvtxs","Cereal👍 granola🤮🤢","2026-04-11T00:02:34Z",798,2,1,"PT14S"],["6ZplFBXv-QE","#Joyride","2026-04-08T18:14:27Z",1408,10,0,"PT7S"],["HtVBqc-2n8w","#OOF","2026-04-06T21:09:12Z",100,2,0,"PT4S"],["K5CDOFyLJz0","#flex","2026-04-05T13:42:54Z",479,4,3,"PT20S"],["CwSYA2hMq5I","Channel upgrade 💰🤑","2026-04-04T21:25:53Z",34,2,0,"PT12S"],["tpbLHV8bVnE","#mummy #puppy","2026-04-04T01:41:00Z",30,2,1,"PT38S"],["CULxTqRapFA","💩","2026-04-03T23:59:31Z",56,3,2,"PT8S"],["Uv1D3i_89ww","#bye Sora🫡","2026-03-31T23:35:44Z",25,2,0,"PT16S"],["rhlFpydPmEw","#bye Sora🫡","2026-03-31T23:35:03Z",95,2,1,"PT11S"],["eokT11ra6f4","#bye Sora 🫡","2026-03-31T23:34:39Z",25,2,0,"PT11S"],["mnRkiXVWE54","#bye Sora🫡","2026-03-31T23:34:07Z",31,3,0,"PT11S"],["YbAeXKgx70c","I’m late🫡","2026-03-29T15:53:33Z",1245,6,0,"PT13S"],["lS2BzjGNRVY","im hungy","2026-03-29T15:16:26Z",1137,3,0,"PT28S"],["9ms-A2itcA4","#celebrity cruise glitch","2026-03-29T12:25:08Z",113,2,0,"PT51S"],["nokOg3p3jUs","#first time outside","2026-03-28T20:43:23Z",1047,8,0,"PT9S"],["6w4buHizVLM","Medium luck","2026-03-28T17:10:13Z",1059,1,0,"PT11S"],["pG3mFR6Mu6w","#pizza #tech","2026-03-27T22:01:40Z",228,1,3,"PT19S"],["1LiTvzxFA-o","#nerf","2026-03-25T23:21:33Z",266,1,6,"PT5S"],["vGQsohzg7FI","#dalgona #gross","2026-03-22T20:51:14Z",39,3,0,"PT28S"],["4BFICSqLzYE","#Opening a chaos shard","2026-03-22T13:53:41Z",22,2,1,"PT22S"],["pPRaOHfQEUA","#brawlstars #relatable😂","2026-03-22T01:06:22Z",1286,6,2,"PT4S"],["5sKHarIl5cI","#I Kinda Suck😂","2026-03-20T15:30:49Z",15,2,0,"PT11M13S"],["vQfGXaAS8M0","POV: Playing Mech Arena","2026-03-20T00:39:45Z",27,1,0,"PT2M15S"],["9JmK387hMH0","Opening star drops","2026-03-19T22:38:45Z",1554,21,2,"PT1M10S"],["UK6X04Jih3A","#cringe","2026-03-16T21:06:50Z",151,2,0,"PT44S"],["QpnWQczTCjs","Her jaw dropped","2026-03-15T22:01:28Z",54,2,2,"PT3S"],["VIR7wUQrurE","#tech trick","2026-03-14T19:31:12Z",52,2,0,"PT24S"],["XKcr0odvbE8","POV beginners making a YouTube video","2026-03-13T00:44:17Z",930,9,0,"PT40S"],["EUtdJutfpAE","How ChatGPT imagines cookie clicker","2026-03-13T00:40:19Z",1687,4,4,"PT45S"],["-FSqPFh5RAQ","#How much does it cost?","2026-03-11T23:34:01Z",1423,7,2,"PT31S"],["3lGAKIOOY0I","#truth filter","2026-03-01T20:32:52Z",195,2,1,"PT12S"],["m2dSvTYdy1Q","#Macarena gorilla","2026-02-28T22:51:16Z",2343,15,2,"PT9S"],["VudbEPR8fMo","Dancing cats","2026-02-28T22:46:45Z",3163,13,1,"PT7S"],["A70eege0i0o","#duck’s cousin","2026-02-28T18:16:19Z",2294,21,0,"PT15S"],["VJHufB8xlao","#duck","2026-02-27T23:43:00Z",2739,13,2,"PT4S"]];
+function snapshotData(){
   return {
-    live:false,
-    channel:{ title:'Cereal Squad', handle:'@cerealsquad1', avatar:null, subscribers:18700, views: total + 41200,
-      videoCount: vids.length + 9, joined: new Date(2024, 2, 14), country:null,
-      description:'Sample profile for previewing the dashboard. Connect a key to load the real channel.' },
-    videos: vids
+    mode:'snapshot',
+    channel:{ title:'Cereal squad', handle:'@cerealsquad1', id:'UCWf9jI6ahTmFQbboTS7OxlQ',
+      avatar:'https://yt3.ggpht.com/bGRrYf1gHft5RG5F4ZW4SfqDGyAaq7S_iw-F3UGWDFjbYnC4Zfq6fT8lQOqB0PRfOrzp6QGLXg=s240-c-k-c0x00ffffff-no-rj',
+      subscribers:287, views:416872, videoCount:160, joined:new Date('2025-12-14T19:38:48Z'), country:null,
+      description:'My goal is to reach one million views and to make good videos' },
+    videos: SNAP_VIDEOS.map(([id, title, pub, views, likes, comments, dur]) => {
+      const s = isoDur(dur);
+      return { id, title, published:new Date(pub), views, likes, comments, durationSec:s, isShort: s > 0 && s <= 180, thumb:`https://i.ytimg.com/vi/${id}/mqdefault.jpg` };
+    })
   };
 }
 
@@ -635,7 +646,7 @@ async function liveData(key, handle, maxVideos = 200){
   }
   const s = c.statistics || {}, sn = c.snippet || {};
   return {
-    live:true,
+    mode:'live',
     channel:{ title:sn.title, handle: sn.customUrl || '@' + handle, avatar: sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url,
       subscribers: s.hiddenSubscriberCount ? null : +s.subscriberCount, views:+s.viewCount||0, videoCount:+s.videoCount||0,
       joined: sn.publishedAt ? new Date(sn.publishedAt) : null, country: sn.country || null, description: sn.description || '' },
@@ -648,6 +659,7 @@ let DATA = null, VIEW = 'chart';
 const typeCls = v => v.isShort ? 'f2' : 'f1';
 const typeName = v => v.isShort ? 'Short' : 'Long-form';
 const eng = v => v.views ? (v.likes + v.comments) / v.views : 0;
+const engW = a => { const vw = a.reduce((s, v) => s + v.views, 0); return vw ? a.reduce((s, v) => s + v.likes + v.comments, 0) / vw : 0; };
 const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h-1] + s[h]) / 2; };
 const durFmt = s => s >= 3600 ? `${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}` : `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
@@ -662,35 +674,52 @@ function deltaHTML(cur, prev, label, fmtFn = x => pct(x, 0)){
 
 function render(){
   if (!DATA) return;
-  const {channel:c, videos:all, live} = DATA;
-  const vids = [...all].sort((a, b) => a.published - b.published);
+  const {channel:c, videos:all, mode} = DATA, live = mode === 'live';
+  const byViews = [...all].sort((a, b) => b.views - a.views);
+  const outlier = byViews.length > 2 && byViews[0].views > 5 * byViews[1].views ? byViews[0] : null;
+  const hideOut = !!outlier && $('#outlierToggle').checked;
+  const vids = all.filter(v => !(hideOut && v === outlier)).sort((a, b) => a.published - b.published);
+  const totalAll = all.reduce((a, v) => a + v.views, 0);
 
   // Header + banner
   $('#status').classList.toggle('live', live);
-  $('#statusText').textContent = live ? `Live · ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}` : 'Demo data';
-  $('#demoBanner').hidden = live;
-  $('#connectBtn').textContent = live ? 'Refresh' : 'Connect live data';
-  $('#foot').textContent = live
-    ? `Live from the YouTube Data API · based on the latest ${vids.length} public uploads · videos 3 min or shorter are counted as Shorts.`
-    : 'Demo data is generated for layout preview only and does not reflect the real channel.';
+  $('#status').classList.toggle('snap', !live);
+  const when = live ? new Date() : SNAP_DATE;
+  $('#statusText').textContent = live ? `Live · ${when.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}` : `Snapshot · ${MON[when.getMonth()]} ${when.getDate()}`;
+  $('#bannerIcon').textContent = outlier ? '🚀' : live ? '📡' : '📸';
+  $('#bannerText').innerHTML = outlier
+    ? `<b>One Short is carrying the channel.</b> “${esc(outlier.title)}” has ${NF.format(outlier.views)} views, ${pct(outlier.views / totalAll, 0)} of all views in the analysed uploads.`
+    : live ? `<b>Live data</b> loaded from the YouTube Data API.` : `<b>Real data snapshot</b> pulled from YouTube on ${dShort(SNAP_DATE)}.`;
+  $('#outlierWrap').hidden = !outlier;
+  $('#outlierLabel').textContent = 'Hide viral hit from charts';
+  $('#connectBtn').textContent = live ? 'Refresh' : 'Go live';
+  $('#bannerConnect').hidden = live;
+  $('#foot').textContent = `${live ? 'Live from the YouTube Data API' : `Snapshot pulled from the YouTube Data API on ${dShort(SNAP_DATE)}`} · ${all.length} public uploads analysed${hideOut ? ' (viral hit hidden from charts)' : ''} · videos 3 min or shorter count as Shorts.`;
+
+  // Goal meter
+  const goal = 1e6, pctGoal = Math.min(1, c.views / goal), steps = [1e3,1e4,25e3,5e4,1e5,2e5,3e5,4e5,5e5,75e4,1e6];
+  const next = steps.find(s => s > c.views);
+  $('#goalPct').textContent = pct(pctGoal, 1);
+  $('#goalFill').style.width = (pctGoal * 100).toFixed(2) + '%';
+  $('#goalBar').setAttribute('aria-valuenow', c.views);
+  $('#goalNext').textContent = next ? `${NF.format(next - c.views)} views to the next milestone (${fmt(next)})` : 'Goal smashed 🏆';
 
   // Hero
   $('#chanName').textContent = c.title || 'Channel';
   $('#chanHandle').textContent = c.handle;
-  $('#avatar').innerHTML = c.avatar ? `<img src="${esc(c.avatar)}" alt="" referrerpolicy="no-referrer">` : '🥣';
+  $('#avatar').innerHTML = c.avatar ? `<img src="${esc(c.avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : '🥣';
   $('#heroSubs').textContent = c.subscribers == null ? 'Hidden' : fmt(c.subscribers);
   const meta = [];
   if (c.joined) meta.push(`Joined ${MON[c.joined.getMonth()]} ${c.joined.getFullYear()}`);
   meta.push(`${NF.format(c.videoCount)} videos`);
   if (c.country) meta.push(c.country);
-  if (!live) meta.push('Sample');
   $('#heroMeta').innerHTML = meta.map(x => `<span class="chip">${esc(x)}</span>`).join('');
-  $('#chanDesc').textContent = c.description || '';
+  $('#chanDesc').textContent = (c.description || '').split('\n')[0];
 
   // KPIs
   const last10 = vids.slice(-10), prev10 = vids.slice(-20, -10);
   const avgL = mean(last10.map(v => v.views)), avgP = mean(prev10.map(v => v.views));
-  const engL = mean(last10.map(eng)), engP = mean(prev10.map(eng));
+  const engL = engW(last10), engP = engW(prev10);
   const gaps = vids.slice(-11).map((v, i, a) => i ? (v.published - a[i-1].published) / 864e5 : null).filter(x => x != null);
   const gapsP = vids.slice(-21, -10).map((v, i, a) => i ? (v.published - a[i-1].published) / 864e5 : null).filter(x => x != null);
   const cad = median(gaps), cadP = median(gapsP);
@@ -699,7 +728,7 @@ function render(){
   const kpis = [
     { label:'Total channel views', value: fmt(c.views), foot: viewsPerSub ? `<span class="delta flat"><span>${viewsPerSub.toFixed(1)} views per subscriber</span></span>` : '', spark: spark(vids.slice(-12).map(v => v.views)) },
     { label:'Avg views · last 10 uploads', value: fmt(avgL), foot: deltaHTML(avgL, avgP, 'vs previous 10'), spark: spark(vids.slice(-12).map(v => v.views)) },
-    { label:'Engagement rate', value: pct(engL, 2), foot: deltaHTML(engL, engP, 'vs previous 10'), spark: spark(vids.slice(-12).map(eng)) },
+    { label:'Engagement · last 10 uploads', value: pct(engL, 2), foot: deltaHTML(engL, engP, 'vs previous 10'), spark: spark(vids.slice(-12).map(eng)) },
     { label:'Upload cadence', value: cad ? `${cad < 1.5 ? cad.toFixed(1) : Math.round(cad)} days` : '—',
       foot: cadP ? (() => { const faster = cad < cadP * .97, slower = cad > cadP * 1.03; return `<span class="delta ${faster?'up':slower?'down':'flat'}">${faster?'▲ Faster':slower?'▼ Slower':'■ Steady'}<span>&nbsp;median gap, vs before</span></span>`; })() : '',
       spark: `<span class="chip">${NF.format(totalLikes)} likes</span>` }
@@ -707,12 +736,12 @@ function render(){
   $('#kpis').innerHTML = kpis.map(k => `<div class="glass kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="foot">${k.foot}${k.spark}</div></div>`).join('');
 
   // Views per upload
-  const el = $('#uploadsChart'), cap = el.clientWidth < 560 ? 30 : 60, recent = vids.slice(-cap);
-  const roll = recent.map((_, i) => mean(vids.slice(Math.max(0, vids.length - recent.length + i - 4), vids.length - recent.length + i + 1).map(v => v.views)));
-  $('#uploadsSub').textContent = `Last ${recent.length} uploads, oldest to newest · hover a bar for details`;
+  const el = $('#uploadsChart'), cap = el.clientWidth < 560 ? 40 : el.clientWidth < 900 ? 80 : 200, recent = vids.slice(-cap);
+  const roll = recent.map((_, i) => median(vids.slice(Math.max(0, vids.length - recent.length + i - 4), vids.length - recent.length + i + 1).map(v => v.views)));
+  $('#uploadsSub').textContent = `${recent.length === vids.length ? `All ${recent.length}` : `Last ${recent.length}`} uploads, oldest to newest · hover a bar for details`;
   columnChart(el, recent.map(v => ({ value:v.views, cls:typeCls(v), x: mLabel(v.published), v })), {
-    h: 280, line: roll, xCount: el.clientWidth < 560 ? 4 : 7, label:'Views per upload',
-    tip: (d, i) => videoTip(d.v) + tr('5-upload avg', fmt(roll[i]), '--s3')
+    h: 280, line: roll, clip: true, xCount: el.clientWidth < 560 ? 4 : 7, label:'Views per upload',
+    tip: (d, i) => videoTip(d.v) + tr('5-upload median', fmt(roll[i]), '--s3')
   });
   $('#uploadsTable').innerHTML = `<table><thead><tr><th>Published</th><th>Title</th><th>Type</th><th class="num">Views</th><th class="num">Likes</th><th class="num">Comments</th><th class="num">Engagement</th></tr></thead><tbody>${
     [...vids].reverse().map(v => `<tr><td class="num" style="text-align:left">${dShort(v.published)}</td><td>${esc(v.title)}</td><td><span class="type"><i style="background:var(${v.isShort?'--s2':'--s1'})"></i>${typeName(v)}</span></td><td class="num">${NF.format(v.views)}</td><td class="num">${NF.format(v.likes)}</td><td class="num">${NF.format(v.comments)}</td><td class="num">${pct(eng(v), 2)}</td></tr>`).join('')
@@ -742,7 +771,7 @@ function render(){
 
   // Engagement
   const engEl = $('#engChart'), engSet = vids.slice(-40);
-  lineChart(engEl, engSet.map(v => ({ x: mLabel(v.published), value: eng(v) * 100, v })), {
+  lineChart(engEl, engSet.map(v => ({ x: `${MON[v.published.getMonth()]} ${v.published.getDate()}`, value: eng(v) * 100, v })), {
     h: 220, xCount: engEl.clientWidth < 500 ? 3 : 5, label:'Engagement rate per upload',
     yFmt: t => t.toFixed(t < 10 && t % 1 ? 1 : 0) + '%', endFmt: v => v.toFixed(2) + '%',
     tip: p => videoTip(p.v)
@@ -758,8 +787,8 @@ function render(){
   $('#split').innerHTML = `<div class="legend"><span><i style="background:var(--s1)"></i>Long-form</span><span><i style="background:var(--s2)"></i>Shorts</span></div>
     <div class="share" role="img" aria-label="Views split: long-form ${pct(lgV/tot,0)}, Shorts ${pct(shV/tot,0)}">${part('f1', 'Long-form', lgV, lg.length)}${part('f2', 'Shorts', shV, sh.length)}</div>
     <div class="split-stats">
-      <div><small><i style="background:var(--s1)"></i>Long-form avg</small><b>${fmt(mean(lg.map(v => v.views)))}</b><small>${lg.length} uploads · ${pct(mean(lg.map(eng)), 2)} eng.</small></div>
-      <div><small><i style="background:var(--s2)"></i>Shorts avg</small><b>${fmt(mean(sh.map(v => v.views)))}</b><small>${sh.length} uploads · ${pct(mean(sh.map(eng)), 2)} eng.</small></div>
+      <div><small><i style="background:var(--s1)"></i>Long-form avg</small><b>${fmt(mean(lg.map(v => v.views)))}</b><small>${lg.length} uploads · ${pct(engW(lg), 2)} eng.</small></div>
+      <div><small><i style="background:var(--s2)"></i>Shorts avg</small><b>${fmt(mean(sh.map(v => v.views)))}</b><small>${sh.length} uploads · ${pct(engW(sh), 2)} eng.</small></div>
     </div>`;
   $('#split').querySelectorAll('[data-tip]').forEach(d => {
     d.onpointermove = e => showTip(d.dataset.tip, e.clientX, e.clientY);
@@ -775,10 +804,10 @@ function render(){
   });
 
   // Top table
-  const top = [...vids].sort((a, b) => b.views - a.views).slice(0, 8);
+  const top = byViews.slice(0, 8);
   $('#topTable').innerHTML = `<table><thead><tr><th></th><th>Video</th><th>Type</th><th class="num">Published</th><th class="num">Length</th><th class="num">Views</th><th class="num">Likes</th><th class="num">Engagement</th></tr></thead><tbody>${
-    top.map((v, i) => `<tr><td class="rank">${i+1}</td><td><div class="vid"><div class="thumb">${v.thumb ? `<img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : (v.isShort ? '📱' : '🥣')}</div>${
-      live ? `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">${esc(v.title)}</a>` : `<span class="t">${esc(v.title)}</span>`}</div></td>
+    top.map((v, i) => `<tr><td class="rank">${i+1}</td><td><div class="vid"><div class="thumb">${v.thumb ? `<img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : (v.isShort ? '📱' : '🥣')}</div>${
+      `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">${esc(v.title)}</a>`}</div></td>
       <td><span class="type"><i style="background:var(${v.isShort?'--s2':'--s1'})"></i>${typeName(v)}</span></td>
       <td class="num">${dShort(v.published)}</td><td class="num">${durFmt(v.durationSec)}</td><td class="num"><b>${NF.format(v.views)}</b></td><td class="num">${NF.format(v.likes)}</td><td class="num">${pct(eng(v), 2)}</td></tr>`).join('')
   }</tbody></table>`;
@@ -803,10 +832,12 @@ async function load(key, handle){
   } catch (e){ $('#dlgErr').textContent = e.message || String(e); return false; }
   finally { $('#app').classList.remove('loading'); }
 }
-$('#connectBtn').onclick = () => { const k = SESSION_KEY || store.get('csq-key'); if (DATA?.live && k) load(k, store.get('csq-handle') || 'cerealsquad1'); else openDlg(); };
+$('#connectBtn').onclick = () => { const k = SESSION_KEY || store.get('csq-key'); if (DATA?.mode === 'live' && k) load(k, store.get('csq-handle') || 'cerealsquad1'); else openDlg(); };
 $('#bannerConnect').onclick = openDlg;
 $('#cancelBtn').onclick = () => dlg.close();
-$('#demoBtn').onclick = () => { store.set('csq-key', null); SESSION_KEY = null; DATA = demoData(); render(); dlg.close(); };
+$('#demoBtn').onclick = () => { store.set('csq-key', null); SESSION_KEY = null; DATA = snapshotData(); render(); dlg.close(); };
+$('#outlierToggle').onchange = () => { store.set('csq-hide-outlier', $('#outlierToggle').checked ? '1' : null); render(); };
+$('#outlierToggle').checked = store.get('csq-hide-outlier') === '1';
 let SESSION_KEY = null;
 $('#dlgForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -819,7 +850,7 @@ $('#dlgForm').addEventListener('submit', async e => {
 });
 
 /* ───────── Boot ───────── */
-DATA = demoData(); render();
+DATA = snapshotData(); render();
 const k = store.get('csq-key');
 if (k){ SESSION_KEY = k; load(k, store.get('csq-handle') || 'cerealsquad1'); }
 let rt, lastW = $('#grid').clientWidth;
