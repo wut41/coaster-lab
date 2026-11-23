@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cereal Squad Analytics</title>
+<meta name="description" content="Analytics dashboard for the YouTube channel @cerealsquad1. Live data via the YouTube Data API, demo data until connected.">
+<style>
+/* ───────────── Tokens ───────────── */
+:root{
+  color-scheme: light;
+  --bg:#eceef6;
+  --ink:#0b0b0b; --ink2:#4a4945; --muted:#706e68;
+  --glass:rgba(255,255,255,.52); --glass-hi:rgba(255,255,255,.74);
+  --stroke:rgba(255,255,255,.78); --hair:rgba(11,11,11,.08);
+  --sheen:rgba(255,255,255,.65); --shadow:rgba(40,40,90,.18);
+  --grid:rgba(11,11,11,.075); --axis:rgba(11,11,11,.22);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --s1-wash:rgba(42,120,214,.12);
+  --good:#006300; --bad:#d03b3b; --warn:#fab219;
+  --surface:#f3f4f9;
+  --b1:#9d8cff; --b2:#6fd0ff; --b3:#ffb0cf; --b4:#8ef2cf; --blob-op:.75;
+}
+:root[data-tint="lagoon"]{ --b1:#6fb7ff; --b2:#6ff2e0; --b3:#a7b5ff; --b4:#b6f7a5; }
+:root[data-tint="sunrise"]{ --b1:#ffb36b; --b2:#ff8fb1; --b3:#ffe08a; --b4:#c7a6ff; }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#06070c;
+    --ink:#f0efec; --ink2:#c3c2b7; --muted:#9a988f;
+    --glass:rgba(24,28,44,.52); --glass-hi:rgba(30,34,54,.78);
+    --stroke:rgba(255,255,255,.10); --hair:rgba(255,255,255,.08);
+    --sheen:rgba(255,255,255,.07); --shadow:rgba(0,0,0,.55);
+    --grid:rgba(255,255,255,.07); --axis:rgba(255,255,255,.2);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --s1-wash:rgba(57,135,229,.14);
+    --good:#0ca30c; --bad:#e66767;
+    --surface:#161a28;
+    --b1:#5532e0; --b2:#0b62c9; --b3:#a3246a; --b4:#0b8466; --blob-op:.55;
+  }
+  :root:not([data-theme="light"])[data-tint="lagoon"]{ --b1:#1655c9; --b2:#078a8a; --b3:#3b3fb8; --b4:#2f8a3a; }
+  :root:not([data-theme="light"])[data-tint="sunrise"]{ --b1:#b4521a; --b2:#a8235a; --b3:#8a6a0b; --b4:#5a2fb0; }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#06070c;
+  --ink:#f0efec; --ink2:#c3c2b7; --muted:#9a988f;
+  --glass:rgba(24,28,44,.52); --glass-hi:rgba(30,34,54,.78);
+  --stroke:rgba(255,255,255,.10); --hair:rgba(255,255,255,.08);
+  --sheen:rgba(255,255,255,.07); --shadow:rgba(0,0,0,.55);
+  --grid:rgba(255,255,255,.07); --axis:rgba(255,255,255,.2);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --s1-wash:rgba(57,135,229,.14);
+  --good:#0ca30c; --bad:#e66767;
+  --surface:#161a28;
+  --b1:#5532e0; --b2:#0b62c9; --b3:#a3246a; --b4:#0b8466; --blob-op:.55;
+}
+:root[data-theme="dark"][data-tint="lagoon"]{ --b1:#1655c9; --b2:#078a8a; --b3:#3b3fb8; --b4:#2f8a3a; }
+:root[data-theme="dark"][data-tint="sunrise"]{ --b1:#b4521a; --b2:#a8235a; --b3:#8a6a0b; --b4:#5a2fb0; }
+
+/* ───────────── Base ───────────── */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:15px/1.45 system-ui,-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; min-height:100vh; overflow-x:hidden;
+}
+button,input{font:inherit;color:inherit}
+a{color:var(--s1)}
+
+/* Animated liquid backdrop */
+.backdrop{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:var(--blob-op);will-change:transform;transition:background 1.2s ease}
+.blob.a{width:56vmax;height:56vmax;left:-14vmax;top:-18vmax;background:var(--b1);animation:drift1 26s ease-in-out infinite alternate}
+.blob.b{width:46vmax;height:46vmax;right:-12vmax;top:4vmax;background:var(--b2);animation:drift2 30s ease-in-out infinite alternate}
+.blob.c{width:40vmax;height:40vmax;left:22vmax;bottom:-20vmax;background:var(--b3);animation:drift3 34s ease-in-out infinite alternate}
+.blob.d{width:30vmax;height:30vmax;right:8vmax;bottom:-6vmax;background:var(--b4);animation:drift1 38s ease-in-out infinite alternate-reverse}
+@keyframes drift1{to{transform:translate(8vmax,6vmax) scale(1.08)}}
+@keyframes drift2{to{transform:translate(-10vmax,8vmax) scale(.92)}}
+@keyframes drift3{to{transform:translate(6vmax,-8vmax) scale(1.1)}}
+.grain{position:absolute;inset:0;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@media (prefers-reduced-motion: reduce){ .blob{animation:none} }
+
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:28px 24px 48px}
+
+/* Glass */
+.glass{
+  position:relative;
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(24px) saturate(175%);
+  backdrop-filter:blur(24px) saturate(175%);
+  border:1px solid var(--stroke);
+  border-radius:22px;
+  box-shadow:inset 0 1px 0 var(--sheen), 0 18px 40px -22px var(--shadow), 0 2px 6px -2px var(--shadow);
+}
+.glass::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,var(--sheen) 0%,transparent 38%);
+  opacity:.55;
+}
+.glass > *{position:relative}
+
+/* Header */
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 14px 12px 16px;border-radius:999px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.01em}
+.brand .logo{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:17px;
+  background:linear-gradient(135deg,var(--b1),var(--b2));box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.brand small{display:block;font-weight:500;color:var(--muted);font-size:12px;letter-spacing:0}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:999px;
+  background:var(--glass-hi);border:1px solid var(--hair);white-space:nowrap}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 25%,transparent)}
+.pill.live .dot{background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent);animation:pulse 2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px transparent}}
+.tints{display:flex;gap:6px;padding:4px;border-radius:999px;background:var(--glass-hi);border:1px solid var(--hair)}
+.tint{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.tint[aria-pressed="true"]{border-color:var(--ink)}
+.tint.grape{background:linear-gradient(135deg,#9d8cff,#ffb0cf)}
+.tint.lagoon{background:linear-gradient(135deg,#6fb7ff,#6ff2e0)}
+.tint.sunrise{background:linear-gradient(135deg,#ffb36b,#ff8fb1)}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--hair);background:var(--glass-hi);
+  padding:8px 14px;border-radius:999px;font-weight:600;font-size:13.5px;cursor:pointer;transition:transform .15s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn:focus-visible,.tint:focus-visible,.seg button:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:transparent}
+.icon-btn{width:38px;height:38px;padding:0;justify-content:center}
+.icon-btn svg{width:18px;height:18px}
+
+.banner{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;margin-bottom:18px;border-radius:18px;font-size:14px}
+.banner b{font-weight:650}
+.banner .spacer{min-width:8px}
+.banner[hidden]{display:none}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
+.span-12{grid-column:span 12}.span-7{grid-column:span 7}.span-5{grid-column:span 5}.span-6{grid-column:span 6}
+.card{padding:20px 22px}
+.card h2{margin:0;font-size:15px;font-weight:650;letter-spacing:-.005em}
+.card .sub{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.card-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.card-head .spacer{min-width:0}
+
+/* Hero */
+.hero{display:flex;flex-direction:column;gap:16px;padding:22px 24px}
+.chan{display:flex;align-items:center;gap:14px}
+.avatar{width:60px;height:60px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:28px;overflow:hidden;
+  background:linear-gradient(135deg,var(--b1),var(--b3));box-shadow:0 0 0 3px var(--glass-hi),0 6px 18px -6px var(--shadow)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.chan h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.chan .handle{color:var(--muted);font-size:13.5px}
+.hero-label{font-size:13px;color:var(--ink2);font-weight:550}
+.hero-num{font-size:clamp(48px,7vw,72px);font-weight:750;letter-spacing:-.035em;line-height:1}
+.hero-meta{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--glass-hi);border:1px solid var(--hair);color:var(--ink2)}
+.desc{font-size:13px;color:var(--ink2);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.kpi{padding:18px 20px;display:flex;flex-direction:column;gap:4px;min-height:132px}
+.kpi .label{font-size:13px;color:var(--ink2);font-weight:550}
+.kpi .value{font-size:30px;font-weight:700;letter-spacing:-.025em;line-height:1.1}
+.kpi .foot{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:auto}
+.delta{font-size:12.5px;font-weight:650;display:inline-flex;align-items:center;gap:3px}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.flat{color:var(--muted)}
+.delta span{color:var(--muted);font-weight:500}
+.spark{width:96px;height:30px;flex:none}
+
+/* Legend + segmented toggle */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend i.line{height:2px;width:14px;border-radius:2px;vertical-align:3px}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--glass-hi);border:1px solid var(--hair)}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* Charts */
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;overflow:visible}
+.gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--axis);stroke-width:1}
+.tick{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.bar{transition:opacity .15s}
+.has-active .bar:not(.on){opacity:.38}
+.f1{fill:var(--s1)} .f2{fill:var(--s2)} .f3{fill:var(--s3)}
+.l1{stroke:var(--s1)} .l3{stroke:var(--s3)}
+.wash1{fill:var(--s1-wash)}
+.ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.cross{stroke:var(--axis);stroke-width:1}
+.ring{stroke:var(--surface);stroke-width:2}
+.endlabel{fill:var(--ink);font-size:12px;font-weight:650}
+.vlabel{fill:var(--ink2);font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.hit{fill:transparent;cursor:crosshair}
+
+/* Segmented share bar */
+.share{display:flex;gap:2px;height:28px;border-radius:6px;overflow:hidden;margin:10px 0 10px}
+.share div{border-radius:4px;display:flex;align-items:center;padding-left:9px;font-size:12px;font-weight:700;color:#fff;min-width:0;white-space:nowrap;cursor:default}
+.share .f2{background:var(--s2)} .share .f1{background:var(--s1)}
+.split-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.split-stats div{padding:10px 12px;border-radius:14px;background:var(--glass-hi);border:1px solid var(--hair)}
+.split-stats b{display:block;font-size:18px;letter-spacing:-.02em}
+.split-stats small{color:var(--muted);font-size:12px}
+.split-stats i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
+.divider{height:1px;background:var(--hair);margin:18px 0 14px}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:0 -6px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--hair);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--hair);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--glass-hi)}
+.vid{display:flex;align-items:center;gap:12px;min-width:240px}
+.thumb{width:84px;height:47px;border-radius:9px;flex:none;overflow:hidden;display:grid;place-items:center;font-size:20px;
+  background:linear-gradient(135deg,var(--b2),var(--b1));box-shadow:inset 0 0 0 1px var(--hair)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.vid a,.vid span.t{color:var(--ink);text-decoration:none;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vid a:hover{text-decoration:underline}
+.rank{color:var(--muted);font-weight:650;width:18px;text-align:right;font-variant-numeric:tabular-nums}
+.type{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink2)}
+.type i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.scroll-table{max-height:300px;overflow:auto}
+
+/* Tooltip */
+.tip{position:fixed;z-index:50;pointer-events:none;min-width:140px;max-width:260px;padding:10px 12px;border-radius:14px;font-size:12.5px;
+  background:var(--glass-hi);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  border:1px solid var(--stroke);box-shadow:0 12px 30px -10px var(--shadow);transition:opacity .12s}
+.tip[hidden]{display:block;opacity:0}
+.tip .tt{font-weight:650;margin-bottom:4px;line-height:1.3}
+.tip .tr{display:flex;justify-content:space-between;gap:14px;color:var(--ink2)}
+.tip .tr b{color:var(--ink);font-variant-numeric:tabular-nums}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+
+/* Dialog */
+dialog{border:0;padding:0;background:transparent;color:var(--ink);max-width:min(480px,calc(100vw - 32px));width:100%}
+dialog::backdrop{background:rgba(5,6,12,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.dlg{padding:24px}
+.dlg h3{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
+.dlg p{margin:0 0 16px;color:var(--ink2);font-size:13.5px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:13px;font-weight:600}
+.field input[type=text],.field input[type=password]{padding:11px 14px;border-radius:12px;border:1px solid var(--hair);background:var(--glass-hi);outline:none;font-weight:500}
+.field input:focus{border-color:var(--s1);box-shadow:0 0 0 3px var(--s1-wash)}
+.check{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink2);margin-bottom:18px}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.err{color:var(--bad);font-size:13px;font-weight:600;margin:-4px 0 12px}
+.err:empty{display:none}
+.steps{margin:0 0 16px;padding-left:18px;font-size:13px;color:var(--ink2)}
+.steps li{margin-bottom:3px}
+
+footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
+
+.loading .card, .loading .kpi{opacity:.55;transition:opacity .3s}
+
+/* Responsive */
+@media (max-width: 980px){
+  .span-7,.span-5,.span-6{grid-column:span 12}
+}
+@media (max-width: 640px){
+  .wrap{padding:16px 16px 40px}
+  .grid,.kpis{gap:12px}
+  .top{border-radius:22px}
+  .brand small{display:none}
+  .card{padding:16px}
+  .kpi{padding:14px 16px;min-height:118px}
+  .kpi .value{font-size:24px}
+  .spark{width:64px}
+  .hero{padding:18px}
+  .vid{min-width:200px}.thumb{width:64px;height:36px}
+}
+@media (max-width: 400px){ .kpis{grid-template-columns:1fr} }
+@media (forced-colors: active){ .glass{backdrop-filter:none;border:1px solid CanvasText} }
+</style>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div><div class="blob d"></div><div class="grain"></div></div>
+
+<div class="wrap" id="app">
+  <header class="top glass">
+    <div class="brand"><div class="logo" aria-hidden="true">🥣</div><div>Cereal Squad Analytics<small>YouTube channel insights</small></div></div>
+    <div class="spacer"></div>
+    <span class="pill" id="status"><span class="dot"></span><span id="statusText">Demo data</span></span>
+    <div class="tints" role="group" aria-label="Glass tint">
+      <button class="tint grape" data-tint="grape" aria-pressed="true" title="Grape tint" aria-label="Grape tint"></button>
+      <button class="tint lagoon" data-tint="lagoon" aria-pressed="false" title="Lagoon tint" aria-label="Lagoon tint"></button>
+      <button class="tint sunrise" data-tint="sunrise" aria-pressed="false" title="Sunrise tint" aria-label="Sunrise tint"></button>
+    </div>
+    <button class="btn icon-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="btn primary" id="connectBtn">Connect live data</button>
+  </header>
+
+  <div class="banner glass" id="demoBanner">
+    <span aria-hidden="true">✨</span>
+    <div><b>You're looking at demo data.</b> Add a free YouTube Data API key to pull @cerealsquad1's real numbers straight into this page.</div>
+    <div class="spacer"></div>
+    <button class="btn" id="bannerConnect">Connect</button>
+  </div>
+
+  <main class="grid" id="grid">
+    <section class="glass hero span-5" aria-label="Channel overview">
+      <div class="chan">
+        <div class="avatar" id="avatar">🥣</div>
+        <div><h1 id="chanName">Cereal Squad</h1><div class="handle" id="chanHandle">@cerealsquad1</div></div>
+      </div>
+      <div>
+        <div class="hero-label">Subscribers</div>
+        <div class="hero-num" id="heroSubs">—</div>
+      </div>
+      <div class="hero-meta" id="heroMeta"></div>
+      <p class="desc" id="chanDesc"></p>
+    </section>
+
+    <section class="kpis span-7" aria-label="Key metrics" id="kpis"></section>
+
+    <section class="glass card span-12">
+      <div class="card-head">
+        <div><h2>Views per upload</h2><p class="sub" id="uploadsSub">Most recent uploads, oldest to newest</p></div>
+        <div class="spacer" style="flex:1"></div>
+        <div class="legend" aria-label="Legend">
+          <span><i class="f1" style="background:var(--s1)"></i>Long-form</span>
+          <span><i style="background:var(--s2)"></i>Shorts</span>
+          <span><i class="line" style="background:var(--s3)"></i>5-upload average</span>
+        </div>
+        <div class="seg" role="group" aria-label="View as">
+          <button data-view="chart" aria-pressed="true">Chart</button><button data-view="table" aria-pressed="false">Table</button>
+        </div>
+      </div>
+      <div class="chart" id="uploadsChart"></div>
+      <div class="table-wrap scroll-table" id="uploadsTable" hidden></div>
+    </section>
+
+    <section class="glass card span-7">
+      <div class="card-head"><div><h2>Views by publish month</h2><p class="sub">Total views earned by videos released each month</p></div></div>
+      <div class="chart" id="monthlyChart"></div>
+    </section>
+
+    <section class="glass card span-5">
+      <div class="card-head"><div><h2>Shorts vs long-form</h2><p class="sub">Share of views from the uploads analysed</p></div></div>
+      <div id="split"></div>
+      <div class="divider"></div>
+      <h2 style="font-size:14px">Best day to post</h2>
+      <p class="sub" style="margin-bottom:8px">Average views by upload weekday</p>
+      <div class="chart" id="weekdayChart"></div>
+    </section>
+
+    <section class="glass card span-6">
+      <div class="card-head"><div><h2>Engagement rate</h2><p class="sub">(Likes + comments) ÷ views, per upload</p></div></div>
+      <div class="chart" id="engChart"></div>
+    </section>
+
+    <section class="glass card span-6">
+      <div class="card-head"><div><h2>Upload cadence</h2><p class="sub">Videos published per month</p></div></div>
+      <div class="chart" id="cadenceChart"></div>
+    </section>
+
+    <section class="glass card span-12">
+      <div class="card-head"><div><h2>Top videos</h2><p class="sub">Highest-viewed uploads in the analysed set</p></div></div>
+      <div class="table-wrap" id="topTable"></div>
+    </section>
+  </main>
+
+  <footer id="foot">Demo data is generated for layout preview only and does not reflect the real channel.</footer>
+</div>
+
+<div class="tip" id="tip" hidden role="status" aria-live="polite"></div>
+
+<dialog id="dlg">
+  <form class="dlg glass" method="dialog" id="dlgForm">
+    <h3>Connect live data 📡</h3>
+    <p>Stats load in your browser from the public YouTube Data API. Your key goes only to Google.</p>
+    <ol class="steps">
+      <li>Open <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">YouTube Data API v3</a> in Google Cloud and click <b>Enable</b>.</li>
+      <li>Go to <b>Credentials → Create credentials → API key</b>.</li>
+      <li>Paste it below. It's free (10,000 units/day; one load uses ~10).</li>
+    </ol>
+    <label class="field">API key<input type="password" id="keyInput" autocomplete="off" spellcheck="false" placeholder="AIza…" required></label>
+    <label class="field">Channel handle<input type="text" id="handleInput" value="cerealsquad1" spellcheck="false"></label>
+    <label class="check"><input type="checkbox" id="rememberInput"> Remember key on this device</label>
+    <div class="err" id="dlgErr"></div>
+    <div class="dlg-actions">
+      <button class="btn" type="button" id="demoBtn">Use demo data</button>
+      <button class="btn" type="button" id="cancelBtn">Cancel</button>
+      <button class="btn primary" type="submit" id="loadBtn">Load stats</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const NF = new Intl.NumberFormat('en-US');
+const CF = new Intl.NumberFormat('en-US', {notation:'compact', maximumFractionDigits:1});
+const fmt = n => Math.abs(n) >= 10000 ? CF.format(n) : NF.format(Math.round(n));
+const pct = (x, d=1) => (x*100).toFixed(d) + '%';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const dShort = d => `${MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+const mLabel = d => `${MON[d.getMonth()]} ’${String(d.getFullYear()).slice(2)}`;
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+  set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} }
+};
+
+/* ───────── Theme + tint ───────── */
+const root = document.documentElement;
+const savedTheme = store.get('csq-theme'); if (savedTheme) root.dataset.theme = savedTheme;
+const savedTint = store.get('csq-tint'); if (savedTint) setTint(savedTint);
+function isDark(){ return root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; }
+$('#themeBtn').onclick = () => { root.dataset.theme = isDark() ? 'light' : 'dark'; store.set('csq-theme', root.dataset.theme); };
+function setTint(t){ root.dataset.tint = t; document.querySelectorAll('.tint').forEach(b => b.setAttribute('aria-pressed', b.dataset.tint === t)); }
+document.querySelectorAll('.tint').forEach(b => b.onclick = () => { setTint(b.dataset.tint); store.set('csq-tint', b.dataset.tint); });
+
+/* ───────── Tooltip ───────── */
+const tip = $('#tip');
+function showTip(html, cx, cy){
+  tip.innerHTML = html; tip.hidden = false;
+  const r = tip.getBoundingClientRect(), pad = 12;
+  let x = cx + 14, y = cy - r.height - 12;
+  if (x + r.width > innerWidth - pad) x = cx - r.width - 14;
+  if (x < pad) x = pad;
+  if (y < pad) y = cy + 18;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+const hideTip = () => { tip.hidden = true; };
+const tr = (k, v, sw) => `<div class="tr"><span>${sw ? `<i style="background:var(${sw})"></i>` : ''}${k}</span><b>${v}</b></div>`;
+
+/* ───────── Scales ───────── */
+function nice(v, n=4){
+  if (!(v > 0)) return {max:1, step:.25};
+  const raw = v/n, mag = 10 ** Math.floor(Math.log10(raw)), r = raw/mag;
+  const step = (r<=1?1:r<=2?2:r<=2.5?2.5:r<=5?5:10) * mag;
+  return {max: Math.ceil(v/step)*step, step};
+}
+function yAxis(m, iw, ih, max, step, f){
+  let s = '';
+  for (let t = 0; t <= max + step/2; t += step){
+    const y = m.t + ih - t/max*ih;
+    s += `<line class="${t===0?'baseline':'gridline'}" x1="${m.l}" x2="${m.l+iw}" y1="${y}" y2="${y}"/>`;
+    s += `<text class="tick" x="${m.l-8}" y="${y+4}" text-anchor="end">${f(t, max)}</text>`;
+  }
+  return s;
+}
+const axisNum = (t, max) => max >= 10000 ? CF.format(t) : NF.format(t);
+const roundTop = (x, y, w, h, r) => {
+  r = Math.min(r, w/2, h); const b = y + h;
+  return `M${x},${b}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${b}Z`;
+};
+function xLabels(n, count){
+  if (n <= count) return [...Array(n).keys()];
+  const out = []; for (let k = 0; k < count; k++) out.push(Math.round(k*(n-1)/(count-1)));
+  return [...new Set(out)];
+}
+
+/* ───────── Column chart ───────── */
+function columnChart(el, items, opt = {}){
+  const W = el.clientWidth || 600, H = opt.h || 260;
+  const m = {t:18, r:opt.endLabel?40:10, b:28, l:44};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, n = items.length;
+  if (!n){ el.innerHTML = `<p class="sub">No data</p>`; return; }
+  const top = Math.max(...items.map(d => d.value), ...(opt.line || []));
+  const {max, step} = nice(top);
+  const band = iw / n, bw = Math.max(1.5, Math.min(24, band - 2));
+  const y = v => m.t + ih - v/max*ih;
+  let s = yAxis(m, iw, ih, max, step, opt.yFmt || axisNum);
+  items.forEach((d, i) => {
+    const h = Math.max(0, d.value/max*ih), x = m.l + i*band + (band - bw)/2;
+    if (h > 0) s += `<path class="bar ${d.cls||'f1'}" data-i="${i}" d="${roundTop(x, m.t+ih-h, bw, h, 4)}"/>`;
+  });
+  if (opt.line){
+    const pts = opt.line.map((v, i) => `${(m.l + i*band + band/2).toFixed(1)},${y(v).toFixed(1)}`);
+    s += `<path class="ln l3" d="M${pts.join('L')}"/>`;
+    const lx = m.l + (n-1)*band + band/2, ly = y(opt.line[n-1]);
+    s += `<circle class="f3 ring" cx="${lx}" cy="${ly}" r="4.5"/>`;
+  }
+  xLabels(n, opt.xCount || 6).forEach(i => {
+    const x = m.l + i*band + band/2;
+    s += `<text class="tick" x="${x}" y="${H-8}" text-anchor="${i===0&&n>8?'start':i===n-1&&n>8?'end':'middle'}">${esc(items[i].x)}</text>`;
+  });
+  if (opt.valueLabels) items.forEach((d, i) => {
+    if (!d.value) return; const x = m.l + i*band + band/2;
+    s += `<text class="vlabel" x="${x}" y="${y(d.value)-6}" text-anchor="middle">${d.value}</text>`;
+  });
+  s += `<rect class="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(opt.label||'Column chart')}">${s}</svg>`;
+  const svg = el.firstChild, bars = svg.querySelectorAll('.bar');
+  svg.addEventListener('pointermove', e => {
+    const r = svg.getBoundingClientRect();
+    const i = Math.floor((e.clientX - r.left - m.l) / band);
+    if (i < 0 || i >= n){ leave(); return; }
+    svg.classList.add('has-active');
+    bars.forEach(b => b.classList.toggle('on', +b.dataset.i === i));
+    showTip(opt.tip(items[i], i), e.clientX, e.clientY);
+  });
+  const leave = () => { svg.classList.remove('has-active'); hideTip(); };
+  svg.addEventListener('pointerleave', leave);
+}
+
+/* ───────── Line / area chart ───────── */
+function lineChart(el, pts, opt = {}){
+  const W = el.clientWidth || 600, H = opt.h || 240;
+  const m = {t:18, r:54, b:28, l:44};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, n = pts.length;
+  if (n < 2){ el.innerHTML = `<p class="sub">Not enough data yet</p>`; return; }
+  const {max, step} = nice(Math.max(...pts.map(p => p.value)) * 1.05);
+  const x = i => m.l + i*iw/(n-1), y = v => m.t + ih - v/max*ih;
+  let s = yAxis(m, iw, ih, max, step, opt.yFmt || axisNum);
+  const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join('L');
+  if (opt.area) s += `<path class="wash1" d="M${m.l},${m.t+ih}L${line}L${x(n-1)},${m.t+ih}Z"/>`;
+  s += `<path class="ln l1" d="M${line}"/>`;
+  s += `<circle class="f1 ring" cx="${x(n-1)}" cy="${y(pts[n-1].value)}" r="4.5"/>`;
+  s += `<text class="endlabel" x="${x(n-1)+9}" y="${y(pts[n-1].value)+4}">${esc(opt.endFmt ? opt.endFmt(pts[n-1].value) : fmt(pts[n-1].value))}</text>`;
+  xLabels(n, opt.xCount || 6).forEach(i => {
+    s += `<text class="tick" x="${x(i)}" y="${H-8}" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${esc(pts[i].x)}</text>`;
+  });
+  s += `<g class="hov" style="display:none"><line class="cross" y1="${m.t}" y2="${m.t+ih}"/><circle class="f1 ring" r="5"/></g>`;
+  s += `<rect class="hit" x="${m.l-6}" y="${m.t}" width="${iw+12}" height="${ih}"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(opt.label||'Line chart')}">${s}</svg>`;
+  const svg = el.firstChild, g = svg.querySelector('.hov'), cl = g.querySelector('line'), cc = g.querySelector('circle');
+  svg.addEventListener('pointermove', e => {
+    const r = svg.getBoundingClientRect();
+    const i = Math.max(0, Math.min(n-1, Math.round((e.clientX - r.left - m.l) / (iw/(n-1)))));
+    g.style.display = ''; cl.setAttribute('x1', x(i)); cl.setAttribute('x2', x(i));
+    cc.setAttribute('cx', x(i)); cc.setAttribute('cy', y(pts[i].value));
+    showTip(opt.tip(pts[i], i), e.clientX, e.clientY);
+  });
+  svg.addEventListener('pointerleave', () => { g.style.display = 'none'; hideTip(); });
+}
+
+/* ───────── Horizontal bars ───────── */
+function hbarChart(el, rows, opt = {}){
+  const W = el.clientWidth || 400, rowH = 28, m = {t:4, r:58, b:4, l:40};
+  const H = m.t + m.b + rows.length*rowH, iw = W - m.l - m.r;
+  const max = Math.max(...rows.map(r => r.value), 1), best = rows.reduce((a, b) => b.value > a.value ? b : a, rows[0]);
+  let s = `<line class="baseline" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H-m.b}"/>`;
+  rows.forEach((r, i) => {
+    const w = r.value/max*iw, yy = m.t + i*rowH + (rowH-16)/2, rr = Math.min(4, w/2);
+    s += `<text class="tick" x="${m.l-8}" y="${yy+12}" text-anchor="end">${r.label}</text>`;
+    if (w > 0) s += `<path class="bar f1" data-i="${i}" d="M${m.l},${yy}H${m.l+w-rr}Q${m.l+w},${yy} ${m.l+w},${yy+rr}V${yy+16-rr}Q${m.l+w},${yy+16} ${m.l+w-rr},${yy+16}H${m.l}Z"/>`;
+    s += `<text class="${r===best?'endlabel':'vlabel'}" x="${m.l+w+7}" y="${yy+12}">${r.value ? fmt(r.value) : '—'}${r===best?' ★':''}</text>`;
+  });
+  s += `<rect class="hit" x="0" y="${m.t}" width="${W}" height="${H-m.t-m.b}"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(opt.label||'Bar chart')}">${s}</svg>`;
+  const svg = el.firstChild, bars = svg.querySelectorAll('.bar');
+  svg.addEventListener('pointermove', e => {
+    const rc = svg.getBoundingClientRect(), i = Math.floor((e.clientY - rc.top - m.t) / rowH);
+    if (i < 0 || i >= rows.length) return;
+    svg.classList.add('has-active'); bars.forEach(b => b.classList.toggle('on', +b.dataset.i === i));
+    showTip(opt.tip(rows[i]), e.clientX, e.clientY);
+  });
+  svg.addEventListener('pointerleave', () => { svg.classList.remove('has-active'); hideTip(); });
+}
+
+/* ───────── Sparkline ───────── */
+function spark(vals){
+  const W = 96, H = 30, n = vals.length; if (n < 2) return '';
+  const max = Math.max(...vals), min = Math.min(...vals), rng = max - min || 1;
+  const p = vals.map((v, i) => [3 + i*(W-6)/(n-1), 3 + (H-6)*(1 - (v-min)/rng)]);
+  const d = 'M' + p.map(q => q.map(c => c.toFixed(1)).join(',')).join('L');
+  const [lx, ly] = p[n-1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linejoin="round" opacity=".7"/><circle cx="${lx}" cy="${ly}" r="3.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="1.5"/></svg>`;
+}
+
+/* ───────── Demo data ───────── */
+function demoData(){
+  let seed = 20261123;
+  const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const gauss = () => Math.sqrt(-2*Math.log(rnd()+1e-9)) * Math.cos(2*Math.PI*rnd());
+  const cereals = ['Froot Loops','Cap’n Crunch','Lucky Charms','Cinnamon Toast Crunch','Cocoa Puffs','Frosted Flakes','Honey Nut Cheerios','Fruity Pebbles','Reese’s Puffs','Trix','Corn Pops','Apple Jacks'];
+  const longT = ['Ranking every %c ever made','I ate only %c for 24 hours','Blind taste test: %c vs store brand','We built a cereal tier list (chaos)','Rating weird cereals from around the world','The %c mystery finally solved','Making a giant bowl of %c','Cereal squad reacts to your hot takes','Is %c actually healthy?','Trying discontinued cereals'];
+  const shortT = ['%c but it’s ASMR','POV: you pour milk first','%c speedrun 🥣','Rating %c in 10 seconds','The crunch test: %c','Cereal hack nobody talks about'];
+  const vids = [], start = new Date(2025, 8, 3), end = new Date(2026, 10, 21);
+  let t = start.getTime(), i = 0;
+  while (t < end.getTime()){
+    const isShort = rnd() < .52, c = cereals[Math.floor(rnd()*cereals.length)];
+    const tpl = (isShort ? shortT : longT)[Math.floor(rnd()*(isShort?shortT:longT).length)];
+    const growth = 1 + i/26;
+    let views = (isShort ? 2400 : 1500) * growth * Math.exp(gauss() * (isShort ? .75 : .5));
+    if (i === 23 || i === 51) views *= 7.5;
+    views = Math.round(views);
+    const lr = (isShort ? .034 : .052) * Math.exp(gauss()*.18), cr = (isShort ? .0025 : .0075) * Math.exp(gauss()*.3);
+    const d = new Date(t); d.setHours(16 + Math.floor(rnd()*3));
+    vids.push({ id:'demo'+i, title: tpl.replace('%c', c), published: d, views, likes: Math.round(views*lr), comments: Math.round(views*cr),
+      durationSec: isShort ? 20 + Math.floor(rnd()*40) : 360 + Math.floor(rnd()*720), isShort, thumb: null });
+    t += (3 + Math.floor(rnd()*7)) * 864e5; i++;
+  }
+  const total = vids.reduce((a, v) => a + v.views, 0);
+  return {
+    live:false,
+    channel:{ title:'Cereal Squad', handle:'@cerealsquad1', avatar:null, subscribers:18700, views: total + 41200,
+      videoCount: vids.length + 9, joined: new Date(2024, 2, 14), country:null,
+      description:'Sample profile for previewing the dashboard. Connect a key to load the real channel.' },
+    videos: vids
+  };
+}
+
+/* ───────── Live data (YouTube Data API v3) ───────── */
+const API = 'https://www.googleapis.com/youtube/v3/';
+async function yt(path, params, key){
+  const u = new URL(API + path);
+  Object.entries({...params, key}).forEach(([k, v]) => u.searchParams.set(k, v));
+  const r = await fetch(u);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j?.error?.message?.replace(/<[^>]+>/g, '') || `Request failed (${r.status})`);
+  return j;
+}
+const isoDur = s => { const m = /P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?/.exec(s || '') || []; return (+m[1]||0)*86400 + (+m[2]||0)*3600 + (+m[3]||0)*60 + (+m[4]||0); };
+async function liveData(key, handle, maxVideos = 200){
+  handle = handle.trim().replace(/^@/, '');
+  const ch = await yt('channels', {part:'snippet,statistics,contentDetails', forHandle:'@' + handle}, key);
+  const c = ch.items?.[0];
+  if (!c) throw new Error(`No channel found for @${handle}`);
+  const uploads = c.contentDetails?.relatedPlaylists?.uploads;
+  const ids = []; let page = '';
+  while (uploads && ids.length < maxVideos){
+    const pl = await yt('playlistItems', {part:'contentDetails', playlistId:uploads, maxResults:50, ...(page ? {pageToken:page} : {})}, key);
+    (pl.items || []).forEach(it => ids.push(it.contentDetails.videoId));
+    page = pl.nextPageToken; if (!page) break;
+  }
+  const videos = [];
+  for (let i = 0; i < ids.length; i += 50){
+    const vs = await yt('videos', {part:'snippet,statistics,contentDetails', id: ids.slice(i, i+50).join(',')}, key);
+    (vs.items || []).forEach(v => {
+      if (v.snippet?.liveBroadcastContent === 'upcoming') return;
+      const dur = isoDur(v.contentDetails?.duration), st = v.statistics || {};
+      videos.push({ id:v.id, title:v.snippet.title, published:new Date(v.snippet.publishedAt),
+        views:+st.viewCount||0, likes:+st.likeCount||0, comments:+st.commentCount||0, durationSec:dur, isShort: dur > 0 && dur <= 180,
+        thumb: v.snippet.thumbnails?.medium?.url || v.snippet.thumbnails?.default?.url || null });
+    });
+  }
+  const s = c.statistics || {}, sn = c.snippet || {};
+  return {
+    live:true,
+    channel:{ title:sn.title, handle: sn.customUrl || '@' + handle, avatar: sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url,
+      subscribers: s.hiddenSubscriberCount ? null : +s.subscriberCount, views:+s.viewCount||0, videoCount:+s.videoCount||0,
+      joined: sn.publishedAt ? new Date(sn.publishedAt) : null, country: sn.country || null, description: sn.description || '' },
+    videos
+  };
+}
+
+/* ───────── Derive + render ───────── */
+let DATA = null, VIEW = 'chart';
+const typeCls = v => v.isShort ? 'f2' : 'f1';
+const typeName = v => v.isShort ? 'Short' : 'Long-form';
+const eng = v => v.views ? (v.likes + v.comments) / v.views : 0;
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h-1] + s[h]) / 2; };
+const durFmt = s => s >= 3600 ? `${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}` : `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+const videoTip = v => `<div class="tt">${esc(v.title)}</div>${tr(dShort(v.published), '')}${tr('Views', NF.format(v.views), v.isShort?'--s2':'--s1')}${tr('Likes', NF.format(v.likes))}${tr('Comments', NF.format(v.comments))}${tr('Engagement', pct(eng(v), 2))}`;
+
+function deltaHTML(cur, prev, label, fmtFn = x => pct(x, 0)){
+  if (!prev){ return `<span class="delta flat">—<span>&nbsp;${label}</span></span>`; }
+  const ch = (cur - prev) / prev, dir = Math.abs(ch) < .005 ? 'flat' : ch > 0 ? 'up' : 'down';
+  const icon = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '■';
+  return `<span class="delta ${dir}">${icon} ${(ch>0?'+':'') + fmtFn(ch)}<span>&nbsp;${label}</span></span>`;
+}
+
+function render(){
+  if (!DATA) return;
+  const {channel:c, videos:all, live} = DATA;
+  const vids = [...all].sort((a, b) => a.published - b.published);
+
+  // Header + banner
+  $('#status').classList.toggle('live', live);
+  $('#statusText').textContent = live ? `Live · ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}` : 'Demo data';
+  $('#demoBanner').hidden = live;
+  $('#connectBtn').textContent = live ? 'Refresh' : 'Connect live data';
+  $('#foot').textContent = live
+    ? `Live from the YouTube Data API · based on the latest ${vids.length} public uploads · videos 3 min or shorter are counted as Shorts.`
+    : 'Demo data is generated for layout preview only and does not reflect the real channel.';
+
+  // Hero
+  $('#chanName').textContent = c.title || 'Channel';
+  $('#chanHandle').textContent = c.handle;
+  $('#avatar').innerHTML = c.avatar ? `<img src="${esc(c.avatar)}" alt="" referrerpolicy="no-referrer">` : '🥣';
+  $('#heroSubs').textContent = c.subscribers == null ? 'Hidden' : fmt(c.subscribers);
+  const meta = [];
+  if (c.joined) meta.push(`Joined ${MON[c.joined.getMonth()]} ${c.joined.getFullYear()}`);
+  meta.push(`${NF.format(c.videoCount)} videos`);
+  if (c.country) meta.push(c.country);
+  if (!live) meta.push('Sample');
+  $('#heroMeta').innerHTML = meta.map(x => `<span class="chip">${esc(x)}</span>`).join('');
+  $('#chanDesc').textContent = c.description || '';
+
+  // KPIs
+  const last10 = vids.slice(-10), prev10 = vids.slice(-20, -10);
+  const avgL = mean(last10.map(v => v.views)), avgP = mean(prev10.map(v => v.views));
+  const engL = mean(last10.map(eng)), engP = mean(prev10.map(eng));
+  const gaps = vids.slice(-11).map((v, i, a) => i ? (v.published - a[i-1].published) / 864e5 : null).filter(x => x != null);
+  const gapsP = vids.slice(-21, -10).map((v, i, a) => i ? (v.published - a[i-1].published) / 864e5 : null).filter(x => x != null);
+  const cad = median(gaps), cadP = median(gapsP);
+  const totalLikes = vids.reduce((a, v) => a + v.likes, 0);
+  const viewsPerSub = c.subscribers ? c.views / c.subscribers : null;
+  const kpis = [
+    { label:'Total channel views', value: fmt(c.views), foot: viewsPerSub ? `<span class="delta flat"><span>${viewsPerSub.toFixed(1)} views per subscriber</span></span>` : '', spark: spark(vids.slice(-12).map(v => v.views)) },
+    { label:'Avg views · last 10 uploads', value: fmt(avgL), foot: deltaHTML(avgL, avgP, 'vs previous 10'), spark: spark(vids.slice(-12).map(v => v.views)) },
+    { label:'Engagement rate', value: pct(engL, 2), foot: deltaHTML(engL, engP, 'vs previous 10'), spark: spark(vids.slice(-12).map(eng)) },
+    { label:'Upload cadence', value: cad ? `${cad < 1.5 ? cad.toFixed(1) : Math.round(cad)} days` : '—',
+      foot: cadP ? (() => { const faster = cad < cadP * .97, slower = cad > cadP * 1.03; return `<span class="delta ${faster?'up':slower?'down':'flat'}">${faster?'▲ Faster':slower?'▼ Slower':'■ Steady'}<span>&nbsp;median gap, vs before</span></span>`; })() : '',
+      spark: `<span class="chip">${NF.format(totalLikes)} likes</span>` }
+  ];
+  $('#kpis').innerHTML = kpis.map(k => `<div class="glass kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="foot">${k.foot}${k.spark}</div></div>`).join('');
+
+  // Views per upload
+  const el = $('#uploadsChart'), cap = el.clientWidth < 560 ? 30 : 60, recent = vids.slice(-cap);
+  const roll = recent.map((_, i) => mean(vids.slice(Math.max(0, vids.length - recent.length + i - 4), vids.length - recent.length + i + 1).map(v => v.views)));
+  $('#uploadsSub').textContent = `Last ${recent.length} uploads, oldest to newest · hover a bar for details`;
+  columnChart(el, recent.map(v => ({ value:v.views, cls:typeCls(v), x: mLabel(v.published), v })), {
+    h: 280, line: roll, xCount: el.clientWidth < 560 ? 4 : 7, label:'Views per upload',
+    tip: (d, i) => videoTip(d.v) + tr('5-upload avg', fmt(roll[i]), '--s3')
+  });
+  $('#uploadsTable').innerHTML = `<table><thead><tr><th>Published</th><th>Title</th><th>Type</th><th class="num">Views</th><th class="num">Likes</th><th class="num">Comments</th><th class="num">Engagement</th></tr></thead><tbody>${
+    [...vids].reverse().map(v => `<tr><td class="num" style="text-align:left">${dShort(v.published)}</td><td>${esc(v.title)}</td><td><span class="type"><i style="background:var(${v.isShort?'--s2':'--s1'})"></i>${typeName(v)}</span></td><td class="num">${NF.format(v.views)}</td><td class="num">${NF.format(v.likes)}</td><td class="num">${NF.format(v.comments)}</td><td class="num">${pct(eng(v), 2)}</td></tr>`).join('')
+  }</tbody></table>`;
+  setView(VIEW);
+
+  // Monthly
+  const months = [];
+  if (vids.length){
+    const s = new Date(vids[0].published.getFullYear(), vids[0].published.getMonth(), 1), e = vids[vids.length-1].published;
+    for (let d = new Date(s); d <= e; d.setMonth(d.getMonth() + 1)) months.push({ d:new Date(d), views:0, n:0, shorts:0 });
+    vids.forEach(v => { const k = (v.published.getFullYear() - s.getFullYear())*12 + v.published.getMonth() - s.getMonth(); const mo = months[k]; if (mo){ mo.views += v.views; mo.n++; if (v.isShort) mo.shorts++; } });
+  }
+  const mEl = $('#monthlyChart');
+  lineChart(mEl, months.map(mo => ({ x: mLabel(mo.d), value: mo.views, mo })), {
+    area:true, h: innerWidth > 980 ? 410 : 250, xCount: mEl.clientWidth < 500 ? 4 : 6, label:'Views by publish month',
+    tip: p => `<div class="tt">${MON[p.mo.d.getMonth()]} ${p.mo.d.getFullYear()}</div>${tr('Views', NF.format(p.mo.views), '--s1')}${tr('Uploads', p.mo.n)}${tr('Avg / upload', p.mo.n ? fmt(p.mo.views / p.mo.n) : '—')}`
+  });
+
+  // Cadence
+  const cEl = $('#cadenceChart');
+  columnChart(cEl, months.map(mo => ({ value: mo.n, cls:'f1', x: mLabel(mo.d), mo })), {
+    h: 220, xCount: cEl.clientWidth < 500 ? 4 : 6, valueLabels: cEl.clientWidth / Math.max(1, months.length) > 22, label:'Uploads per month',
+    yFmt: t => Number.isInteger(t) ? t : '',
+    tip: d => `<div class="tt">${MON[d.mo.d.getMonth()]} ${d.mo.d.getFullYear()}</div>${tr('Uploads', d.mo.n, '--s1')}${tr('Shorts', d.mo.shorts)}${tr('Long-form', d.mo.n - d.mo.shorts)}`
+  });
+
+  // Engagement
+  const engEl = $('#engChart'), engSet = vids.slice(-40);
+  lineChart(engEl, engSet.map(v => ({ x: mLabel(v.published), value: eng(v) * 100, v })), {
+    h: 220, xCount: engEl.clientWidth < 500 ? 3 : 5, label:'Engagement rate per upload',
+    yFmt: t => t.toFixed(t < 10 && t % 1 ? 1 : 0) + '%', endFmt: v => v.toFixed(2) + '%',
+    tip: p => videoTip(p.v)
+  });
+
+  // Split
+  const sh = vids.filter(v => v.isShort), lg = vids.filter(v => !v.isShort);
+  const shV = sh.reduce((a, v) => a + v.views, 0), lgV = lg.reduce((a, v) => a + v.views, 0), tot = shV + lgV || 1;
+  const part = (cls, name, val, count) => {
+    const share = val / tot; if (!val) return '';
+    return `<div class="${cls}" style="flex:${share}" tabindex="0" aria-label="${name}: ${NF.format(val)} views, ${pct(share,0)}, ${count} uploads" data-tip="${esc(`<div class='tt'>${name}</div>${tr('Views', NF.format(val))}${tr('Share', pct(share, 1))}${tr('Uploads', count)}`)}">${share > .12 ? pct(share, 0) : ''}</div>`;
+  };
+  $('#split').innerHTML = `<div class="legend"><span><i style="background:var(--s1)"></i>Long-form</span><span><i style="background:var(--s2)"></i>Shorts</span></div>
+    <div class="share" role="img" aria-label="Views split: long-form ${pct(lgV/tot,0)}, Shorts ${pct(shV/tot,0)}">${part('f1', 'Long-form', lgV, lg.length)}${part('f2', 'Shorts', shV, sh.length)}</div>
+    <div class="split-stats">
+      <div><small><i style="background:var(--s1)"></i>Long-form avg</small><b>${fmt(mean(lg.map(v => v.views)))}</b><small>${lg.length} uploads · ${pct(mean(lg.map(eng)), 2)} eng.</small></div>
+      <div><small><i style="background:var(--s2)"></i>Shorts avg</small><b>${fmt(mean(sh.map(v => v.views)))}</b><small>${sh.length} uploads · ${pct(mean(sh.map(eng)), 2)} eng.</small></div>
+    </div>`;
+  $('#split').querySelectorAll('[data-tip]').forEach(d => {
+    d.onpointermove = e => showTip(d.dataset.tip, e.clientX, e.clientY);
+    d.onpointerleave = hideTip;
+  });
+
+  // Weekday
+  const wd = DAYS.map(() => []);
+  vids.forEach(v => wd[(v.published.getDay() + 6) % 7].push(v.views));
+  hbarChart($('#weekdayChart'), DAYS.map((d, i) => ({ label:d, value: mean(wd[i]), n: wd[i].length })), {
+    label:'Average views by weekday',
+    tip: r => `<div class="tt">${r.label}</div>${tr('Avg views', r.value ? NF.format(Math.round(r.value)) : '—', '--s1')}${tr('Uploads', r.n)}`
+  });
+
+  // Top table
+  const top = [...vids].sort((a, b) => b.views - a.views).slice(0, 8);
+  $('#topTable').innerHTML = `<table><thead><tr><th></th><th>Video</th><th>Type</th><th class="num">Published</th><th class="num">Length</th><th class="num">Views</th><th class="num">Likes</th><th class="num">Engagement</th></tr></thead><tbody>${
+    top.map((v, i) => `<tr><td class="rank">${i+1}</td><td><div class="vid"><div class="thumb">${v.thumb ? `<img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : (v.isShort ? '📱' : '🥣')}</div>${
+      live ? `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">${esc(v.title)}</a>` : `<span class="t">${esc(v.title)}</span>`}</div></td>
+      <td><span class="type"><i style="background:var(${v.isShort?'--s2':'--s1'})"></i>${typeName(v)}</span></td>
+      <td class="num">${dShort(v.published)}</td><td class="num">${durFmt(v.durationSec)}</td><td class="num"><b>${NF.format(v.views)}</b></td><td class="num">${NF.format(v.likes)}</td><td class="num">${pct(eng(v), 2)}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+function setView(v){
+  VIEW = v;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v));
+  $('#uploadsChart').hidden = v !== 'chart'; $('#uploadsTable').hidden = v !== 'table';
+}
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setView(b.dataset.view));
+
+/* ───────── Connect flow ───────── */
+const dlg = $('#dlg');
+function openDlg(){ $('#dlgErr').textContent = ''; $('#keyInput').value = store.get('csq-key') || ''; $('#rememberInput').checked = !!store.get('csq-key'); $('#handleInput').value = store.get('csq-handle') || 'cerealsquad1'; dlg.showModal(); }
+async function load(key, handle){
+  $('#app').classList.add('loading');
+  try {
+    DATA = await liveData(key, handle);
+    store.set('csq-handle', handle);
+    render(); return true;
+  } catch (e){ $('#dlgErr').textContent = e.message || String(e); return false; }
+  finally { $('#app').classList.remove('loading'); }
+}
+$('#connectBtn').onclick = () => { const k = SESSION_KEY || store.get('csq-key'); if (DATA?.live && k) load(k, store.get('csq-handle') || 'cerealsquad1'); else openDlg(); };
+$('#bannerConnect').onclick = openDlg;
+$('#cancelBtn').onclick = () => dlg.close();
+$('#demoBtn').onclick = () => { store.set('csq-key', null); SESSION_KEY = null; DATA = demoData(); render(); dlg.close(); };
+let SESSION_KEY = null;
+$('#dlgForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const key = $('#keyInput').value.trim(), handle = $('#handleInput').value.trim() || 'cerealsquad1';
+  if (!key){ $('#dlgErr').textContent = 'Paste an API key first.'; return; }
+  $('#loadBtn').textContent = 'Loading…'; $('#loadBtn').disabled = true;
+  const ok = await load(key, handle);
+  $('#loadBtn').textContent = 'Load stats'; $('#loadBtn').disabled = false;
+  if (ok){ SESSION_KEY = key; store.set('csq-key', $('#rememberInput').checked ? key : null); dlg.close(); }
+});
+
+/* ───────── Boot ───────── */
+DATA = demoData(); render();
+const k = store.get('csq-key');
+if (k){ SESSION_KEY = k; load(k, store.get('csq-handle') || 'cerealsquad1'); }
+let rt, lastW = $('#grid').clientWidth;
+new ResizeObserver(() => { const w = $('#grid').clientWidth; if (w === lastW) return; lastW = w; clearTimeout(rt); rt = setTimeout(render, 120); }).observe($('#grid'));
+})();
+</script>
+</body>
+</html>
