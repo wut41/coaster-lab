@@ -6,6 +6,10 @@ const path = require('path'), fs = require('fs');
 const { open } = require(path.join(__dirname, '../../tests/harness.js'));
 const F = path.join(__dirname, 'coaster_lab_v8_6.audit-copy.html');
 const NAME = "=1+1+cmd|' /C calc'!A0"; // classic DDE probe; cleanName keeps it (no < > & ")
+async function ownGo(page, sec, sub) {
+  for (const t of [sub, sec, sub]) { const ok = await page.evaluate(t => { const b = document.querySelector(`#own7 [data-tab="${t}"]`); if (b) b.click(); return !!b }, t); await page.waitForTimeout(300); if (t === sub && ok) return true }
+  return false
+}
 (async () => {
   const { browser, ctx, page, errors } = await open(F, { storage: { 'coasterlab.tut.v2': '1' } });
   page.setDefaultTimeout(120000);
@@ -18,14 +22,10 @@ const NAME = "=1+1+cmd|' /C calc'!A0"; // classic DDE probe; cleanName keeps it 
   const nm = await page.evaluate(() => window.__coasterDebug.bld.D().name);
   console.log('design name after import + sanDesign/cleanName:', JSON.stringify(nm));
   await page.evaluate(() => window.__coasterDebug.v7.openOwner()); await page.waitForTimeout(500);
-  const tabs = await page.$$eval('#own7 [data-tab]', a => a.map(e => e.dataset.tab));
   let got = null;
-  for (const t of tabs) {
-    await page.click(`#own7 [data-tab="${t}"]`).catch(() => { }); await page.waitForTimeout(250);
-    if (await page.$('#own7 [data-a="x72:statsCsv"]')) {
-      const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.click('#own7 [data-a="x72:statsCsv"]')]);
-      const p = path.join(__dirname, 'poc3_stats.csv'); await dl.saveAs(p); got = fs.readFileSync(p, 'utf8'); break
-    }
+  if (await ownGo(page, 'lab', 'stats72') && await page.$('#own7 [data-a="x72:statsCsv"]')) {
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 60000 }), page.click('#own7 [data-a="x72:statsCsv"]')]);
+    const p = path.join(__dirname, 'poc3_stats.csv'); await dl.saveAs(p); got = fs.readFileSync(p, 'utf8')
   }
   if (got) { const row = got.split('\n').find(l => l.includes('=1+1')); console.log('CSV row with the imported name:\n  ' + row); console.log(row && /^"=/.test(row) ? 'RESULT: cell begins with "=" -> spreadsheet apps treat it as a formula' : 'RESULT: not reproduced') }
   else console.log('RESULT: CSV export button not found');

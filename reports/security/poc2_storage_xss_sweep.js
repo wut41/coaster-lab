@@ -53,6 +53,10 @@ async function sweep(page, label) {
   return X(() => ({ hits: window.__xssHits || [], live: (window.__liveEls || []).length, payloadShownAsText: window.__seen || 0 }));
 }
 
+async function ownGo(page, sec, sub) {
+  for (const t of [sub, sec, sub]) { const ok = await page.evaluate(t => { const b = document.querySelector(`#own7 [data-tab="${t}"]`); if (b) b.click(); return !!b }, t); await page.waitForTimeout(300); if (t === sub && ok) return true }
+  return false
+}
 (async () => {
   const init = () => {
     window.__xss = n => (window.__xssHits = window.__xssHits || []).push(n);
@@ -79,12 +83,10 @@ async function sweep(page, label) {
       'coasterlab.v72.ownLock': J({ n: 0, until: 0, lv: 0 }),
     }) });
     await page.evaluate(() => window.__coasterDebug.v7.openOwner()); await page.waitForTimeout(400);
-    // find the tab holding the backup box
-    const tabs = await page.$$eval('#own7 [data-tab]', a => a.map(e => e.dataset.tab));
-    for (const t of tabs) { await page.click(`#own7 [data-tab="${t}"]`).catch(() => { }); await page.waitForTimeout(200); if (await page.$('#oIO72')) break }
-    const ok = !!(await page.$('#oIO72'));
+    // Owner Control Center → 💾 Save & data → the "Export / import everything" box
+    const ok = await ownGo(page, 'data', 'data72');
     if (ok) {
-      await page.fill('#oIO72', backup);
+      await page.evaluate(t => { const io = [...document.querySelectorAll('#own7 textarea#oIO72')].find(e => !e.readOnly) || document.querySelector('#oIO72'); io.hidden = false; io.value = t }, backup);
       await page.evaluate(() => { const b = document.querySelector('#own7 [data-a="x72:impAll"]'); b && b.click() }); await page.waitForTimeout(500);
       await page.evaluate(() => { const y = document.querySelector('#dlg7Y'); y && y.click() });
       await page.waitForFunction(() => window.__booted === true && performance.now() > 500, null, { timeout: 120000 }).catch(() => { });
