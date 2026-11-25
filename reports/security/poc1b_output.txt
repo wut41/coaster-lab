@@ -1,2 +1,3 @@
 M=1000: ok after 7775 ms {"name":"My Coaster","heapMB":38,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwviq4bb"} | page errors: 0 
 M=10000: ok after 21497 ms {"name":"My Coaster","heapMB":32,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwvirrhs"} | page errors: 0 
+M=100000: ok after 15262 ms {"name":"My Coaster","heapMB":43,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwvitj3i"} | page errors: 0 
