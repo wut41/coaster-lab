@@ -72,13 +72,13 @@ async function scrollShots(page, name, scroller, root) {
       await X(() => window.__coasterDebug.select(0)); await page.waitForTimeout(3200);
       await X(() => { const d = window.__coasterDebug; for (let i = 0; i < 40 && d.v80.v86.dz().phase === ''; i++) d.v72.ff(1) });
       await page.waitForTimeout(900); await audit(page, `crash_${tag}`, 'body', DIR);
-      await page.waitForFunction(() => !document.querySelector('#ov7').hidden && document.querySelector('#ov7').dataset.k === 'inc86', null, { timeout: 30000 });
+      await page.waitForFunction(() => !document.querySelector('#ov7').hidden && document.querySelector('#ov7').dataset.k === 'inc86', null, { timeout: 180000 });
       await page.waitForTimeout(600);
       await scrollShots(page, 'report_derail', '.ov7In', '#ov7');
       await page.click('[data-dz86="again"]'); await page.waitForTimeout(600);
       await X(() => { window.__coasterDebug.v80.v86.setGrav('moon', null, false); window.__coasterDebug.select(2) }); await page.waitForTimeout(3200);
       await X(() => { const d = window.__coasterDebug; for (let i = 0; i < 400 && d.v80.v86.dz().phase !== 'report'; i++) d.v72.ff(1) });
-      await page.waitForFunction(() => document.querySelector('#ov7').dataset.k === 'inc86' && !document.querySelector('#ov7').hidden, null, { timeout: 15000 });
+      await page.waitForFunction(() => document.querySelector('#ov7').dataset.k === 'inc86' && !document.querySelector('#ov7').hidden, null, { timeout: 120000 });
       await page.waitForTimeout(600);
       await scrollShots(page, 'report_roll', '.ov7In', '#ov7');
     }

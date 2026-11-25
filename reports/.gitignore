@@ -1,2 +1,4 @@
 # Working copies of the game made by the debugger/security agents (each ~1.4 MB)
 *.html
+# Raw run logs
+log_*.txt

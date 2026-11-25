@@ -130,6 +130,27 @@ A red **💥 Disaster** badge shows while it's on.
   ```
 * Achievements: 📅 **Daily challenger**, 🔥 **On a roll** (3 days in a row).
 
+## 5. 💾 Lab physics are saved
+
+*Where:* 📊 Lab → Physics & setup (and the same values in Owner tools → Physics).
+
+* **Rolling resistance, air drag, lift hill speed and brake strength** now survive closing and reopening the game.
+  The note under the sliders says so.
+* **Saved under** `coasterlab.v86.labPhys`, for example `{"v":1,"fric":0.3,"lift":5.5}`. Only the values you
+  changed are stored. With nothing changed nothing is stored, and the game starts exactly as before (tested).
+* **Who wins, the Lab or the Gravity Lab?** The 🪐 Gravity Lab owns gravity. With "Realistic planet" on, it also
+  sets the planet's friction and air. A Lab value is saved only when it differs from what the Gravity Lab
+  would give. When the game starts, the planet goes on first and your Lab values go on top. So after a reload
+  you get exactly the physics you had before. (For example, Moon + your own friction comes back as
+  Moon + your own friction. The Gravity Lab still shows its "the Lab changed the physics" note.)
+* **Tapping a planet** (or 🌍 Back to Earth) replaces friction and air, as it always did. Your saved friction and
+  drag are then dropped, but lift and brakes stay.
+* **"↺ Restore default physics"** clears the save, and so do the Owner tools' reset buttons and the Lab's
+  "Back to normal" experiment.
+* **Safe to load:** a value is used only if it is a real, finite number, and it is kept inside the slider ranges
+  (friction 0–0.6, drag 0–0.006, lift 2–10 m/s, brakes 2–30 m/s²). A broken or unreadable save is ignored, and
+  it's cleaned up the next time you change the physics. Every read and write is wrapped in try/catch.
+
 ---
 
 ## Known limits (honest list)
@@ -149,8 +170,9 @@ A red **💥 Disaster** badge shows while it's on.
   cartoon physics: cars bounce on the ground but don't hit each other, the track or the scenery, and water
   counts as ground.
 * **Gravity Lab:** Jupiter is a thought experiment. The builder's ✓ Check uses whatever gravity is on, so a
-  coaster can show warnings on Jupiter that it doesn't have on Earth. The Lab's other sliders (friction,
-  drag, lift, brakes) still aren't saved, same as before.
+  coaster can show warnings on Jupiter that it doesn't have on Earth. The Lab's friction, drag, lift and brake
+  sliders are now saved (section 5). Gravity set with the Lab's own gravity slider or buttons is still not kept;
+  use the Gravity Lab for that. Launch strength (Owner tools only) isn't saved either.
 * **Daily Challenge** uses the phone's clock, so it changes at *your* midnight, and changing the clock would let
   someone play another day. Scores are only on the device. Clearing Safari's website data deletes the streak,
   like every other save in the game. Adding the game to the Home Screen protects saves better, and the game
@@ -201,6 +223,10 @@ Open `coaster_lab_v8_6.html` the way you normally do (ideally from the Home Scre
 - [ ] Tap 📤 **Share**: the iPhone share sheet opens with the emoji text (try sending it to yourself).
 - [ ] Close and reopen the game. 🎡 → Daily Challenge still shows today's result and your streak.
 - [ ] If you have a second device, check that it shows the same challenge today.
+
+**💾 Lab physics**
+- [ ] 📊 Lab → Physics & setup: move the rolling resistance and brake sliders. Close the game completely and reopen it.
+  The sliders are where you left them and the 🧪 Lab physics badge shows. Tap ↺ Restore default physics, reopen: all back to normal.
 
 **Anything odd?** Send me a screenshot and what you tapped.
 

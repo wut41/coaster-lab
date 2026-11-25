@@ -7168,6 +7168,25 @@ Object.assign(DBG86,{grav:()=>({...GL86,PH:{...PH},chip:$('#modChip').textConten
  check:async()=>{GCHK86.ver=-1;await gravCheckAll86();while(GCHK86.busy)await yield86();return GCHK86.res.map(r=>({n:rideName(r.i),stall:Math.round(r.stall),done:r.done}))},earth:i=>earthStats86(i==null?cur:i)});
 // start-up: put the saved planet back (before the first ride is built)
 if(GL86.k!=='earth')applyGrav86();
+// ---- 8.6 LAB PHYSICS SAVE: the 📊 Lab's rolling resistance, air drag, lift speed and brake sliders survive a reload
+// (key coasterlab.v86.labPhys = {v:1, fric?, drag?, lift?, brake?}; only the values you changed are stored).
+// Precedence: the 🪐 Gravity Lab owns gravity and, with "Realistic planet", the planet's friction and air. A Lab value is saved
+// only where it differs from what the Gravity Lab (or the defaults) would give, and at start-up it goes back ON TOP of the
+// Gravity Lab, so a reload gives exactly the physics you had. Tapping a planet replaces friction and air, as it always did,
+// and so drops those two saved values by itself. "Restore default physics" (Lab, Owner tools, resets) clears the save.
+// Gravity is saved by the Gravity Lab only; launch strength (Owner tools) is not saved. With nothing saved, nothing runs here.
+const LPK86=['fric','drag','lift','brake'],LPR86={fric:[0,.6],drag:[0,.006],lift:[2,10],brake:[2,30]},LP86={raw:null};
+function lpDiff86(){const b={...PH0,...gravPH86()},o={};for(const k of LPK86)if(isN7(PH[k])&&Math.abs(PH[k]-b[k])>1e-9)o[k]=PH[k];return o}
+function saveLP86(){if(RESTORE80)return;const o=lpDiff86(),txt=Object.keys(o).length?JSON.stringify({v:1,...o}):null;if(txt===LP86.raw)return;
+ try{if(txt)localStorage.setItem(K86+'labPhys',txt);else localStorage.removeItem(K86+'labPhys');LP86.raw=txt}catch(e){saveFail81('v86.labPhys',e)}}
+{const f0=physChanged;physChanged=function(){f0.apply(this,arguments);try{saveLP86()}catch(e){console.warn('8.6 lab physics',e)}}}
+// start-up: read and check the save (numbers only, finite, inside the slider ranges), then put it back after the planet
+{let o=null;try{LP86.raw=localStorage.getItem(K86+'labPhys');o=LP86.raw==null?null:JSON.parse(LP86.raw)}catch(e){o=null}
+ if(obj72(o)&&o.v===1){const s={};for(const k of LPK86)if(isN7(o[k]))s[k]=clamp(o[k],LPR86[k][0],LPR86[k][1]);if(Object.keys(s).length){Object.assign(PH,s);physChanged()}}}
+// the Lab's physics note used to say "Not saved"; it now says what is kept (the old page is drawn first, then the sentence swapped)
+{const f0=labPh;labPh=function(sec){f0.apply(this,arguments);try{const n=[...sec.querySelectorAll('.note')].find(p=>/Not saved/.test(p.textContent));
+ if(n)n.textContent=n.textContent.replace(/Not saved.*$/,'Rolling resistance, drag, lift and brakes are saved in this browser; ↺ Restore default physics clears them. Gravity set here is not kept: use 🪐 Gravity Lab for that.')}catch(e){console.warn('8.6 lab note',e)}}}
+DBG86.labPhys=()=>{let raw=null;try{raw=localStorage.getItem(K86+'labPhys')}catch(e){}return{raw,saved:lpDiff86(),PH:{...PH}}};
 
 // ---- [86_disaster.js]
 // ---- 8.6 DISASTER MODE (off by default). With it OFF every function below steps aside and the ride runs exactly as

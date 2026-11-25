@@ -1,0 +1,39 @@
+xssName via paste: ok in 8219 ms; before="My Coaster" {"name":"img src=x onerror=__xss(1)svg onload=__x","n":6,"maxAbs":0,"hasNull":false,"toast":"","xss":[],"img":0}
+xssName via file: ok in 12483 ms; before="My Coaster" {"name":"img src=x onerror=__xss(1)svg onload=__x","n":6,"maxAbs":0,"hasNull":false,"toast":"📂 Opened “img src=x onerror=__xss(1)svg onload=__x”","xss":[],"img":0}
+v1Huge via paste: ok in 11148 ms; before="My Coaster" {"name":"v1 huge (classic)","n":2,"maxAbs":1000000000000020,"hasNull":false,"toast":"","xss":[],"img":0}
+   console error: RangeError: Invalid typed array length: 112915374619732800
+    at new Float32Array (<anonymous>)
+    at new InstancedMesh (https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js:32652:55)
+    at mk (https://coa
+   console error: PAGEERROR RangeError: Invalid typed array length: 4939940509278096
+    at new Float32Array (<anonymous>)
+    at new InstancedMesh (https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js:32652:55)
+    at drawOve
+v1Huge via file: ok in 8455 ms; before="My Coaster" {"name":"v1 huge (classic)","n":2,"maxAbs":1000000000000020,"hasNull":false,"toast":"","xss":[],"img":0}
+   console error: RangeError: Invalid typed array length: 112915374619732800
+    at new Float32Array (<anonymous>)
+    at new InstancedMesh (https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js:32652:55)
+    at mk (https://coa
+   console error: PAGEERROR RangeError: Invalid typed array length: 4939940509278096
+    at new Float32Array (<anonymous>)
+    at new InstancedMesh (https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js:32652:55)
+    at drawOve
+v1Junk via paste: ok in 8895 ms; before="My Coaster" {"name":"v1 junk (classic)","n":2,"maxAbs":null,"hasNull":true,"toast":"Converted from an older Coaster Lab design.","xss":[],"img":0}
+v1Junk via file: ok in 23043 ms; before="My Coaster" {"name":"v1 junk (classic)","n":2,"maxAbs":null,"hasNull":true,"toast":"📂 Opened “v1 junk (classic)”","xss":[],"img":0}
+protoType via paste: ok in 6690 ms; before="My Coaster" {"name":"My Coaster","n":6,"maxAbs":0,"hasNull":false,"toast":"","xss":[],"img":0}
+   console error: PAGEERROR TypeError: Cannot read properties of undefined (reading 'forEach')
+    at mkEl (https://coaster.test/coaster_lab_v8_6.audit-copy.html:1731:46)
+    at sanDesign (https://coaster.test/coaster_lab_v8_6.audit-copy.
+protoType via file: ok in 17036 ms; before="My Coaster" {"name":"My Coaster","n":6,"maxAbs":0,"hasNull":false,"toast":"","xss":[],"img":0}
+   console error: PAGEERROR TypeError: Cannot read properties of undefined (reading 'forEach')
+    at mkEl (https://coaster.test/coaster_lab_v8_6.audit-copy.html:1731:46)
+    at sanDesign (https://coaster.test/coaster_lab_v8_6.audit-copy.
+protoType2 via paste: ok in 6767 ms; before="My Coaster" {"name":"My Coaster","n":6,"maxAbs":0,"hasNull":false,"toast":"","xss":[],"img":0}
+   console error: PAGEERROR TypeError: Cannot read properties of undefined (reading 'forEach')
+    at mkEl (https://coaster.test/coaster_lab_v8_6.audit-copy.html:1731:46)
+    at sanDesign (https://coaster.test/coaster_lab_v8_6.audit-copy.
+protoType2 via file: ok in 15288 ms; before="My Coaster" {"name":"My Coaster","n":6,"maxAbs":0,"hasNull":false,"toast":"","xss":[],"img":0}
+   console error: PAGEERROR TypeError: Cannot read properties of undefined (reading 'forEach')
+    at mkEl (https://coaster.test/coaster_lab_v8_6.audit-copy.html:1731:46)
+    at sanDesign (https://coaster.test/coaster_lab_v8_6.audit-copy.
+exit 0
