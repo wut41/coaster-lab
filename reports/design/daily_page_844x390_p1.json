@@ -1,0 +1,206 @@
+{
+ "name": "daily_page_844x390_p1",
+ "root": "#ov7",
+ "shot": "/home/user/coaster-lab/reports/design/daily_page_844x390_p1.png",
+ "targets": [
+  {
+   "lbl": "Close",
+   "tag": "button",
+   "id": "ov7X",
+   "cls": "btn",
+   "w": 40,
+   "h": 39,
+   "x": 725,
+   "y": 31,
+   "small": true
+  },
+  {
+   "lbl": "🏗 Build it now",
+   "tag": "button",
+   "cls": "btn primary",
+   "data": "dc86=build",
+   "w": 127,
+   "h": 44,
+   "x": 79,
+   "y": 317,
+   "small": false
+  }
+ ],
+ "smallTargets": [
+  {
+   "lbl": "Close",
+   "tag": "button",
+   "id": "ov7X",
+   "cls": "btn",
+   "w": 40,
+   "h": 39,
+   "x": 725,
+   "y": 31,
+   "small": true
+  }
+ ],
+ "contrastFails": [
+  {
+   "txt": "🏗 Build it now",
+   "el": "button.btn.primary",
+   "fs": 14,
+   "fw": 800,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(46,141,215)",
+   "ratio": 3.55,
+   "worst": 3.13,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": true
+  }
+ ],
+ "contrastAll": [
+  {
+   "txt": "📅 Daily Challenge",
+   "el": "b#ov7T",
+   "fs": 20,
+   "fw": 700,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(10,18,35)",
+   "ratio": 18.69,
+   "worst": 18.69,
+   "large": true,
+   "disabled": false,
+   "need": 3,
+   "fail": false
+  },
+  {
+   "txt": "Daily Challenge #329 · Wed, Nov 25",
+   "el": "small",
+   "fs": 12,
+   "fw": 800,
+   "fg": "rgb(169, 187, 214)",
+   "op": 1,
+   "bg": "rgb(18,29,54)",
+   "ratio": 8.58,
+   "worst": 8.5,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": false
+  },
+  {
+   "txt": "🪂 Airtime party",
+   "el": "h3",
+   "fs": 22,
+   "fw": 900,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(17,28,52)",
+   "ratio": 16.94,
+   "worst": 16.74,
+   "large": true,
+   "disabled": false,
+   "need": 3,
+   "fail": false
+  },
+  {
+   "txt": "At least 2 s of airtime (below 0 G)",
+   "el": "span",
+   "fs": 13.5,
+   "fw": 800,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(28,38,59)",
+   "ratio": 15.11,
+   "worst": 15.09,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": false
+  },
+  {
+   "txt": "Peak G no more than 4.0 G",
+   "el": "span",
+   "fs": 13.5,
+   "fw": 800,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(26,36,56)",
+   "ratio": 15.52,
+   "worst": 15.46,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": false
+  },
+  {
+   "txt": "No launches: lift hills only",
+   "el": "span",
+   "fs": 13.5,
+   "fw": 800,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(25,34,52)",
+   "ratio": 15.91,
+   "worst": 15.86,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": false
+  },
+  {
+   "txt": "Everyone gets this same challenge today. Scored wi",
+   "el": "p.n8",
+   "fs": 12.5,
+   "fw": 600,
+   "fg": "rgb(169, 187, 214)",
+   "op": 1,
+   "bg": "rgb(12,21,40)",
+   "ratio": 9.33,
+   "worst": 9.27,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": false
+  },
+  {
+   "txt": "🏗 Build it now",
+   "el": "button.btn.primary",
+   "fs": 14,
+   "fw": 800,
+   "fg": "rgb(255, 255, 255)",
+   "op": 1,
+   "bg": "rgb(46,141,215)",
+   "ratio": 3.55,
+   "worst": 3.13,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": true
+  },
+  {
+   "txt": "Your streak",
+   "el": "h4.h7",
+   "fs": 11,
+   "fw": 700,
+   "fg": "rgb(169, 187, 214)",
+   "op": 1,
+   "bg": "rgb(37,41,43)",
+   "ratio": 7.52,
+   "worst": 6.83,
+   "large": false,
+   "disabled": false,
+   "need": 4.5,
+   "fail": false
+  }
+ ],
+ "overflow": {
+  "root": {
+   "sw": 844,
+   "cw": 844,
+   "sh": 390,
+   "ch": 390
+  },
+  "hClip": [],
+  "offscreen": []
+ }
+}

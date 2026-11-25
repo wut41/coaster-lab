@@ -1,0 +1,11 @@
+{
+ "css": "@media(max-height:500px){#b8Lib .lbC8{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(64px,auto);overflow-x:auto;overscroll-behavior-x:contain}}.evoR86>.evoSt86{display:flex}",
+ "before": {
+  "contentVisibleH": 83,
+  "tabsH": 178
+ },
+ "after": {
+  "contentVisibleH": 193,
+  "tabsH": 68
+ }
+}

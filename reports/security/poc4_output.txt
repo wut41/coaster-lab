@@ -1,0 +1,4 @@
+CSP meta present: true | booted: true
+violations: 0
+console errors: 0
+exit 0

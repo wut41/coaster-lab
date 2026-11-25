@@ -48,14 +48,17 @@ async function sweep(page, label) {
   await X(() => window.__coasterDebug.v80.v86.openBuilder()); await page.waitForTimeout(900); await hide();
   await X(() => window.__coasterDebug.v80.bld.act('add')); await page.waitForTimeout(300);
   await clickAll('[data-b8lib]'); await clickAll('[data-b8tab]');
-  return X(() => ({ hits: window.__xssHits || [], live: window.__liveEls || [] }));
+  // positive control: a deliberately unsafe sink must be caught by the same detectors
+  await X(() => document.body.insertAdjacentHTML('beforeend', `<img src=x onerror="__xss('CONTROL')">`)); await page.waitForTimeout(1500);
+  return X(() => ({ hits: window.__xssHits || [], live: (window.__liveEls || []).length, payloadShownAsText: window.__seen || 0 }));
 }
 
 (async () => {
   const init = () => {
     window.__xss = n => (window.__xssHits = window.__xssHits || []).push(n);
     const flag = el => { if (el.nodeType !== 1) return; const bad = (el.tagName === 'IMG' && el.getAttribute('src') === 'x') || [...el.attributes].some(a => /^on/i.test(a.name) && /__xss|^x$/.test(a.value)); if (bad) (window.__liveEls = window.__liveEls || []).push(el.outerHTML.slice(0, 160)); el.querySelectorAll && el.querySelectorAll('*').forEach(flag) };
-    new MutationObserver(ms => ms.forEach(m => { m.addedNodes.forEach(flag); if (m.type === 'attributes') flag(m.target) })).observe(document, { subtree: true, childList: true, attributes: true });
+    const txt = n => { const t = n.textContent || n.value || ''; if (/onerror=__xss|img src=x onerror/.test(t)) window.__seen = (window.__seen || 0) + 1 };
+    new MutationObserver(ms => ms.forEach(m => { m.addedNodes.forEach(n => { flag(n); txt(n) }); if (m.type === 'attributes') flag(m.target) })).observe(document, { subtree: true, childList: true, attributes: true });
   };
   // Run 1: payloads planted straight into localStorage (what any script or a DevTools user could do)
   {

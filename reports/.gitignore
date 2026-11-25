@@ -2,3 +2,5 @@
 *.html
 # Raw run logs
 log_*.txt
+# Screenshots from the debugger's copied test runs (same as tests/shots/)
+debug/suite/shots/

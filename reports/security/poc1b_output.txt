@@ -1,5 +1,7 @@
-M=1000: ok after 7775 ms {"name":"My Coaster","heapMB":38,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwviq4bb"} | page errors: 0 
-M=10000: ok after 21497 ms {"name":"My Coaster","heapMB":32,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwvirrhs"} | page errors: 0 
-M=100000: ok after 15262 ms {"name":"My Coaster","heapMB":43,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwvitj3i"} | page errors: 0 
-M=1000000: ok after 18802 ms {"name":"My Coaster","heapMB":40,"toast":"","errorsStillGrowing":false,"afterReload":"{\"design\":{\"v\":2,\"name\":\"My Coaster\",\"els\":[{\"id\":\"smwvivf1s"} | page errors: 0 
+M=1000: ok after 7951 ms {"name":"far 1000 (classic)","maxAbs":1020,"heapMB":73,"toast":"📂 Opened “far 1000 (classic)”","errorsStillGrowing":false,"afterReload":{"name":"My Coaster","aside":false}} | page errors: 0 
+M=10000: ok after 8570 ms {"name":"far 10000 (classic)","maxAbs":10020,"heapMB":98,"toast":"📂 Opened “far 10000 (classic)”","errorsStillGrowing":false,"afterReload":{"name":"My Coaster","aside":false}} | page errors: 0 
+M=100000: ok after 37133 ms {"name":"far 100000 (classic)","maxAbs":100020,"heapMB":1078,"toast":"📂 Opened “far 100000 (classic)”","errorsStillGrowing":false,"afterReload":{"name":"My Coaster","aside":false}} | page errors: 0 
+M=1000000: main thread blocked > 120 s after 517973 ms {} | page errors: 0 
+M=1000000000000000: ok after 7742 ms {"name":"far 1000000000000000 (classic)","maxAbs":1000000000000020,"heapMB":36,"toast":"","errorsStillGrowing":false,"afterReload":{"name":"My Coaster","aside":false}} | page errors: 2 | first: RangeError: Invalid typed array length: 112915374619732800     at new Float32Array (<anonymous>)     at new InstancedMes
+M=junk: ok after 7227 ms {"name":"far junk (classic)","maxAbs":80,"heapMB":45,"toast":"📂 Opened “far junk (classic)”","errorsStillGrowing":false,"afterReload":{"name":"My Coaster","aside":false}} | page errors: 0 
 exit 0

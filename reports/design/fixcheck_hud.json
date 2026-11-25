@@ -1,0 +1,21 @@
+{
+ "css": "@media(max-width:650px){.brandT{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:2px}.brandT>b{flex:0 0 100%}#rideName{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#modChip,#dzChip{margin-left:0;flex:none}}",
+ "before": {
+  "brandH": 72,
+  "statsBottom": 131,
+  "cameraTop": 104,
+  "overlap": 27
+ },
+ "after": {
+  "brandH": 46,
+  "statsBottom": 105,
+  "cameraTop": 104,
+  "overlap": 1
+ },
+ "afterGlacier": {
+  "brandH": 46,
+  "statsBottom": 105,
+  "cameraTop": 104,
+  "overlap": 1
+ }
+}
