@@ -1,6 +1,6 @@
 // Robustness: the game must boot with 0 console errors and sane fallbacks when its saved data is damaged.
 // Every boot seeds localStorage (harness `storage` option) with garbage for the 8.6 keys (coasterlab.v86.gravity,
-// .disaster, .daily) and, at the end, a few older keys. A control boot with valid data proves the seeding works.
+// .disaster, .daily; .labPhys is new and not covered here yet) and, at the end, a few older keys. A control boot with valid data proves the seeding works.
 const { open } = require('./harness');
 const ROOT = require('path').join(__dirname, '..') + '/';
 require('fs').mkdirSync(__dirname + '/shots', { recursive: true });

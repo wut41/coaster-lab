@@ -21,7 +21,7 @@ node t4_corners.js                # optional, slow (~15 min): proves every Daily
 | `t3_evolve` | Evolve: valid results only, repeatable seeds, preview → Place it → Undo, Cancel, time cap |
 | `t4_daily` | Daily Challenge: same challenge for everyone, Submit, Earth physics, streak, share fallbacks, saving |
 | `t5_regress` | Older features next to 8.5: start screen, Lab, Goals, Settings, Park & tools, builder, sketch studio, owner prompt |
-| `t6_robust` | Damaged saves: garbage in every `coasterlab.v86.*` key (bad JSON, wrong types, NaN/Infinity/huge numbers, empty and very long strings, future/past Daily dates) and a few 7.x keys must boot with 0 errors and sane fallbacks |
+| `t6_robust` | Damaged saves: garbage in the `coasterlab.v86.gravity`, `.disaster` and `.daily` keys (bad JSON, wrong types, NaN/Infinity/huge numbers, empty and very long strings, future/past Daily dates) and a few 7.x keys must boot with 0 errors and sane fallbacks |
 
 Screenshots land in `tests/shots/`. The suites use the game's built-in test hooks, which only switch on inside a
 test harness. These checks cannot measure real iPhone frame rates: the browser draws with a software graphics card.
