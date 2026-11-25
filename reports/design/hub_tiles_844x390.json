@@ -1,0 +1,149 @@
+[
+ {
+  "k": "park",
+  "txt": "🏢Park HQCoaster Lab Park · 🟢 Open until 21:00✓ All good👥 385 guests😃 81% happy💰 −$937 today★★★★⯪",
+  "w": 730,
+  "h": 94,
+  "cls": "hubHQ"
+ },
+ {
+  "k": "lands",
+  "txt": "🏞Landsnew",
+  "w": 169,
+  "h": 44,
+  "cls": "hubC82"
+ },
+ {
+  "k": "staff",
+  "txt": "👷Staff",
+  "w": 122,
+  "h": 44,
+  "cls": "hubC82"
+ },
+ {
+  "k": "guests80",
+  "txt": "👥Guests",
+  "w": 136,
+  "h": 44,
+  "cls": "hubC82"
+ },
+ {
+  "k": "events",
+  "txt": "🎉Events",
+  "w": 135,
+  "h": 44,
+  "cls": "hubC82"
+ },
+ {
+  "k": "advisor",
+  "txt": "🧭Advice",
+  "w": 136,
+  "h": 44,
+  "cls": "hubC82"
+ },
+ {
+  "k": "sketch",
+  "txt": "✍️Sketch StudioDraw a coaster, ride it in 3D",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "ops",
+  "txt": "🚦Ride OperationsClassic non-stop · dispatch & capacity",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "studio",
+  "txt": "🎨Train StudioRide default · colours, finishes, effects",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "world",
+  "txt": "🌦World & WeatherEach ride’s own world · Clear",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "map",
+  "txt": "🗺Park MapLive area map · whole-park plan",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "prog",
+  "txt": "⭐Challenges & LevelLevel 2 · 🪙 220",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "cams",
+  "txt": "🎥Cameras & Replay🧠 Smart director · replay ready",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "photo",
+  "txt": "📸Photo StudioFrame, filter and capture · gallery in this browser",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "card85",
+  "txt": "🖼Showcase cardA picture card of this coaster",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "grav86",
+  "txt": "🪐Gravity LabMoon, Mars, Jupiter…",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "dz86",
+  "txt": "💥Disaster ModeOff · what if the safety failed?",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "daily86",
+  "txt": "📅Daily Challenge🪂 Airtime party · not tried yet · 🔥 0",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "lab",
+  "txt": "📊Research LabCharts, G-forces, history & comparisons",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "set",
+  "txt": "⚙SettingsGraphics, sound mixer, ride options",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ },
+ {
+  "k": "credits",
+  "txt": "🙌CreditsJake, ChatGPT & the AI crew",
+  "w": 177,
+  "h": 106,
+  "cls": "hubT"
+ }
+]
