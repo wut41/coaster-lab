@@ -6,3 +6,6 @@ log_*.txt
 debug/suite/shots/
 *.html.orig
 *.html.rej
+# Debugger run copies and logs: they repeat game data such as ride names
+debug/suite/
+debug/*.log
