@@ -22,8 +22,9 @@ deployed, no repository setting was changed, and no game code changed.
 
 **2026-11-27: no Supabase branch.** The owner chose not to pay for one (about $0.013 an hour, not covered by the Spend
 Cap). The branch was never created. B1–B3 stay open; free ways to close them:
-* **B3 (PostgreSQL 17):** run `bash supabase/tests/run.sh payments` with PostgreSQL 17 in a free GitHub Actions job
-  (public repository) or on any computer that has it.
+* **B3 (PostgreSQL 17):** the new free CI job `database (PostgreSQL 17)` (`.github/workflows/ci.yml`) runs the whole
+  database suite on 17. It has **not run yet**: it starts on the next pull request or push to `main` / `develop`, or by
+  hand (Actions → CI → Run workflow → this branch). B3 is closed when it is green.
 * **B1 + B2:** production holds only 3 accounts and no parks, coasters or purchases, so the migrations can go straight
   to production once the owner approves (they were tested on an exact copy of its schema, are safe to run twice, and
   each says how to undo it). Right after that, a short live check with dummy data, deleted afterwards, covers B2 (forged

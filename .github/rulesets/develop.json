@@ -21,6 +21,7 @@
           { "context": "syntax" },
           { "context": "secrets" },
           { "context": "database" },
+          { "context": "database (PostgreSQL 17)" },
           { "context": "lockfile" } ] } }
   ]
 }

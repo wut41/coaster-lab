@@ -21,6 +21,7 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
   direct player writes to `cl_saves`, `profiles`, `coasters` or `vip_purchases`.
 - New attack suites: `supabase/tests/20_attacks.sql` (33 attacks, 19 of which got through before the migration and none after, plus 3 checks of the owner's moderation runbook) and
   `tests/t27_hostile_cloud.js` (10.10.1 against 10,000-level JSON, 10,000-row leaderboards, 2 MB names).
+- CI: new `database (PostgreSQL 17)` job runs the database suite on the version production runs (free; no Supabase branch).
   Report and remaining blockers: [`docs/security/RELEASE-10.10.1.md`](docs/security/RELEASE-10.10.1.md). No game code changed.
 
 ### Repository

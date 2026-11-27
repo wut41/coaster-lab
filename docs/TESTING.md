@@ -5,7 +5,7 @@ Three layers. Every one runs on GitHub Actions and on your own computer.
 | Layer | What it checks | Command | When CI runs it |
 |---|---|---|---|
 | **CI fast checks** | HTML/JS syntax, secrets in files and history, lockfile integrity | see `.github/workflows/ci.yml` | every push and pull request |
-| **Database** | row level security and permissions, on a throw-away local PostgreSQL. Nothing is sent to Supabase | `bash supabase/tests/run.sh payments` | every push and pull request (`database` job) |
+| **Database** | row level security and permissions, on a throw-away local PostgreSQL. Nothing is sent to Supabase | `bash supabase/tests/run.sh payments` | every push and pull request (`database` job on PostgreSQL 16, `database (PostgreSQL 17)` job on the version production runs) |
 | **Browser: release** | the current build `builds/coaster_lab_v10_10_1.html` in headless Chromium (`t26`, `t20` A–H, `t22`, `t27` hostile cloud answers) | `cd tests && npm run test:release` | every pull request into `main`, pushes to `main`, weekly |
 | **Browser: full history** | every suite against the 10.1 source build | `cd tests && npm test` | weekly, or *Actions → Regression → Run workflow → target `full`* |
 

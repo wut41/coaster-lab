@@ -67,6 +67,28 @@ jobs:
       - name: Row level security and permission tests on a throw-away PostgreSQL (nothing reaches Supabase)
         run: bash supabase/tests/run.sh payments
 
+  # The same tests on PostgreSQL 17, the version production runs (17.11 on 2026-11-27). The runner image ships 16, so
+  # 17 comes from the PostgreSQL project's own apt repository. Free on a public repository; no Supabase branch needed.
+  database-pg17:
+    name: database (PostgreSQL 17)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install PostgreSQL 17 (server binaries only, no cluster started)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-common
+          echo 'create_main_cluster = false' | sudo tee -a /etc/postgresql-common/createcluster.conf >/dev/null
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-17
+      - name: Row level security, permission and release-attack tests on PostgreSQL 17 (nothing reaches Supabase)
+        env:
+          PGBIN: /usr/lib/postgresql/17/bin
+        run: |
+          "$PGBIN/postgres" --version | grep -E ' 17\.' || { echo "::error::PostgreSQL 17 is not what PGBIN points at"; exit 1; }
+          bash supabase/tests/run.sh payments
+
   lockfile:
     name: lockfile
     runs-on: ubuntu-latest
