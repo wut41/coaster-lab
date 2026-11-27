@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Applies the repository rulesets in .github/rulesets/ and turns on Dependabot alerts. For the repository OWNER
+# Applies the repository rulesets in .github/rulesets/, turns on Dependabot alerts and private vulnerability reporting. For the repository OWNER
 # (needs admin rights; a Claude session cannot change settings). Safe to run again: an existing ruleset with the same
 # name is updated, not duplicated.
 #   bash tools/repo/apply-branch-protection.sh          dry run: shows what would change
@@ -19,5 +19,7 @@ done
 if [ "$GO" = "--yes" ]; then
   gh api -X PUT "repos/$REPO/vulnerability-alerts" >/dev/null && echo "Dependabot alerts: on"
   gh api -X PUT "repos/$REPO/automated-security-fixes" >/dev/null && echo "Dependabot security updates: on"
+  # SECURITY.md asks people to report problems privately; that form only exists when this is on (it was off on 2026-11-27)
+  gh api -X PUT "repos/$REPO/private-vulnerability-reporting" >/dev/null && echo "Private vulnerability reporting: on"
   echo; gh api "repos/$REPO/rules/branches/main" --jq '"main now has " + (length|tostring) + " rules: " + ([.[].type]|join(", "))'
 else echo; echo "dry run only: add --yes to apply"; fi

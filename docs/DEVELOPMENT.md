@@ -29,7 +29,7 @@ the database. Never put a secret key (`sb_secret_…` or the `service_role` key)
 
 Set-up, once:
 
-1. **Database.** Run the two files in `supabase/migrations/` **in order** (Supabase dashboard → SQL Editor → paste →
+1. **Database.** Run the three files in `supabase/migrations/` **in order** (Supabase dashboard → SQL Editor → paste →
    Run), ideally on a Supabase branch or a copy of the project first:
    * `20261113000000_coaster_lab_10_parks_and_accounts.sql` only adds things: three tables (`cl_parks`,
      `cl_park_ratings`, `cl_saves`) and fourteen functions.
@@ -39,11 +39,19 @@ Set-up, once:
      `profiles` gets a rule that names are unique whatever their capitals, and signed-in players may change only their
      own `username`. If two existing players already have names that differ only in capitals, that one rule is left out and the file
      says so in a notice (rename one of them, then run the file again).
-   The top of each file says who can do what and how to undo it. Do not run the first without the second.
+   * `20261127000000_coaster_lab_10_10_1_release_hardening.sql` closes what the 10.10.1 release attacks found
+     (`supabase/tests/20_attacks.sql`): rate limits that a browser could reset with made-up headers or IPv6 addresses,
+     names that imitate staff or other players with look-alike or invisible characters, and direct table writes that
+     skipped the server checks. **It also changes existing things**: players can no longer write `cl_saves`,
+     `profiles` or `coasters` directly (the game never does; everything goes through the `cl_*` functions), and
+     `vip_purchases` loses its last browser grant. Report: `docs/security/RELEASE-10.10.1.md`.
+   The top of each file says who can do what and how to undo it. Run all three, in order.
    **Until they are run**, park codes, accounts and everything offline work; publishing, leaderboards and cloud saves
    say they are not switched on yet.
-2. **Sign-up without emails.** Dashboard → Authentication → Sign In / Providers → Email: keep the Email provider on and
-   switch **Confirm email off**. New accounts are then signed in at once and no email is sent. (If it stays on, the
+2. **Sign-up without emails.** *(Security note, 2026-11-27: with Confirm email off and no CAPTCHA, a script can create
+   unlimited accounts, and each account gets one rating per park. Prefer a real email sender (step 4) with Confirm
+   email on before a public launch; see `docs/security/RELEASE-10.10.1.md`.)* Dashboard → Authentication → Sign In /
+   Providers → Email: keep the Email provider on and switch **Confirm email off**. New accounts are then signed in at once and no email is sent. (If it stays on, the
    sign-in page says "confirm by email" instead of pretending; Supabase's built-in email sender only delivers a couple
    of emails an hour, and only to the project team's addresses.)
 3. **Where reset links land.** Dashboard → Authentication → URL Configuration: set *Site URL* to the address the game

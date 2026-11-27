@@ -6,7 +6,7 @@ Three layers. Every one runs on GitHub Actions and on your own computer.
 |---|---|---|---|
 | **CI fast checks** | HTML/JS syntax, secrets in files and history, lockfile integrity | see `.github/workflows/ci.yml` | every push and pull request |
 | **Database** | row level security and permissions, on a throw-away local PostgreSQL. Nothing is sent to Supabase | `bash supabase/tests/run.sh payments` | every push and pull request (`database` job) |
-| **Browser: release** | the current build `builds/coaster_lab_v10_10_1.html` in headless Chromium | `cd tests && npm run test:release` | every pull request into `main`, pushes to `main`, weekly |
+| **Browser: release** | the current build `builds/coaster_lab_v10_10_1.html` in headless Chromium (`t26`, `t20` A–H, `t22`, `t27` hostile cloud answers) | `cd tests && npm run test:release` | every pull request into `main`, pushes to `main`, weekly |
 | **Browser: full history** | every suite against the 10.1 source build | `cd tests && npm test` | weekly, or *Actions → Regression → Run workflow → target `full`* |
 
 ## Reproducible installs
@@ -37,6 +37,13 @@ Chromium build, so let the release regression pass on that PR before merging it.
 4. The repository migrations in `supabase/migrations/`, applied twice (they must be safe to re-run). They are
    **not applied to production**.
 5. `10_tests.sql`: the checks for those migrations.
+6. `20_attacks.sql`: the 10.10.1 release attacks on the same database (X server-side authorization and owner
+   permissions, N impersonation and Unicode look-alikes, L rate-limit bypass with forged headers and IPv6 rotation,
+   D direct table writes, V input validation, F network fingerprints, M the owner's moderation runbook).
+   Before `20261127000000_…_release_hardening.sql`, 19 of its 33 attacks got through; with it, none do.
+
+`supabase/branch-checks/verify_headers.sql` is **not** run here: it is the one check that needs the real Supabase API
+gateway (run it on a Supabase branch, never production; the steps are at the top of the file).
 
 When production changes (a migration is applied in the Supabase dashboard), add it to the snapshot in `02_…` (or a
 new `03_…`) so these tests keep describing the real database.

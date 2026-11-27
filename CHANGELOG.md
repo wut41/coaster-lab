@@ -13,6 +13,16 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 
 ## [Unreleased]
 
+### Security (2026-11-27, branch `claude/great-goodall-vlv5jg`, not applied to production)
+- New migration `supabase/migrations/20261127000000_coaster_lab_10_10_1_release_hardening.sql`: rate limits keyed on
+  Cloudflare's address header (browser-written `x-forwarded-for` / `x-real-ip` no longer trusted), IPv6 counted per
+  /64, network fingerprints keyed with a server secret, NFKC + invisible/bidi character removal in every name, guest
+  parks cannot be credited to staff-like or registered names, leaderboard rate limit, cleaned device labels, and no
+  direct player writes to `cl_saves`, `profiles`, `coasters` or `vip_purchases`.
+- New attack suites: `supabase/tests/20_attacks.sql` (33 attacks, 19 of which got through before the migration and none after, plus 3 checks of the owner's moderation runbook) and
+  `tests/t27_hostile_cloud.js` (10.10.1 against 10,000-level JSON, 10,000-row leaderboards, 2 MB names).
+  Report and remaining blockers: [`docs/security/RELEASE-10.10.1.md`](docs/security/RELEASE-10.10.1.md). No game code changed.
+
 ### Repository
 - Security hardening (2026-11-27, in `main`): test dependencies locked (`tests/package-lock.json`, exact pins, `npm ci`);
   required `regression 10.10.1` job; `database` CI job attacking a copy of production (RLS, privileges, owner and VIP

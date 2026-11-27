@@ -22,18 +22,21 @@ insert into auth.users (id, email, raw_user_meta_data) values
 insert into t.ids values ('a', '00000000-0000-4000-8000-00000000000a'), ('b', '00000000-0000-4000-8000-00000000000b');
 
 -- ============================================================ A · what the catalog says
-select t.ok(not exists (select 1 from unnest(array['profiles','coasters','cl_parks','cl_park_ratings','cl_saves','cl_rate','cl_park_visits']) tb, unnest(array['select','insert','update','delete','truncate']) pr where has_table_privilege('anon', 'public.' || tb, pr)),
-  'A1 signed-out callers hold no privilege on any of the seven tables');
-select t.ok(has_table_privilege('authenticated', 'public.profiles', 'select') and not has_table_privilege('authenticated', 'public.profiles', 'update') and has_column_privilege('authenticated', 'public.profiles', 'username', 'update')
+select t.ok(not exists (select 1 from unnest(array['profiles','coasters','cl_parks','cl_park_ratings','cl_saves','cl_rate','cl_park_visits','cl_secret']) tb, unnest(array['select','insert','update','delete','truncate']) pr where has_table_privilege('anon', 'public.' || tb, pr)),
+  'A1 signed-out callers hold no privilege on any of the eight tables');
+select t.ok(has_table_privilege('authenticated', 'public.profiles', 'select') and not has_table_privilege('authenticated', 'public.profiles', 'update') and not has_column_privilege('authenticated', 'public.profiles', 'username', 'update')
   and not has_column_privilege('authenticated', 'public.profiles', 'id', 'update') and not has_table_privilege('authenticated', 'public.profiles', 'insert') and not has_table_privilege('authenticated', 'public.profiles', 'delete') and not has_table_privilege('authenticated', 'public.profiles', 'truncate'),
-  'A2 signed-in players can read profiles and change only the username column');
-select t.ok(not exists (select 1 from unnest(array['cl_parks','cl_park_ratings','cl_rate','cl_park_visits']) tb, unnest(array['select','insert','update','delete']) pr where has_table_privilege('authenticated', 'public.' || tb, pr)),
-  'A3 signed-in players cannot touch parks, ratings, visit counts or rate limits directly');
+  'A2 signed-in players can read profiles but not write them (a name changes only through cl_set_username, since 10.10.1)');
+select t.ok(has_table_privilege('authenticated', 'public.cl_saves', 'select') and has_table_privilege('authenticated', 'public.cl_saves', 'delete') and not has_table_privilege('authenticated', 'public.cl_saves', 'insert') and not has_table_privilege('authenticated', 'public.cl_saves', 'update')
+  and not exists (select 1 from unnest(array['insert','update','delete','truncate']) pr where has_table_privilege('authenticated', 'public.coasters', pr)),
+  'A2b signed-in players can read and delete their own saves; every save is written by cl_save_put; the unused coasters table is read-only');
+select t.ok(not exists (select 1 from unnest(array['cl_parks','cl_park_ratings','cl_rate','cl_park_visits','cl_secret']) tb, unnest(array['select','insert','update','delete']) pr where has_table_privilege('authenticated', 'public.' || tb, pr)),
+  'A3 signed-in players cannot touch parks, ratings, visit counts, rate limits or the fingerprint secret directly');
 select t.ok((select bool_and(c.relrowsecurity) from pg_class c where c.relnamespace = 'public'::regnamespace and c.relkind = 'r'), 'A4 row level security is on for every table in public');
 select t.ok(not exists (select 1 from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prosecdef and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')),
   'A5 every function that runs with its owner''s rights has a fixed search_path');
 select t.ok(not exists (select 1 from pg_proc p, unnest(array['anon','authenticated']) r where p.pronamespace = 'public'::regnamespace
-  and p.proname in ('cl_hash','cl_clean','cl_allow','cl_caller','cl_stats_clean','cl_num','cl_name','cl_name_reserved','cl_park_ok','cl_profiles_clean','cl_coasters_limit','handle_new_user','set_updated_at') and has_function_privilege(r, p.oid, 'execute')),
+  and p.proname in ('cl_hash','cl_clean','cl_plain','cl_allow','cl_caller','cl_stats_clean','cl_num','cl_name','cl_name_reserved','cl_park_ok','cl_profiles_clean','cl_coasters_limit','handle_new_user','set_updated_at') and has_function_privilege(r, p.oid, 'execute')),
   'A6 helper and trigger functions cannot be called from a browser');
 select t.ok(not exists (select 1 from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname in ('cl_me','cl_set_username','cl_save_put','cl_save_get','cl_save_delete') and has_function_privilege('anon', p.oid, 'execute')),
   'A7 the account functions cannot be called signed out');
@@ -48,21 +51,24 @@ reset role;
 
 set role authenticated; select t.who((select id from t.ids where k = 'a'), '198.51.100.2');
 select t.ok(t.n('select count(*) from public.profiles') = 1 and t.j('select to_jsonb(username) from public.profiles') = '"Ana"', 'B3 a player sees their own profile and nobody else''s');
-select t.ok(t.n($$with u as (update public.profiles set username = 'Hacked' where id = '00000000-0000-4000-8000-00000000000b' returning 1) select count(*) from u$$) = 0, 'B4 a player cannot rename someone else');
+select t.ok(t.throws($$update public.profiles set username = 'Hacked' where id = '00000000-0000-4000-8000-00000000000b'$$, 'permission denied') and (select username from public.profiles where id = '00000000-0000-4000-8000-00000000000b') is distinct from 'Hacked', 'B4 a player cannot rename someone else (since 10.10.1 players cannot write profiles at all)');
 select t.ok(t.throws($$update public.profiles set id = '00000000-0000-4000-8000-00000000000b' where id = auth.uid()$$, 'permission denied') and t.throws('update public.profiles set created_at = now() where id = auth.uid()', 'permission denied'), 'B5 a player cannot change the id or creation date of their profile');
+reset role;-- B6-B8 as the table owner (as the dashboard would write): the trigger cleans a name whatever writes it
 select t.ok(t.j($$with u as (update public.profiles set username = '<b>Ana</b> "The" & `Great`' where id = auth.uid() returning username) select to_jsonb(username) from u$$) = '"bAna/b The Great"', 'B6 a name written straight to the table is cleaned by the database (no < > " & `)');
 select t.ok(t.throws($$update public.profiles set username = 'Admin' where id = auth.uid()$$, 'not available') and t.throws($$update public.profiles set username = ' Coaster-Lab ' where id = auth.uid()$$, 'not available') and t.throws($$update public.profiles set username = 'x' where id = auth.uid()$$, '3 to 24'), 'B7 official-looking and too-short names are refused');
 select t.ok(t.throws($$update public.profiles set username = 'BEN' where id = auth.uid()$$, 'unique|duplicate'), 'B8 a name that differs from another player''s only by capitals is refused');
-select t.ok(t.throws($$insert into public.profiles (id, username) values (gen_random_uuid(), 'Ghost')$$, 'permission denied') and t.throws('delete from public.profiles', 'permission denied'), 'B9 a player cannot add or delete profile rows');
 update public.profiles set username = 'Ana' where id = auth.uid();
+set role authenticated;
+select t.ok(t.throws($$insert into public.profiles (id, username) values (gen_random_uuid(), 'Ghost')$$, 'permission denied') and t.throws('delete from public.profiles', 'permission denied'), 'B9 a player cannot add or delete profile rows');
 -- cloud saves, asked directly
-select t.ok(not t.throws($$insert into public.cl_saves (user_id, slot, data) values (auth.uid(), 'sandbox', (select p from t.park))$$), 'B10 a player can store their own save row');
-select t.ok(t.throws($$insert into public.cl_saves (user_id, slot, data) values ('00000000-0000-4000-8000-00000000000b', 'career', (select p from t.park))$$, 'row-level security'), 'B11 a player cannot store a save under another player''s id');
+select t.ok(t.throws($$insert into public.cl_saves (user_id, slot, data) values (auth.uid(), 'sandbox', (select p from t.park))$$, 'permission denied'), 'B10 a player cannot write a save row directly, not even their own (every save goes through cl_save_put)');
+select t.ok(t.throws($$insert into public.cl_saves (user_id, slot, data) values ('00000000-0000-4000-8000-00000000000b', 'career', (select p from t.park))$$, 'permission denied|row-level security'), 'B11 a player cannot store a save under another player''s id');
 delete from public.cl_saves where user_id = auth.uid();
 -- coasters (not used by the game yet)
-select t.ok(not t.throws($$insert into public.coasters (user_id, name, design) values (auth.uid(), 'One', '{"v":2}')$$) and t.throws($$insert into public.coasters (user_id, name, design) values ('00000000-0000-4000-8000-00000000000b', 'Two', '{}')$$, 'row-level security'), 'B12 coasters: a player can add their own and not someone else''s');
+select t.ok(t.throws($$insert into public.coasters (user_id, name, design) values (auth.uid(), 'One', '{"v":2}')$$, 'permission denied') and t.throws($$insert into public.coasters (user_id, name, design) values ('00000000-0000-4000-8000-00000000000b', 'Two', '{}')$$, 'permission denied|row-level security'), 'B12 coasters: no player can write the table yet (no build uses it), not even their own rows');
+reset role;-- B13-B14 as the table owner: the limits still hold if the writes are granted again for a future feature
 select t.ok(t.throws($$insert into public.coasters (user_id, name, design) values (auth.uid(), 'Big', jsonb_build_object('pad', repeat('x', 400001)))$$, 'coasters_design_size'), 'B13 coasters: a design over 400 kB is refused');
-insert into public.coasters (user_id, name, design) select auth.uid(), 'C' || g, '{}' from generate_series(2, 60) g;
+insert into public.coasters (user_id, name, design) select auth.uid(), 'C' || g, '{}' from generate_series(1, 60) g;
 select t.ok(t.throws($$insert into public.coasters (user_id, name, design) values (auth.uid(), 'Too many', '{}')$$, 'at most 60'), 'B14 coasters: the 61st design is refused');
 reset role;
 set role authenticated; select t.who((select id from t.ids where k = 'b'), '198.51.100.3');

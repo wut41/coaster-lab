@@ -4,7 +4,8 @@
 #   bash supabase/tests/run.sh payments  # the same, then the PROPOSED purchases design in docs/payments (design only:
 #                                        # it is not a migration and is never applied to the real project)
 # Needs PostgreSQL 14 or newer installed locally (initdb, postgres, psql). The real project runs PostgreSQL 17.
-# Order: Supabase stand-in → the live project as of 2026-11-27 (01 + 02) → its tests (05) → the repository migrations → their tests (10).
+# Order: Supabase stand-in → the live project as of 2026-11-27 (01 + 02) → its tests (05) → the repository migrations → their tests (10)
+# → the release attacks (20).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; MIG="$HERE/../migrations"
 PGBIN="${PGBIN:-$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
@@ -34,6 +35,11 @@ RES="$("${PSQL[@]}" -f - < "$HERE/10_tests.sql" 2>&1)"; RC=$?
 echo "$RES" | grep -E 'NOTICE:  (PASS|FAIL)' | sed -E 's/^.*NOTICE:  //'
 if [ $RC -ne 0 ]; then echo "FAIL the test script stopped early:"; echo "$RES" | grep -v 'NOTICE:  PASS' | tail -15; fi
 P=$(echo "$RES" | grep -c 'NOTICE:  PASS'); F=$(echo "$RES" | grep -c 'NOTICE:  FAIL'); [ $RC -ne 0 ] && F=$((F+1))
+# release attacks on the same database (impersonation, header and IPv6 rate-limit bypass, direct table writes, ...)
+echo "--- release attacks (20_attacks.sql)"; ARES="$("${PSQL[@]}" -f - < "$HERE/20_attacks.sql" 2>&1)"; ARC=$?
+echo "$ARES" | grep -E 'NOTICE:  (PASS|FAIL)' | sed -E 's/^.*NOTICE:  //'
+if [ $ARC -ne 0 ]; then echo "FAIL the attack script stopped early:"; echo "$ARES" | grep -v 'NOTICE:  PASS' | tail -15; fi
+P=$((P + $(echo "$ARES" | grep -c 'NOTICE:  PASS'))); F=$((F + $(echo "$ARES" | grep -c 'NOTICE:  FAIL'))); [ $ARC -ne 0 ] && F=$((F+1))
 P=$((P+1+PP)); F=$((F+PF))
 if [ "${1:-}" = "payments" ]; then
   PAY="$HERE/../../docs/payments"; echo; echo "--- proposed purchases design (docs/payments, not a migration)"

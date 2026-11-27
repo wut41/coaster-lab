@@ -12,6 +12,7 @@ const suites = [
   ['t26_v10_10_1', {}],                   // 10.10.1 itself: start-up on 3 screens, Content Security Policy, hosts, owner locks, ride memory, offline
   ['t20_security', { T20: 'ABCDEFGH' }],  // XSS from other players' parks and names, hostile park data, live channel, owner lock + test flag
   ['t22_diag', {}],                       // the diagnostics panel exists only behind the owner lock
+  ['t27_hostile_cloud', {}],              // 10,000-level JSON in a published park, 10,000-row leaderboards, 2 MB names
 ];
 let pass = 0, fail = 0; const rows = [];
 for (const [s, env] of suites) {
