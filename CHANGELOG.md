@@ -14,6 +14,7 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 ## [Unreleased]
 
 ### Repository
+- Imported the finished builds 10.2 → 10.10.0, the 4.1 / Owner's Edition / VELOCITY prototypes and the 10.9 developer report into `builds/` and `docs/reports/` (2026-11-27).
 - Reorganized the repository: `main` and `develop` branches, centralized changelog, contributor guide, branch
   inventory, CI syntax checks, secret scanning and regression workflow (2026-11-27). No game code changed.
 
