@@ -1,15 +1,20 @@
-# Headless-browser regression suites (tests/). Slow, so it runs on demand, on pull requests into main,
-# and weekly. It tests coaster_lab_v10_1.html (the build generated in this repo).
+# Headless-browser regression tests (tests/). Dependencies come from tests/package-lock.json (`npm ci`), so every run
+# uses the same Playwright, Chromium, three.js and jsdom versions.
+#   release-10.10.1  the current build (builds/coaster_lab_v10_10_1.html): every pull request into main, pushes to
+#                    main, weekly and on demand. This is the required check for main.
+#   full-history     every suite against the 10.1 source build (coaster_lab_v10_1.html): weekly and on demand.
 name: Regression
 
 on:
   workflow_dispatch:
     inputs:
-      suite:
-        description: "One suite file (e.g. t20_security.js), or empty for all"
+      target:
+        description: "release (10.10.1), full (10.1 history), or one suite file such as t20_security.js"
         required: false
-        default: ""
+        default: release
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
   schedule:
     - cron: "17 7 * * 1"   # Mondays 07:17 UTC
@@ -17,10 +22,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: regression-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  regression:
+  release:
+    name: regression 10.10.1
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.target != 'full'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: tests
@@ -29,22 +40,55 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-      - name: Install test dependencies
-        run: npm install --no-audit --no-fund
-      - name: Install Chromium
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - name: Install test dependencies (exact versions from the lockfile)
+        run: npm ci
+      - name: Install Chromium (the build pinned by the locked Playwright)
         run: npx playwright install --with-deps chromium
-      - name: Run suites
+      - name: Check the 10.10.1 build is the archived one
+        working-directory: .
+        run: echo "33587874273c2516c9d7798a732078dea8dc22bf60663f3a05ac857715f6f856  builds/coaster_lab_v10_10_1.html" | sha256sum -c -
+      - name: Run
         env:
-          SUITE: ${{ github.event.inputs.suite }}
+          TARGET: ${{ github.event.inputs.target }}
         run: |
-          if [ -n "$SUITE" ]; then node "$SUITE"; else npm test; fi
-      - name: Keep screenshots and logs
+          case "$TARGET" in
+            ""|release) npm run test:release ;;
+            t*.js) CL_F="$GITHUB_WORKSPACE/builds/coaster_lab_v10_10_1.html" node "$TARGET" ;;
+            *) echo "unknown target: $TARGET"; exit 1 ;;
+          esac
+      - name: Keep screenshots
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: regression-output
-          path: |
-            tests/shots/
-            tests/*.log
+          name: regression-10.10.1
+          path: tests/shots/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  full:
+    name: regression full history (10.1)
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'full')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: regression-full
+          path: tests/shots/
           if-no-files-found: ignore
           retention-days: 14
