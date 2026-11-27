@@ -8,7 +8,7 @@
     "test:db": "bash ../supabase/tests/run.sh payments"
   },
   "dependencies": {
-    "playwright": "1.63.0",
+    "playwright": "1.65.1",
     "three": "0.160.0"
   },
   "devDependencies": {
