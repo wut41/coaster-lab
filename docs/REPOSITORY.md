@@ -1,115 +1,103 @@
 # Repository map
 
-Audit date: **2026-11-27**. This page records what every branch holds, where every version lives, and what is still
-waiting for a decision. Nothing listed here has been deleted, renamed, force-pushed or rewritten.
+Last updated **2026-11-27**. Where every branch, version and project lives, and what is still waiting for the owner.
+No history was rewritten and no unmerged work was deleted during the reorganization.
 
-## Before and after
+## At a glance
 
-| | Before (2026-11-27 morning) | After this reorganization |
+| | Before (2026-11-27 morning) | After |
 |---|---|---|
-| Default branch | `claude/festive-newton-8ueu8m` (8.6, Nov 9) | `main` **(switch pending owner approval)** |
-| `main` / `develop` | did not exist | both created at `3e0b79a` (10.1 + merged branches, 875 tests passing per the 10.1 report) |
-| Branches | 20, all `claude/<random-name>` | 22 (20 kept untouched + `main` + `develop`) and short-lived PR branches |
-| Newest version in git | 10.1 | 10.1 in source form; 10.2 → 10.10.0 as builds in `builds/` (build-import PR) |
-| Tags / releases | none / none | archive tags prepared (see below); no release published |
-| GitHub Actions runs | none | CI workflow (syntax + secret scan) and a regression workflow added |
-| Changelog | 6 separate `CHANGES-*.md` files | one `CHANGELOG.md` + originals in `docs/changes/` |
-| Docs at top level | 10 Markdown files | `README`, `CHANGELOG`, `CONTRIBUTING`, `SECURITY`; the rest in `docs/` |
-| Unrelated projects | mixed into game branches | listed below with a move plan |
+| Default branch | `claude/festive-newton-8ueu8m` (8.6) | `main` — **one click by the owner** (see [Owner checklist](#owner-checklist)) |
+| `main` / `develop` | did not exist | `main` = released line · `develop` = integration |
+| Branch names | 20 × `claude/<random-words>` | `main`, `develop`, `feature/*`, `chore/*`, `docs/*`, `project/*` (see below) |
+| Newest version in git | 10.1 | 10.1 in source form; every build from prototype 01 to 10.10.0 archived by PR #8 |
+| Docs at top level | 10 loose Markdown files | `README` · `CHANGELOG` · `CONTRIBUTING` · `SECURITY`; everything else in `docs/` |
+| Automation | no GitHub Actions runs | CI (syntax + secrets) on every push and PR; regression workflow on demand |
+| Security | never scanned | full-history scan: no secrets ([report](security/SECRET-SCAN-2026-11-27.md)) |
 
-`main` contains the old default branch in full (it is a straight-line descendant), so no history was lost by
-creating it.
+## Branch map
 
-## Branch inventory
+### Permanent
 
-"Ahead" = commits on the branch that are **not** in `main`. Zero means everything on it is already in `main`.
+| Branch | Holds |
+|---|---|
+| `main` | Released / ready-to-release game. Contains the full history of the old default branch. |
+| `develop` | Integration branch. Every change lands here first through a pull request. |
 
-### Fully merged into `main` (safe to remove later, after owner approval)
+### Active work (renamed from `claude/*` on 2026-11-27, same commits)
 
-| Branch | Tip | Date | Held | Proposed archive tag |
-|---|---|---|---|---|
-| `claude/festive-newton-8ueu8m` | `c5cd625` | 11-09 | 8.5 baseline + 8.6 (old default branch) | `archive/claude/festive-newton-8ueu8m` |
-| `claude/coaster-lab-v9-upgrade-x510cl` | `fccf29b` | 11-11 | 9.0 / 9.0.1 | `archive/claude/coaster-lab-v9-upgrade-x510cl` |
-| `claude/coaster-lab-logo-art` | `d23a338` | 11-13 | neon logo, photo clouds, sunset sky (PR #2) | `archive/claude/coaster-lab-logo-art` |
-| `claude/coaster-lab-graphics-extras` | `cc2b37b` | 11-13 | glow, sun, metal, speed effects (PR #3) | `archive/claude/coaster-lab-graphics-extras` |
-| `claude/coaster-sounds` | `e80c4d2` | 11-13 | sound upgrade (PR #4) | `archive/claude/coaster-sounds` |
-| `claude/coaster-lab-park-upgrade` | `e76674d` | 11-13 | Track Builder 6 groundwork | `archive/claude/coaster-lab-park-upgrade` |
-| `claude/coaster-sharp-graphics` | `ab303c1` | 11-13 | sharper graphics (PR #5) | `archive/claude/coaster-sharp-graphics` |
-| `claude/coaster-lab-park-build-2` | `394fce1` | 11-14 | My Park building round two | `archive/claude/coaster-lab-park-build-2` |
-| `claude/coaster-lab-trailer` | `67722aa` | 11-14 | first-visit trailer | `archive/claude/coaster-lab-trailer` |
-| `claude/coaster-lab-daily-streak` | `c9deae7` | 11-14 | daily streak (PR #6) | `archive/claude/coaster-lab-daily-streak` |
-| `claude/coaster-lab-engineering-upgrade-mbxjoc` | `3e0b79a` | 11-17 | **10.1** — identical to `main` and `develop` now | `archive/claude/coaster-lab-engineering-upgrade-mbxjoc` |
-
-### Not merged — unique work, must be preserved
-
-| Branch | Tip | Date | Ahead | What only this branch has | Recommendation | Proposed name |
-|---|---|---|---|---|---|---|
-| `claude/ride-challenges-10b` | `e23c28d` | 11-16 | 3 | **Ride challenges** (12 bronze/silver/gold feats, XP, badges, titles, Champion skin), rebased on 10.0 + PR #6 | Port onto 10.10.0 as a feature (not in any build yet) | `feature/ride-challenges` |
-| `claude/ride-challenges-10` | `2ce0faa` | 11-13 | 1 | Earlier version of the same feature on plain 10.0 | Keep as history of the above | `archive/…` only |
-| `claude/upbeat-meitner-pw7oe6` | `fd8f792` | 11-20 | 3 | **8.7 VIP pack** ($2, golden coasters), Supabase `vip-status`/`vip-webhook` functions, **Remotion trailer project** (`trailer/`) | Decide: port VIP to 10.x (needs the P0 payment/entitlement checks first) or retire. Trailer project could live in its own repo | `feature/vip-pack-8.7` |
-| `claude/great-fermat-rrwnat` | `22ea58d` | 11-25 | 14 | **Review squad**: `.claude/agents/*` (developer, debugger, designer, security, tester), `reports/` (debug, design, security, tester), `t6_robust` corrupted-save tests | Merge the agents + reports into `develop` (docs/tooling only); several findings already shipped in 10.6 | `chore/review-squad` |
-| `claude/quirky-thompson-7h0bzz` | `70df0c2` | 11-17 | 3 | **YouTube branding**: `branding/` logo + banner SVG/PNG and export script | Merge into `develop` under `branding/` (assets only) | `docs/branding` |
-| `claude/beautiful-pasteur-82f2g4` | `11bf2a3` | 11-15 | 1 | The PR #6 merge commit. Its content reached `main` through the individual branch merges in 10.1. Open **PR #1** targets the old default branch | Close PR #1 as superseded after review; keep the tag | `archive/…` only |
-| `claude/trailer-footage` | `1fdaf82` | 11-14 | 1 | Nothing: an empty root commit "emptied (safe to delete)" | Delete after approval (tag keeps it) | — |
-
-### Unrelated projects
-
-These are not Coaster Lab. Each is preserved on its branch; the plan is to give each its own repository.
-
-| Branch | Project | Files | Proposed home |
+| Branch | Was | What it holds | Next step |
 |---|---|---|---|
-| `claude/cerealsquad1-analytics-dashboard-5p6asu` | **@cerealsquad1 YouTube analytics dashboard** (data snapshot, 1M-subscriber goal meter) | `cerealsquad1-dashboard.html` | new repo `wut41/cerealsquad1-dashboard` (or `project/cerealsquad1-dashboard` until then) |
-| `claude/serene-tesla-7zg09k` | **Neon Arcade** (Neon Breakout, Duel, Serpent, Swarm) + bot playthrough test | `arcade/` | new repo `wut41/neon-arcade` (or `project/neon-arcade`) |
-| *(upload, not in git)* | **Mini roller coaster 3D-print files** (OpenSCAD, Bambu Studio guide) | `mini_roller_coaster.scad` | new repo `wut41/coaster-print` or keep offline |
+| `feature/ride-challenges` | `claude/ride-challenges-10b` | 12 bronze/silver/gold ride feats, XP, badges, titles, Champion skin (on 10.0 + PR #6) | Port onto 10.10.0 — in no build yet |
+| `feature/ride-challenges-first-draft` | `claude/ride-challenges-10` | First version of the same feature on plain 10.0 | Keep as history |
+| `feature/vip-pack-8.7` | `claude/upbeat-meitner-pw7oe6` | 8.7 VIP pack ($2, golden coasters), Supabase VIP functions, Remotion trailer project | Decide: port to 10.x after the P0 payment checks, or retire |
+| `chore/review-squad` | `claude/great-fermat-rrwnat` | Five review agents (`.claude/agents/`), debug / design / security / tester reports, corrupted-save tests | Merge into `develop` (tooling + docs only) |
+| `docs/branding` | `claude/quirky-thompson-7h0bzz` | YouTube logo + banner (SVG/PNG) and export script | Merge into `develop` under `branding/` |
 
-Both project branches also carry a copy of the 8.6 game and its tests (they were started from the old default
-branch). When moved, only the project's own files need to go.
+### Unrelated projects (waiting for their own repositories)
 
-**Moving a project without losing history** (needs owner approval; creates a new repo, touches nothing here):
+| Branch | Was | Project | Proposed repository |
+|---|---|---|---|
+| `project/cerealsquad1-dashboard` | `claude/cerealsquad1-analytics-dashboard-5p6asu` | @cerealsquad1 YouTube analytics dashboard | `wut41/cerealsquad1-dashboard` |
+| `project/neon-arcade` | `claude/serene-tesla-7zg09k` | Neon Arcade (Breakout, Duel, Serpent, Swarm) | `wut41/neon-arcade` |
+| *(not in git)* | — | Mini roller coaster 3D-print files (OpenSCAD) | own repo, or keep offline |
+
+Moving a project keeps its history and changes nothing here:
 
 ```bash
-git clone --branch claude/serene-tesla-7zg09k https://github.com/wut41/coaster-lab neon-arcade
+git clone --branch project/neon-arcade https://github.com/wut41/coaster-lab neon-arcade
 cd neon-arcade && git remote set-url origin https://github.com/wut41/neon-arcade && git push -u origin HEAD:main
 ```
 
-## Archive tags
+### Open pull requests
 
-Preserving every branch tip as a tag means any branch can later be renamed or removed without losing a commit.
-The 20 annotated tags `archive/<branch-name>` were created, but **this session's git proxy refused tag pushes
-(HTTP 403)**, so they are not on GitHub yet. The owner can create them with one command from any clone:
+| PR | Branch | Status |
+|---|---|---|
+| #8 | `chore/import-builds-10.2-to-10.10.0` | Every build from prototype 01 to 10.10.0. **Waiting for Duet** to confirm the canonical 10.10.0 file |
+| #1 | `claude/beautiful-pasteur-82f2g4` | Old 9.0 PR into the old default branch. Its content reached `main` through later merges. Kept open by owner's choice |
 
-```bash
-git fetch origin
-for r in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/claude); do
-  git tag -a "archive/${r#origin/}" "$r" -m "Snapshot of ${r#origin/} before the 2026-11-27 reorganization"
-done
-git push origin 'refs/tags/archive/*'
-```
+### Old names still to remove (owner action)
 
-Until then, the branches themselves are the preservation, and the tip SHAs above are the record.
+This session's git proxy does not allow branch deletion, so these old names still show on GitHub. Every one of them is
+either fully inside `main` or copied to its new name above — removing them loses nothing.
+`tools/repo/cleanup-old-branches.sh` re-checks each one and deletes it only if that is still true.
+
+| Old branch | Why it is safe to remove |
+|---|---|
+| `claude/festive-newton-8ueu8m` | Fully inside `main` (remove **after** the default switches to `main`) |
+| `claude/coaster-lab-v9-upgrade-x510cl`, `claude/coaster-lab-logo-art`, `claude/coaster-lab-graphics-extras`, `claude/coaster-sounds`, `claude/coaster-lab-park-upgrade`, `claude/coaster-sharp-graphics`, `claude/coaster-lab-park-build-2`, `claude/coaster-lab-trailer`, `claude/coaster-lab-daily-streak`, `claude/coaster-lab-engineering-upgrade-mbxjoc` | Fully inside `main` |
+| `claude/trailer-footage` | Empty commit marked "safe to delete" |
+| `claude/ride-challenges-10b`, `claude/ride-challenges-10`, `claude/upbeat-meitner-pw7oe6`, `claude/great-fermat-rrwnat`, `claude/quirky-thompson-7h0bzz`, `claude/cerealsquad1-analytics-dashboard-5p6asu`, `claude/serene-tesla-7zg09k` | Identical copies under the new names above |
 
 ## Where every version lives
 
 | Version | Location | Source form? |
 |---|---|---|
-| prototype 01, 2, 4.0, 4.1, 5.1, 5.2, 6.0, 6.1, 6.2, 6.3, 7.0, 7.1, 8.4, Owner's Edition, VELOCITY 1.1 | `builds/legacy/` | single file only |
-| 7.2 (inside the account website) | `builds/website-2026-11-07/` | built site only, no source |
-| 8.5, 8.6 | top level | single file (8.6 built in place) |
-| 8.7 (VIP) | branch `claude/upbeat-meitner-pw7oe6` | single file, unmerged |
-| 9.0 / 9.0.1 | top level `coaster_lab_v9_0.html` | single file (base of `build.mjs`) |
+| prototype 01, 2, 4.0, 4.1, 5.1, 5.2, 6.0, 6.1, 6.2, 6.3, 7.0, 7.1, 8.4, Owner's Edition, VELOCITY 1.1 | `builds/legacy/` (PR #8) | single file only |
+| 7.2 | inside `builds/website-2026-11-07/` (PR #8) | built site only |
+| 8.5, 8.6 | top level | single file |
+| 8.7 (VIP) | `feature/vip-pack-8.7` | single file, unmerged |
+| 9.0.1 | top level `coaster_lab_v9_0.html` | single file (base of `build.mjs`) |
 | 10.0, 10.1 | top level | **yes**: `src/v10/` + `build.mjs` |
-| 10.2 → 10.10.0 | `builds/` | **no**: finished builds only (see open questions) |
+| 10.2 → 10.10.0 | `builds/` (PR #8) | **no**: finished builds only |
 
-## Open questions for the owner and Duet
+No file exists yet for 3, 5.0, 8.0–8.3, 10.5, 10.6 and 10.9.2 (their code is inside later builds).
 
-1. **Which 10.10.0 file is the merged one?** Two uploads carry `version:'10.10.0'`. They differ only in the
-   holiday-hat code (`_2` skips arm pivots). The import PR treats `_2` as canonical and keeps the other as
-   `coaster_lab_v10_10_0-pre.html`. Please confirm.
-2. **Where are the 10.2+ sources?** `src/v10/` stops at 10.1, so `build.mjs` cannot rebuild 10.10.0. Either the
-   10.10.0 HTML becomes the new source of truth (recommended until a new source split exists), or Duet supplies
-   the sources that produced it.
-3. **Which version is on the live site?** coaster-playground.foundable.app is published through Foundable, not from
-   this repository. Knowing its version lets `main` match production exactly.
-4. **The 2026-11-07 website build** (`builds/website-2026-11-07/`, login/signup/account pages around 7.2): where is its source, and was it ever deployed?
-5. **Default branch switch to `main`** — approve? (Nothing deploys from this repo, so the switch should not affect the
-   live site, but anyone who clones it will get `main` instead of 8.6.)
+## Owner checklist
+
+1. **Make `main` the default branch** — GitHub → *Settings* → *General* → *Default branch* → ⇄ → `main` → *Update*.
+2. **Remove the old names** — from any clone: `bash tools/repo/cleanup-old-branches.sh` (dry run), then
+   `bash tools/repo/cleanup-old-branches.sh --yes`.
+3. **Push the archive tags** (optional extra safety) — add `--tags` to tag every old branch tip as `archive/<name>`
+   before it is removed.
+4. **Protect `main` and `develop`** — settings in [`RELEASES.md`](RELEASES.md#branch-protection-recommended-settings).
+5. **Turn on secret scanning + push protection** and *Keep my email addresses private* ([security report](security/SECRET-SCAN-2026-11-27.md)).
+6. **Ask Duet** the open questions below, then merge PR #8.
+
+## Open questions for Duet
+
+1. **Which 10.10.0 file is the merged one?** PR #8 treats `coaster_lab_v10_10_0_2` as canonical (it skips arm pivots
+   when placing holiday hats) and keeps the other as `-pre`.
+2. **Where are the 10.2+ sources?** `src/v10/` stops at 10.1, so `build.mjs` cannot rebuild 10.10.0.
+3. **Which version is live** on coaster-playground.foundable.app?
+4. **The 2026-11-07 website build** (login/signup/account pages around 7.2): where is its source, and was it deployed?
