@@ -1,32 +1,34 @@
 # Coaster Lab 10.10.1: release security review (2026-11-27)
 
-**Verdict: not ready for a public release yet.** The database code in this repository now resists every attack in
-the test suites, and the 10.10.1 page held up against everything sent to it. But **production does not run that
-code**, and several controls can only be switched on by the owner. Until the blockers below are closed, the evidence
-does not support calling the game secure.
+**Verdict: not ready for a public release yet.** The database code now resists every attack in the test suites,
+the 10.10.1 page held up against everything sent to it, and since 2026-11-27 **production runs that code** (B1). The
+remaining blockers (B2, B4, B5) need one live check and owner settings. Until they are closed, the evidence does not
+support calling the game secure.
 
 Ground rules followed: every attack ran in a throw-away local PostgreSQL or a headless browser with a stand-in cloud,
-using made-up players and documentation-range addresses. Production was only **read** (catalog queries, migration
-list, advisors, Edge Function source, API log field names and counts). Nothing was written to production, nothing was
-deployed, no repository setting was changed, and no game code changed.
+using made-up players and documentation-range addresses. During the review, production was only **read** (catalog
+queries, migration list, advisors, Edge Function source, API log field names and counts). The only writes to
+production came afterwards, with the owner's explicit approval: the three repository migrations, plus one restatement
+of `cl_plain` (B1). No player data was touched, nothing else was deployed, no repository setting was changed, and no
+game code changed.
 
 ## Blockers (must be closed before a public release)
 
 | # | Blocker | Who | How |
 |---|---|---|---|
-| **B1** | **Production lacks all three repository migrations.** 10.10.1 calls 11 `cl_*` functions that do not exist live, so accounts, cloud saves and park sharing do not work, and production sign-up still accepts any name ("Admin" included). | Owner approves | Create a Supabase **branch** (isolated copy, costs a little). Apply `supabase/migrations/` in order, then run B2 there. Then apply the same three files to production. Verified read-only on 2026-11-27: no existing player name would block them (0 case clashes, 0 reserved names, 0 unsafe characters). |
-| **B2** | **Rate limits must be confirmed through the real gateway.** The limits now key on `cf-connecting-ip`. Every request in the production API log has it (16 of 16, all through Cloudflare), but only a branch can prove it reaches the database unchanged. | Owner / Duet, on the branch | `supabase/branch-checks/verify_headers.sql` (steps at the top). PASS = same fingerprint with and without forged headers. |
+| ~~B1~~ | **Closed 2026-11-27: the three migrations run in production** (applied 22:40–22:44 UTC with the owner's approval). Right after: all 24 `cl_*` functions have the same source md5, owner rights, volatility, `search_path` and browser grants as a database built from the repository files, and the tables, grants, row level security, policies and indexes are identical. Player data untouched (3 users, 3 profiles). One copy problem was found and fixed: the `\uXXXX` escapes in `cl_plain` had arrived as literal invisible characters (same behaviour), so `cl_plain` was restated from the file (`coaster_lab_10_10_1_cl_plain_exact_text`) and now matches it byte for byte. | Owner | Done. Versions are listed in `docs/DEVELOPMENT.md` → *Live migrations*. |
+| **B2** | **Rate limits must be confirmed through the real gateway.** The limits now key on `cf-connecting-ip`. Every request in the production API log has it (16 of 16, all through Cloudflare), but only a branch can prove it reaches the database unchanged. | Owner approves a live check | No branch (owner's choice, cost). A short live check with dummy data, deleted afterwards: forged headers must not reset the publishing limit. `supabase/branch-checks/verify_headers.sql` describes the header check. |
 | ~~B3~~ | **PostgreSQL 17: closed 2026-11-27, see below.** Production runs 17.11. The suites ran on 16 here: running downloaded 17.11 binaries was refused by this session's permission check, and the PostgreSQL apt repository is unreachable from here. | On the branch | Run `bash supabase/tests/run.sh payments` on a machine with PostgreSQL 17. Applying the migrations on the branch (B1) also exercises 17. |
 | **B4** | **`main` is not protected.** There are no rulesets, Dependabot security updates are off, and **private vulnerability reporting is off**, although `SECURITY.md` tells people to use it. | Owner (admin) | `bash tools/repo/apply-branch-protection.sh --yes`. It now also switches private vulnerability reporting on. This session cannot change settings (blocked by its proxy). |
 | **B5** | **Supabase Auth settings** (they cannot be read from this session). The advisor confirms *Leaked password protection* is **off**. The game uses email and password sign-up. | Owner, dashboard | Authentication → Providers → Email: minimum password length **8** (the page asks for 8, but the server default is 6, and the page is not a control). Turn **leaked password protection** on. Prefer **Confirm email on** with a real SMTP sender: with it off and no CAPTCHA, a script can create unlimited accounts, and every account gets one vote per park. URL Configuration: only the game's exact address in Redirect URLs (no wildcards: reset links carry a session). Review Authentication → Rate Limits. |
 
 **2026-11-27: no Supabase branch.** The owner chose not to pay for one (about $0.013 an hour, not covered by the Spend
-Cap). The branch was never created. B1–B3 stay open; free ways to close them:
+Cap). The branch was never created. Free ways were used instead:
 * **B3 (PostgreSQL 17): closed.** The new free CI job `database (PostgreSQL 17)` (`.github/workflows/ci.yml`) ran on
   this branch on 2026-11-27 ([run 46077692819](https://github.com/wut41/coaster-lab/actions/runs/46077692819/job/140769174019)):
   PostgreSQL 17.12, all three migrations applied (each twice), **176 passed, 0 failed**. Production runs 17.11.
-* **B1 + B2:** production holds only 3 accounts and no parks, coasters or purchases, so the migrations can go straight
-  to production once the owner approves (they were tested on an exact copy of its schema, are safe to run twice, and
+* **B1 (done) + B2:** production holds only 3 accounts and no parks, coasters or purchases, so the migrations went
+  straight to production with the owner's approval (they were tested on an exact copy of its schema, are safe to run twice, and
   each says how to undo it). Right after that, a short live check with dummy data, deleted afterwards, covers B2 (forged
   headers do not reset the publishing limit) and the game's real sign-in, save and publish path. That check writes to
   production, so it needs its own approval.
@@ -54,6 +56,11 @@ function names, arguments and answers, so 10.0 to 10.10.1 keep working, and it i
 three migrations (each run twice) with the 10.0 / 10.1 checks 65, release attacks and runbook 36, payments design 48.
 With only the 10.0 and 10.1 migrations, the same attack file showed **19 of 33 attacks getting through**. All 7
 server-side authorization checks (X1–X7) held both before and after.
+
+**Production advisors after the migrations:** INFO "RLS enabled, no policy" on the 6 closed tables (intended: they
+are reached only through the functions); WARN "anon / authenticated can execute a SECURITY DEFINER function" for
+exactly the 9 game API functions in X1 (intended: each checks `auth.uid()` and its inputs; no helper is listed);
+WARN leaked password protection off (B5).
 
 ## Server-side authorization and owner permissions (verified)
 

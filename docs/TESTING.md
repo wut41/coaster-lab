@@ -35,7 +35,7 @@ Chromium build, so let the release regression pass on that PR before merging it.
    (privileges), R1 to R13 (rows) and O1 to O7 (owner, admin and VIP permissions). It runs in a transaction that is
    rolled back.
 4. The repository migrations in `supabase/migrations/`, applied twice (they must be safe to re-run). They are
-   **not applied to production**.
+   **applied to production on 2026-11-27** (see `docs/DEVELOPMENT.md` → *Live migrations*).
 5. `10_tests.sql`: the checks for those migrations.
 6. `20_attacks.sql`: the 10.10.1 release attacks on the same database (X server-side authorization and owner
    permissions, N impersonation and Unicode look-alikes, L rate-limit bypass with forged headers and IPv6 rotation,

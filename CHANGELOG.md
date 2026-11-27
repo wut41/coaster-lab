@@ -13,7 +13,7 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 
 ## [Unreleased]
 
-### Security (2026-11-27, branch `claude/great-goodall-vlv5jg`, not applied to production)
+### Security (2026-11-27, branch `claude/great-goodall-vlv5jg`; the three migrations were applied to production the same day)
 - New migration `supabase/migrations/20261127000000_coaster_lab_10_10_1_release_hardening.sql`: rate limits keyed on
   Cloudflare's address header (browser-written `x-forwarded-for` / `x-real-ip` no longer trusted), IPv6 counted per
   /64, network fingerprints keyed with a server secret, NFKC + invisible/bidi character removal in every name, guest

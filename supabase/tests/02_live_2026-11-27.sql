@@ -4,7 +4,8 @@
 --   20261107022611 account_system_init · 20261107123455 lock_down_rls_auto_enable ·
 --   20261107123546 updated_at_trigger_and_policy_tuning · 20261120155905 create_vip_purchases ·
 --   20261126213516 coaster_lab_least_privilege_table_grants
--- The repository's 10.0 / 10.1 migrations (supabase/migrations/) are NOT in that list: they have never been applied.
+-- The repository's migrations (supabase/migrations/) were NOT in that list on the morning of 2026-11-27. They were applied
+-- to production later that day (docs/DEVELOPMENT.md, "Live migrations"); run.sh applies them on top of this snapshot.
 
 -- ===== 20261120155905 create_vip_purchases
 -- Coaster Lab VIP: one row per completed Stripe Checkout Session ($2 one-time unlock).

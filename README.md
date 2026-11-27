@@ -42,7 +42,7 @@ Online features (park sharing, accounts, cloud saves) need the page to be served
 ├── src/v10/                ← sources for everything 10.0 and 10.1 add (css, html, js, art)
 ├── build.mjs               ← stitches src/v10 into the 9.0 page → coaster_lab_v10_1.html
 ├── tests/                  ← headless-browser regression suites (Playwright)
-├── supabase/               ← database migrations + their local SQL tests (not yet applied to production)
+├── supabase/               ← database migrations (live in production since 2026-11-27) + their local SQL tests
 ├── tools/
 │   ├── ci/                 ← syntax checker and secret scanner used by GitHub Actions
 │   ├── repo/               ← safe clean-up script for old branch names

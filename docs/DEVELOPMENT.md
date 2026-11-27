@@ -75,6 +75,24 @@ Good to know:
 * **Live presence** uses public Realtime channels. If "Allow public access" is switched off in Realtime settings,
   presence will not connect (the rest keeps working).
 
+## Live migrations
+
+What production (`celqksoohozvqbdktapm`) runs, from `supabase_migrations.schema_migrations`. The live version numbers
+are the moments they were applied, not the repository file names.
+
+| Live version | Name | Repository file |
+|---|---|---|
+| 20261107022611 · 20261107123455 · 20261107123546 | account_system_init · lock_down_rls_auto_enable · updated_at_trigger_and_policy_tuning | written out in `supabase/tests/01_live_baseline.sql` |
+| 20261120155905 · 20261126213516 | create_vip_purchases · coaster_lab_least_privilege_table_grants | copied into `supabase/tests/02_live_2026-11-27.sql` |
+| 20261127224018 | coaster_lab_10_parks_and_accounts | `supabase/migrations/20261113000000_coaster_lab_10_parks_and_accounts.sql` |
+| 20261127224256 | coaster_lab_10_1_hardening | `supabase/migrations/20261115000000_coaster_lab_10_1_hardening.sql` |
+| 20261127224359 | coaster_lab_10_10_1_release_hardening | `supabase/migrations/20261127000000_coaster_lab_10_10_1_release_hardening.sql` |
+| 20261127224546 | coaster_lab_10_10_1_cl_plain_exact_text | none: it restates `cl_plain` from the file above, word for word. The copy step had turned the function's `\uXXXX` escapes into the invisible characters themselves (same behaviour); this put the escapes back |
+
+Checked right after (2026-11-27): every `cl_*` function in production has the same source (md5), owner rights,
+volatility, `search_path` and browser grants as a local database built from these files; the tables, grants, row
+level security, policies and indexes are identical too.
+
 ## Builds after 10.1
 
 Versions 10.2 to 10.10.0 were produced outside this repository and arrive as finished single-file builds in `builds/`.

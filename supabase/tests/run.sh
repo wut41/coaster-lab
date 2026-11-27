@@ -27,7 +27,7 @@ echo "--- production (2026-11-27)"; PRES="$("${PSQL[@]}" -f - < "$HERE/05_produc
 echo "$PRES" | grep -E 'NOTICE:  (PASS|FAIL|INFO)' | sed -E 's/^.*NOTICE:  //'
 [ $PRC -ne 0 ] && { echo "FAIL the production test script stopped early:"; echo "$PRES" | grep -v 'NOTICE:  PASS' | tail -15; }
 PP=$(echo "$PRES" | grep -c 'NOTICE:  PASS'); PF=$(echo "$PRES" | grep -c 'NOTICE:  FAIL'); [ $PRC -ne 0 ] && PF=$((PF+1))
-echo "--- repository migrations (not applied to production)"
+echo "--- repository migrations (applied to production on 2026-11-27)"
 for f in $(ls "$MIG"/*.sql | sort); do step "$(basename "$f")" "$f"; echo "applied $(basename "$f")"; done
 # the migrations must be safe to run twice
 for f in $(ls "$MIG"/*.sql | sort); do step "$(basename "$f") (second run)" "$f"; done; echo "PASS every migration can be run a second time"
