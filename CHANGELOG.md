@@ -19,12 +19,12 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 
 ### Work preserved on branches, not in any build yet
 - **Ride challenges** (10.0 line): 12 bronze/silver/gold feats checked every lap, with XP, coins, badges, titles and
-  a Champion skin. Branches `claude/ride-challenges-10` and `claude/ride-challenges-10b`. *Unreleased.*
+  a Champion skin. Branches `feature/ride-challenges` and `feature/ride-challenges-first-draft`. *Unreleased.*
 - **8.7 VIP pack** ($2 one-time): 3 golden coasters and VIP colours, plus Supabase `vip-status` / `vip-webhook`
-  functions, and a Remotion trailer project for 8.6. Branch `claude/upbeat-meitner-pw7oe6`. Built on 8.6, never
+  functions, and a Remotion trailer project for 8.6. Branch `feature/vip-pack-8.7`. Built on 8.6, never
   merged into 9.x/10.x. *Unreleased.*
 - **Review squad**: five permanent review agents (developer, debugger, designer, security, tester) and their reports on
-  8.6. Branch `claude/great-fermat-rrwnat`. Several of its findings were applied in 10.6 ("squad fixes"); the agents
+  8.6. Branch `chore/review-squad`. Several of its findings were applied in 10.6 ("squad fixes"); the agents
   and reports themselves were never merged.
 
 ## [10.10.0] — merged build

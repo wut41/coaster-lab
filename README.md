@@ -1,5 +1,11 @@
 # 🎢 Coaster Lab
 
+[![CI](https://github.com/wut41/coaster-lab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wut41/coaster-lab/actions/workflows/ci.yml)
+![Latest build](https://img.shields.io/badge/latest%20build-10.10.0-36a7ff)
+![Engine](https://img.shields.io/badge/three.js-0.160-000000)
+![Platform](https://img.shields.io/badge/made%20for-iPhone%20%2B%20desktop-2fd18b)
+![Soft launch](https://img.shields.io/badge/soft%20launch-Dec%201%2C%202026-ff8a3d)
+
 **A 3D roller coaster simulator and theme park game that runs in one HTML file.**
 Ride and build coasters, run a park, and share your designs. Made for iPhone, works on desktop.
 Built with [three.js](https://threejs.org/) 0.160 (loaded from a CDN). No install and no build step are needed to play.
@@ -39,6 +45,7 @@ Online features (park sharing, accounts, cloud saves) need the page to be served
 ├── supabase/               ← database migrations + their local SQL tests (not yet applied to production)
 ├── tools/
 │   ├── ci/                 ← syntax checker and secret scanner used by GitHub Actions
+│   ├── repo/               ← safe clean-up script for old branch names
 │   └── trailer/            ← screenshot/video capture helper for the trailer
 ├── docs/
 │   ├── DEVELOPMENT.md      ← how to change the game, cloud & accounts set-up
@@ -68,10 +75,14 @@ Details: [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) · tests: [`tests/README.m
 
 | Branch | Purpose |
 |---|---|
-| `main` | What is released (or ready to release). Protected. Only updated by pull request from `develop` or `hotfix/*`. |
-| `develop` | Integration branch. Features land here first, then go to `main` together. |
-| `feature/*`, `fix/*`, `docs/*`, `chore/*`, `release/*`, `hotfix/*` | Short-lived work branches. See [`CONTRIBUTING.md`](CONTRIBUTING.md). |
-| `claude/*` | Branches from earlier AI sessions. Kept untouched until each one is reviewed; see [`docs/REPOSITORY.md`](docs/REPOSITORY.md). |
+| `main` | What is released (or ready to release). Updated only by pull request from `develop`, `release/*` or `hotfix/*`. |
+| `develop` | Integration branch. Every feature and fix lands here first. |
+| `feature/*` | Gameplay work in progress — `feature/ride-challenges`, `feature/vip-pack-8.7` |
+| `chore/*`, `docs/*` | Tooling and documentation — `chore/review-squad`, `docs/branding` |
+| `project/*` | Unrelated projects waiting for their own repository — `project/neon-arcade`, `project/cerealsquad1-dashboard` |
+| `fix/*`, `release/*`, `hotfix/*`, `test/*`, `experiment/*` | See [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+
+Full map, history of every old branch name and the owner checklist: [`docs/REPOSITORY.md`](docs/REPOSITORY.md).
 
 ## Team
 
