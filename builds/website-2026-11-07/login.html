@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Log in · Coaster Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito+Sans:opsz,wght@6..12,500;6..12,600;6..12,700;6..12,800&display=swap">
+  <script type="module" crossorigin src="/assets/login-DcluVXFz.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/errors-C0-gHb0p.js">
+  <link rel="modulepreload" crossorigin href="/assets/dom-Bvgdh18E.js">
+  <link rel="modulepreload" crossorigin href="/assets/session-Do8Gvb96.js">
+  <link rel="modulepreload" crossorigin href="/assets/paths-n-iqI9Hs.js">
+  <link rel="modulepreload" crossorigin href="/assets/guard-DyriAxRX.js">
+  <link rel="modulepreload" crossorigin href="/assets/validation-DuzclGvN.js">
+  <link rel="stylesheet" crossorigin href="/assets/dom-CRQBdVPF.css">
+</head>
+<body>
+<main class="auth">
+  <a class="brand" href="./"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M4 36 H12 C17 36 16 14 24 14 C29 14 31 22 28 27 C25 32 18 29 20 23 C22 16 30 12 36 22 C39 28 40 36 44 36" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 41 H44" stroke="rgba(255,255,255,.55)" stroke-width="2.2" stroke-linecap="round"/></svg></span>COASTER LAB</a>
+
+  <section class="card" aria-labelledby="title">
+    <h1 id="title">Welcome back</h1>
+    <p class="sub">Log in to ride, build and save your coasters.</p>
+
+    <p id="alert" class="alert" hidden></p>
+
+    <form id="login-form" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="pw"><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Log in</button>
+    </form>
+
+    <p id="resend-row" class="hint" hidden>
+      Didn’t get the confirmation email? <button id="resend" class="linkish" type="button">Send it again</button>
+    </p>
+
+    <p class="links">
+      <a href="forgot-password.html">Forgot your password?</a>
+      <a id="signup-link" href="signup.html">Create an account</a>
+    </p>
+  </section>
+</main>
+</body>
+</html>

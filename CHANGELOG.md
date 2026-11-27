@@ -116,7 +116,27 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 ## [8.5] — untouched baseline
 - The version every later build is compared against.
 
-## Before 8.5 (not in this repository)
-- **4.1** "Coaster Lab 4.1" (four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain) and the
-  **Owner's Edition** (4.x + owner panel, telemetry, weather, JSON track workshop) are preserved in `builds/legacy/`.
-- **VELOCITY v1.1**, a separate 2D-canvas prototype, is preserved in `builds/legacy/`.
+## Before 8.5 — builds in `builds/legacy/`
+Reconstructed from the version markers inside each file. Versions without a file are noted.
+
+- **[8.4] "Living Worlds"** — 8.0 Living Worlds; 8.1 recovery screen, start-up watchdog, untouched backup of
+  older saves, failed-save warnings, fault containment; 8.2 Park HQ (one screen for running the park); 8.3
+  extreme Track Builder and moderator panel. *(No separate files for 8.0–8.3.)*
+- **[7.2]** — ships inside the 2026-11-07 website build (`builds/website-2026-11-07/simulator.html`).
+- **[7.1] Fun update** — coins, hands-up thrill score, ride photos, secrets and four secret rides.
+- **[7.0]** — Owner Control Center, Builder 3.0, graphics quality levels, particles, weather, themes, tunnels,
+  train styles, new rides.
+- **[6.3]** — rounded fibreglass cars with accent stripes, bucket seats and lap bars; includes **6.2** seated
+  riders with legs, hair and eyes.
+- **[6.1] Track Builder 2.0** — redesigned dark construction workspace (engine, workspace, panels).
+- **[6.0] Research Lab** — overview stats, charts, auto-detected elements, ride comparison, physics experiments
+  (Moon/Mars/Jupiter gravity), Learn tab; live telemetry panel; track heatmaps; day/sunset/night; seat choice;
+  CSV/JSON export; brake fins and night rail lights.
+- **[5.2] release candidate** — first Track Builder: points, hills, drops, turns, undo/redo, validation, saved
+  designs, import/export.
+- **[5.1] release candidate** — 5.0 art direction (glass panels, per-ride accent colours), Cinema mode, optional
+  synthesized sound, shaped terrain, station signs.
+- **[4.1]** — four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain; ride menu with stats.
+  **Owner's Edition** is a 4.x side branch with an owner panel, telemetry, weather and a JSON track workshop.
+- **[2] "version 2"** — one track (Looping Adventure), five cameras, lights. The oldest build on record.
+- **VELOCITY 1.1** — a separate 2D-canvas prototype, not part of the main line.

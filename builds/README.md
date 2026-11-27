@@ -31,9 +31,30 @@ because `build.mjs` and `tests/` open them by those paths.
 
 | File | Version | Size | SHA-256 | Uploaded as | Notes |
 |---|---|---|---|---|---|
-| `legacy/coaster_lab_v4_1.html` | 4.1 | 34,374 | `145cf3c58bb7b2a36bcbcefc992018396e70d46b1984bdde632fe62bb084abfe` | `coaster_lab_simulator_3.html` | Four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain |
-| `legacy/coaster_lab_owners_edition.html` | Owner Edition | 91,442 | `eb726efbdd74644d9379ac2608a7222d200ee7a20dd3fb414a60b3a11bda44e3` | `coaster_lab_simulator_32.html`, `…_32_2.html` (identical) | 4.1 + local owner panel, telemetry, weather and lighting, JSON track workshop |
-| `legacy/coaster_lab_velocity_v1_1.html` | VELOCITY 1.1 | 16,888 | `da59ee283d0538c37f54d5fc0b58aa98c720e3f65bdf6bb512eddb65d91949da` | `coaster_lab_velocity_fixed.html` | Separate 2D-canvas prototype ("COASTER LAB // VELOCITY"), not part of the main line |
+| `legacy/coaster_lab_v8_4.html` | 8.4 | 1,185,567 | `4e80917ff443813591b1e3cfbd1bc33d392a751e225429ae527ea9c3d5f930fa` | `coaster_lab_v8_4.html` | "Living Worlds": 7.2, 8.0 Living Worlds, 8.1 recovery screen and save safety, 8.2 Park HQ, 8.3 extreme Track Builder and moderator panel. The build just before 8.5 |
+| `legacy/coaster_lab_v7_1.html` | 7.1 | 409,023 | `97d4c60115784cdec18dcbaa146c0072180bb32b2d205b3df339560d646ecb2f` | `coaster_lab_v7.1.html` | Fun update: coins, hands-up thrill score, ride photos, secrets, four secret rides |
+| `legacy/coaster_lab_v7_0.html` | 7.0 | 373,736 | `f64fd53d43414fbe9892b08abca21243ea81a1b85e99d9c6d1bf86bdd5032561` | `coaster_lab_v7_0_html_2.html` | Owner Control Center, Builder 3.0, graphics quality, particles, weather, themes, tunnels, train styles, new rides |
+| `legacy/coaster_lab_v6_3.html` | 6.3 | 254,343 | `b1e7c4cbda16ae7dab2b7068afbceb7d7f933ca0f605b46e4b636934e48372b5` | `coaster_lab_v6_3_html.html` | 6.2 seated riders (legs, hair, eyes) + 6.3 rounded fibreglass cars with bucket seats |
+| `legacy/coaster_lab_v6_1.html` | 6.1 | 219,692 | `c2ebf1501e36cce187f83c2747c101e8ebea03d3135ab916ebae5ac2afefadf1` | `coaster_lab_v6.1_track_builder_redesign.html` | Track Builder 2.0: dark construction workspace with engine, workspace and panels |
+| `legacy/coaster_lab_v6_0.html` | 6.0 | 129,000 | `9b08822ce1cf1c4d9ba82c441f8066ff4882dcb9fe96efe985e63eed6d657b4d` | `index.html` | Research Lab (stats, charts, elements, compare, physics experiments, learn), live telemetry, track heatmaps, day/sunset/night, seat choice, CSV/JSON export |
+| `legacy/coaster_lab_v5_2.html` | 5.2 | 70,216 | `9849e52cd23d74a6a23e03dfd78f012a3b01241f5b052ac10b4be450b8f6c1fa` | `coaster_lab_v5.2_candidate_2.html` | Release candidate: first Track Builder (points, hills, drops, turns, undo, saves, import/export) |
+| `legacy/coaster_lab_v5_1.html` | 5.1 | 47,091 | `25d3ae7115e929c25ce0490188e074ecacbfad281b869632a96fb9bcd7f8a1d5` | `coaster_lab_v5.1_candidate.html` | Release candidate: 5.0 art direction, Cinema mode, optional sound, terrain, station signs |
+| `legacy/coaster_lab_owners_edition.html` | Owner Edition | 91,442 | `eb726efbdd74644d9379ac2608a7222d200ee7a20dd3fb414a60b3a11bda44e3` | `coaster_lab_simulator_32.html`, `…_32_2.html` (identical) | 4.1 + local owner panel, telemetry, weather and lighting, JSON track workshop. A side branch, not in the 5.x line |
+| `legacy/coaster_lab_v4_1.html` | 4.1 | 34,374 | `145cf3c58bb7b2a36bcbcefc992018396e70d46b1984bdde632fe62bb084abfe` | `coaster_lab_simulator_3.html` (uploaded 3 times, identical) | Four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain |
+| `legacy/coaster_lab_v2.html` | 2 | 22,677 | `e20f7a1c6ab7db5e325db54e2e13de4cdfc0b7ec68cec7e7deeba2d72eefdc4a` | `Coaster_Lab___3D_Roller_Coaster_Simulator.html` | "Version 2": one track (Looping Adventure), five cameras. The oldest build on record |
+| `legacy/coaster_lab_velocity_v1_1.html` | VELOCITY 1.1 | 16,888 | `da59ee283d0538c37f54d5fc0b58aa98c720e3f65bdf6bb512eddb65d91949da` | `coaster_lab_velocity_fixed.html` (uploaded twice, identical) | Separate 2D-canvas prototype ("COASTER LAB // VELOCITY"), not part of the main line |
+
+**Not in the archive:** 3, 4.0, 5.0, 6.2, 7.2, 8.0–8.3 as separate files (their code is inside later builds;
+7.2 also ships inside the website below). Re-uploads of 8.5, 9.0.1, 10.0 and 10.1 were byte-identical to files
+already in git and were not added again.
+
+## Coaster Lab website (built site, 2026-11-07)
+
+`website-2026-11-07/` is a finished, minified web build (uploaded as `Coaster-Lab-website.zip`, files dated
+2026-11-07): `index.html`, `simulator.html` (embeds **7.2**), `login.html`, `signup.html`, `account.html`,
+`forgot-password.html`, `reset-password.html` and `assets/`. It uses Supabase accounts (publishable key only).
+**Its source code is not in this repository**, and whether it is or was deployed is unknown — see
+`docs/REPOSITORY.md`.
 
 ## Verify a file
 

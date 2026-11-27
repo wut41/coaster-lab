@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>My account · Coaster Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito+Sans:opsz,wght@6..12,500;6..12,600;6..12,700;6..12,800&display=swap">
+  <script type="module" crossorigin src="/assets/account-wmf1lk7y.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/errors-C0-gHb0p.js">
+  <link rel="modulepreload" crossorigin href="/assets/dom-Bvgdh18E.js">
+  <link rel="modulepreload" crossorigin href="/assets/session-Do8Gvb96.js">
+  <link rel="modulepreload" crossorigin href="/assets/paths-n-iqI9Hs.js">
+  <link rel="modulepreload" crossorigin href="/assets/guard-DyriAxRX.js">
+  <link rel="modulepreload" crossorigin href="/assets/validation-DuzclGvN.js">
+  <link rel="modulepreload" crossorigin href="/assets/coasters-Be-1IA79.js">
+  <link rel="stylesheet" crossorigin href="/assets/dom-CRQBdVPF.css">
+</head>
+<body>
+<main class="auth">
+  <a class="brand" href="./"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M4 36 H12 C17 36 16 14 24 14 C29 14 31 22 28 27 C25 32 18 29 20 23 C22 16 30 12 36 22 C39 28 40 36 44 36" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 41 H44" stroke="rgba(255,255,255,.55)" stroke-width="2.2" stroke-linecap="round"/></svg></span>COASTER LAB</a>
+
+  <section class="card wide" aria-labelledby="title">
+    <div id="loading-view" class="loading" role="status"><div class="spinner" aria-hidden="true"></div><p>Loading your account…</p></div>
+
+    <div id="account-view" hidden>
+      <h1 id="title">My account</h1>
+      <p class="sub">Hi, <strong id="hello-name"></strong> 👋</p>
+      <p id="alert" class="alert" hidden></p>
+
+      <div class="section">
+        <h2>Profile</h2>
+        <dl class="facts">
+          <dt>Username</dt><dd id="username-now"></dd>
+          <dt>Email</dt><dd id="email-now"></dd>
+          <dt>Joined</dt><dd id="joined"></dd>
+        </dl>
+      </div>
+
+      <div class="section">
+        <h2>Change your username</h2>
+        <form id="username-form" class="inline-form" novalidate>
+          <div class="field">
+            <label for="username">New username</label>
+            <input id="username" name="username" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" minlength="3" maxlength="24" required aria-describedby="username-hint">
+            <p id="username-hint" class="hint">3–24 characters: letters, numbers, <code>_</code> <code>.</code> <code>-</code></p>
+          </div>
+          <button class="btn btn-primary" type="submit">Save</button>
+        </form>
+      </div>
+
+      <div class="section">
+        <h2>My coasters</h2>
+        <p id="coasters-summary" class="hint">Loading…</p>
+        <ul id="coasters-list" class="coaster-list" hidden></ul>
+      </div>
+
+      <div class="section">
+        <h2>Security</h2>
+        <div class="row">
+          <a class="btn btn-ghost" href="reset-password.html">Change password</a>
+          <button id="logout" class="btn btn-danger" type="button">Log out</button>
+        </div>
+      </div>
+
+      <p class="links center"><a href="simulator.html">← Back to the simulator</a></p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -92,7 +92,8 @@ Until then, the branches themselves are the preservation, and the tip SHAs above
 
 | Version | Location | Source form? |
 |---|---|---|
-| 4.1, Owner's Edition, VELOCITY 1.1 | `builds/legacy/` | single file only |
+| 2, 4.1, 5.1, 5.2, 6.0, 6.1, 6.3, 7.0, 7.1, 8.4, Owner's Edition, VELOCITY 1.1 | `builds/legacy/` | single file only |
+| 7.2 (inside the account website) | `builds/website-2026-11-07/` | built site only, no source |
 | 8.5, 8.6 | top level | single file (8.6 built in place) |
 | 8.7 (VIP) | branch `claude/upbeat-meitner-pw7oe6` | single file, unmerged |
 | 9.0 / 9.0.1 | top level `coaster_lab_v9_0.html` | single file (base of `build.mjs`) |
@@ -109,5 +110,6 @@ Until then, the branches themselves are the preservation, and the tip SHAs above
    the sources that produced it.
 3. **Which version is on the live site?** coaster-playground.foundable.app is published through Foundable, not from
    this repository. Knowing its version lets `main` match production exactly.
-4. **Default branch switch to `main`** — approve? (Nothing deploys from this repo, so the switch should not affect the
+4. **The 2026-11-07 website build** (`builds/website-2026-11-07/`, login/signup/account pages around 7.2): where is its source, and was it ever deployed?
+5. **Default branch switch to `main`** — approve? (Nothing deploys from this repo, so the switch should not affect the
    live site, but anyone who clones it will get `main` instead of 8.6.)
