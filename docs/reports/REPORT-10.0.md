@@ -196,14 +196,14 @@ Screenshots from these runs are in `docs/report-10.0/`:
 
 | | |
 |---|---|
-| ![My Park](docs/report-10.0/v10_park_career.jpg) My Park with a ride card | ![End of day](docs/report-10.0/v10_park_daycard.jpg) The end-of-day books |
-| ![Night](docs/report-10.0/v10_park_night.jpg) Night | ![Storm](docs/report-10.0/v10_park_storm.jpg) Thunderstorm |
-| ![On-ride](docs/report-10.0/v10_park_pov.jpg) Riding a park coaster | ![Live](docs/report-10.0/v10_park_live.jpg) Live presence (stand-in socket) |
-| ![Nova Giant](docs/report-10.0/v10_nova_giant.jpg) Nova Giant | ![Hydra](docs/report-10.0/ride_Hydra_orbit.jpg) Hydra |
-| ![Timberwolf](docs/report-10.0/ride_Timberwolf_orbit.jpg) Timberwolf | ![Generate](docs/report-10.0/v10_generate.jpg) 🎲 Generate |
-| ![Sign in](docs/report-10.0/v10_account_signin_phone.jpg) Sign-in page (phone) | ![Signed in](docs/report-10.0/v10_account_signed_in_phone.jpg) Your account |
-| ![Choose](docs/report-10.0/v10_account_choose_park.jpg) Two different parks: choose | ![Share](docs/report-10.0/v10_account_share_tab.jpg) Park Office → Share |
-| ![Owner](docs/report-10.0/v10_owner_tab.jpg) Owner Control Center → My Park | ![320](docs/report-10.0/v10_size_320x568.jpg) 320×568 |
+| ![My Park](../report-10.0/v10_park_career.jpg) My Park with a ride card | ![End of day](../report-10.0/v10_park_daycard.jpg) The end-of-day books |
+| ![Night](../report-10.0/v10_park_night.jpg) Night | ![Storm](../report-10.0/v10_park_storm.jpg) Thunderstorm |
+| ![On-ride](../report-10.0/v10_park_pov.jpg) Riding a park coaster | ![Live](../report-10.0/v10_park_live.jpg) Live presence (stand-in socket) |
+| ![Nova Giant](../report-10.0/v10_nova_giant.jpg) Nova Giant | ![Hydra](../report-10.0/ride_Hydra_orbit.jpg) Hydra |
+| ![Timberwolf](../report-10.0/ride_Timberwolf_orbit.jpg) Timberwolf | ![Generate](../report-10.0/v10_generate.jpg) 🎲 Generate |
+| ![Sign in](../report-10.0/v10_account_signin_phone.jpg) Sign-in page (phone) | ![Signed in](../report-10.0/v10_account_signed_in_phone.jpg) Your account |
+| ![Choose](../report-10.0/v10_account_choose_park.jpg) Two different parks: choose | ![Share](../report-10.0/v10_account_share_tab.jpg) Park Office → Share |
+| ![Owner](../report-10.0/v10_owner_tab.jpg) Owner Control Center → My Park | ![320](../report-10.0/v10_size_320x568.jpg) 320×568 |
 
 **Not verified:** real iPhone or Android frame rates and touch feel; Safari; the on-screen keyboard over the sign-in
 form; password-manager autofill; and anything against the live Supabase project (the test machine cannot reach

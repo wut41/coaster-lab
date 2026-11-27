@@ -250,13 +250,13 @@ graphics), copied to `docs/report-10.1/`:
 
 | | |
 |---|---|
-| ![Builder](docs/report-10.1/v101_builder_1200x800.jpg) Track Builder: live numbers in the top bar, force colours on the track | ![Suggestions](docs/report-10.1/v101_builder_suggest_1200x800.jpg) "Good next pieces" for the speed the train has there |
-| ![History](docs/report-10.1/v101_builder_history_1200x800.jpg) History: tap a step to go back to it | ![Builder, wide phone](docs/report-10.1/v101_builder_844x390.jpg) The builder at 844×390 |
-| ![Reports](docs/report-10.1/v101_reports_1200x800.jpg) Park Office → Reports: yesterday's books, each ride's earnings | ![Advisor](docs/report-10.1/v101_advisor_1200x800.jpg) Overview: what makes the rating, and the Advisor's notes |
-| ![Visitors](docs/report-10.1/v101_visitors_1200x800.jpg) Visitors: who is in the park and how they feel | ![Saves](docs/report-10.1/v101_saves_1200x800.jpg) Saves and backups: save now, backup file, restore |
-| ![Diagnostics](docs/report-10.1/v101_diag_1200x800.jpg) Owner Control Center → Diagnostics (the frame times are the test machine's software graphics) | ![Is this your account?](docs/report-10.1/v101_sec_link_390x844.jpg) The question a sign-in link now asks first (390×844) |
-| ![Builder, phone](docs/report-10.1/v101_builder_390x844.jpg) The builder at 390×844 | ![Reports, small phone](docs/report-10.1/v101_reports_320x568.jpg) Reports at 320×568 |
-| ![Diagnostics, phone](docs/report-10.1/v101_diag_390x844.jpg) Diagnostics at 390×844 | ![Saving fails](docs/report-10.1/v101_saves_failing_390x844.jpg) The warning that stays while saving fails |
+| ![Builder](../report-10.1/v101_builder_1200x800.jpg) Track Builder: live numbers in the top bar, force colours on the track | ![Suggestions](../report-10.1/v101_builder_suggest_1200x800.jpg) "Good next pieces" for the speed the train has there |
+| ![History](../report-10.1/v101_builder_history_1200x800.jpg) History: tap a step to go back to it | ![Builder, wide phone](../report-10.1/v101_builder_844x390.jpg) The builder at 844×390 |
+| ![Reports](../report-10.1/v101_reports_1200x800.jpg) Park Office → Reports: yesterday's books, each ride's earnings | ![Advisor](../report-10.1/v101_advisor_1200x800.jpg) Overview: what makes the rating, and the Advisor's notes |
+| ![Visitors](../report-10.1/v101_visitors_1200x800.jpg) Visitors: who is in the park and how they feel | ![Saves](../report-10.1/v101_saves_1200x800.jpg) Saves and backups: save now, backup file, restore |
+| ![Diagnostics](../report-10.1/v101_diag_1200x800.jpg) Owner Control Center → Diagnostics (the frame times are the test machine's software graphics) | ![Is this your account?](../report-10.1/v101_sec_link_390x844.jpg) The question a sign-in link now asks first (390×844) |
+| ![Builder, phone](../report-10.1/v101_builder_390x844.jpg) The builder at 390×844 | ![Reports, small phone](../report-10.1/v101_reports_320x568.jpg) Reports at 320×568 |
+| ![Diagnostics, phone](../report-10.1/v101_diag_390x844.jpg) Diagnostics at 390×844 | ![Saving fails](../report-10.1/v101_saves_failing_390x844.jpg) The warning that stays while saving fails |
 
 ## 9. Known issues and limits
 

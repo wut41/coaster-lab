@@ -1,0 +1,66 @@
+name: 🐞 Bug report
+description: Something in Coaster Lab is broken or behaves wrongly.
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in the game (Settings or the title screen), or the build file name.
+      placeholder: "10.10.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device and browser
+      options:
+        - iPhone · Safari
+        - iPhone · Chrome
+        - iPad
+        - Android
+        - Desktop · Safari
+        - Desktop · Chrome
+        - Desktop · Other
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Riding / cameras
+        - Track Builder
+        - My Park
+        - Accounts / cloud saves
+        - Holiday Mode / graphics
+        - Sound
+        - Other
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Coaster Lab
+        2. Tap …
+        3. See …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected vs. what happened
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - P0 — data loss, security, or the game will not start
+        - P1 — a main feature is broken
+        - P2 — annoying but there is a workaround
+        - P3 — cosmetic
+  - type: markdown
+    attributes:
+      value: "⚠️ Security problem? Do not post it here — see SECURITY.md."
