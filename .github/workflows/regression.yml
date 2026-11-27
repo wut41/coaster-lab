@@ -1,0 +1,50 @@
+# Headless-browser regression suites (tests/). Slow, so it runs on demand, on pull requests into main,
+# and weekly. It tests coaster_lab_v10_1.html (the build generated in this repo).
+name: Regression
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "One suite file (e.g. t20_security.js), or empty for all"
+        required: false
+        default: ""
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 7 * * 1"   # Mondays 07:17 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run suites
+        env:
+          SUITE: ${{ github.event.inputs.suite }}
+        run: |
+          if [ -n "$SUITE" ]; then node "$SUITE"; else npm test; fi
+      - name: Keep screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-output
+          path: |
+            tests/shots/
+            tests/*.log
+          if-no-files-found: ignore
+          retention-days: 14
