@@ -63,12 +63,17 @@ server-side authorization checks (X1–X7) held both before and after.
 
 `builds/coaster_lab_v10_10_1.html` (SHA-256 `33587874…f6f856`) in headless Chromium 1243:
 
+**84 passed, 0 failed.**
+
 | Suite | Result |
 |---|---|
-| `t20_security` A–H | **24 / 24 passed**: XSS from other players' parks, names and codes; injected handlers; hostile park data; zip bombs; a flood of 300 fake live visitors; owner lock and test flag |
-| `t27_hostile_cloud` (new) | **4 / 4 passed** (first run): parks with 10,000 levels of nesting in three places open with only their real carousel and no errors; a 10,000-row leaderboard with a 2 MB name is cut to 49 short rows |
-| `t26_v10_10_1` | 9 / 9 start-up checks passed, then a screenshot timed out while t27 ran in parallel (test load, not a game error). **Rerun pending.** |
-| `t22_diag` | **Running.** |
+| `t26_v10_10_1` | **22 / 22**: version 10.10.1; clean start at 320×568, 390×844 and 1280×800; CSP; start-up requests only to allowed hosts; owner lock PBKDF2 600k + 1.4M rounds, moderator 600k, no passcode in the page; flat 3D memory; quiet offline start |
+| `t20_security` A–H | **24 / 24**: XSS from other players' parks, names and codes; injected handlers; hostile park data; a 16 kB code that unpacks to 12 MB; a flood of 300 fake live visitors; owner lock and test flag |
+| `t22_diag` | **33 / 33**: diagnostics exist only behind the owner lock |
+| `t27_hostile_cloud` (new) | **5 / 5**: parks with 10,000 levels of JSON nesting in three places open with only their real carousel and no errors, in 6.1–6.3 s against 5.8 s for an ordinary park (both include the test's fixed waits); a 10,000-row leaderboard with a 2 MB name is cut to 49 short rows |
+
+(In the first combined run, t26 hit a screenshot timeout after its 9 start-up checks because t27 was running in
+parallel on the same CPU. Run on its own, it passed 22 / 22.)
 
 * **three.js integrity:** the import map's `sha384-61S/Nu32…lykFZ` equals the npm-locked `three@0.160.0`
   `build/three.module.js`, recomputed here.
