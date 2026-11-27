@@ -1,0 +1,59 @@
+# Fast checks on every push and pull request. No game code is executed.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  syntax:
+    name: syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild 10.1 from src/v10 and syntax-check it
+        run: node build.mjs --check
+      - name: The committed 10.1 build matches its sources
+        run: |
+          if ! git diff --quiet -- coaster_lab_v10_1.html; then
+            echo "::error file=coaster_lab_v10_1.html::coaster_lab_v10_1.html is out of date. Run 'node build.mjs' and commit the result."
+            git diff --stat -- coaster_lab_v10_1.html
+            exit 1
+          fi
+      - name: Syntax-check every single-file build
+        run: |
+          shopt -s nullglob
+          node tools/ci/check-html-syntax.mjs coaster_lab_v*.html backup/*.html builds/*.html builds/legacy/*.html
+      - name: Syntax-check test and tool scripts
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            node --check "$f" || { echo "::error file=$f::syntax error"; fail=1; }
+          done < <(find build.mjs tests tools -path '*/node_modules' -prune -o -type f \( -name '*.js' -o -name '*.mjs' \) -print)
+          exit $fail
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan tracked files
+        run: python3 tools/ci/secret-scan.py
+      - name: Scan full history (all fetched branches)
+        run: python3 tools/ci/secret-scan.py --history
