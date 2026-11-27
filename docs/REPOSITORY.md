@@ -23,6 +23,7 @@ No history was rewritten and no unmerged work was deleted during the reorganizat
 |---|---|
 | `main` | Released / ready-to-release game. Contains the full history of the old default branch. |
 | `develop` | Integration branch. Every change lands here first through a pull request. |
+| `backup/2026-11-27` | 🛡️ **Backup, never work here.** One snapshot commit whose parents are all 31 branch tips of 2026-11-27, so every commit stays in GitHub after old names are deleted. `BACKUP.md` lists each branch and SHA for restoring. |
 
 ### Active work (renamed from `claude/*` on 2026-11-27, same commits)
 
