@@ -20,6 +20,16 @@ deployed, no repository setting was changed, and no game code changed.
 | **B4** | **`main` is not protected.** There are no rulesets, Dependabot security updates are off, and **private vulnerability reporting is off**, although `SECURITY.md` tells people to use it. | Owner (admin) | `bash tools/repo/apply-branch-protection.sh --yes`. It now also switches private vulnerability reporting on. This session cannot change settings (blocked by its proxy). |
 | **B5** | **Supabase Auth settings** (they cannot be read from this session). The advisor confirms *Leaked password protection* is **off**. The game uses email and password sign-up. | Owner, dashboard | Authentication → Providers → Email: minimum password length **8** (the page asks for 8, but the server default is 6, and the page is not a control). Turn **leaked password protection** on. Prefer **Confirm email on** with a real SMTP sender: with it off and no CAPTCHA, a script can create unlimited accounts, and every account gets one vote per park. URL Configuration: only the game's exact address in Redirect URLs (no wildcards: reset links carry a session). Review Authentication → Rate Limits. |
 
+**2026-11-27: no Supabase branch.** The owner chose not to pay for one (about $0.013 an hour, not covered by the Spend
+Cap). The branch was never created. B1–B3 stay open; free ways to close them:
+* **B3 (PostgreSQL 17):** run `bash supabase/tests/run.sh payments` with PostgreSQL 17 in a free GitHub Actions job
+  (public repository) or on any computer that has it.
+* **B1 + B2:** production holds only 3 accounts and no parks, coasters or purchases, so the migrations can go straight
+  to production once the owner approves (they were tested on an exact copy of its schema, are safe to run twice, and
+  each says how to undo it). Right after that, a short live check with dummy data, deleted afterwards, covers B2 (forged
+  headers do not reset the publishing limit) and the game's real sign-in, save and publish path. That check writes to
+  production, so it needs its own approval.
+
 ## What was fixed (verified)
 
 New migration **`supabase/migrations/20261127000000_coaster_lab_10_10_1_release_hardening.sql`**. It keeps the same
