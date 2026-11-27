@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Create an account · Coaster Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito+Sans:opsz,wght@6..12,500;6..12,600;6..12,700;6..12,800&display=swap">
+  <script type="module" crossorigin src="/assets/signup-38cdF6hA.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/errors-C0-gHb0p.js">
+  <link rel="modulepreload" crossorigin href="/assets/dom-Bvgdh18E.js">
+  <link rel="modulepreload" crossorigin href="/assets/session-Do8Gvb96.js">
+  <link rel="modulepreload" crossorigin href="/assets/paths-n-iqI9Hs.js">
+  <link rel="modulepreload" crossorigin href="/assets/guard-DyriAxRX.js">
+  <link rel="modulepreload" crossorigin href="/assets/validation-DuzclGvN.js">
+  <link rel="stylesheet" crossorigin href="/assets/dom-CRQBdVPF.css">
+</head>
+<body>
+<main class="auth">
+  <a class="brand" href="./"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M4 36 H12 C17 36 16 14 24 14 C29 14 31 22 28 27 C25 32 18 29 20 23 C22 16 30 12 36 22 C39 28 40 36 44 36" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 41 H44" stroke="rgba(255,255,255,.55)" stroke-width="2.2" stroke-linecap="round"/></svg></span>COASTER LAB</a>
+
+  <section class="card" aria-labelledby="title">
+    <div id="signup-view">
+      <h1 id="title">Create your account</h1>
+      <p class="sub">Save your coasters to your account and pick them up on any device.</p>
+
+      <p id="alert" class="alert" hidden></p>
+
+      <form id="signup-form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" minlength="3" maxlength="24" required aria-describedby="username-hint">
+          <p id="username-hint" class="hint">3–24 characters: letters, numbers, <code>_</code> <code>.</code> <code>-</code></p>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="pw"><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-checks"></div>
+          <ul id="password-checks" class="checks">
+            <li data-check="length">At least 8 characters</li>
+          </ul>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Create account</button>
+      </form>
+
+      <p class="links center">Already have an account? <a id="login-link" href="login.html">Log in</a></p>
+    </div>
+
+    <div id="check-email-view" hidden>
+      <h1 tabindex="-1">Check your email 📬</h1>
+      <p class="sub">We sent a confirmation link to <strong id="sent-to"></strong>. Open it (on this device or any other) to finish creating your account.</p>
+      <p id="check-alert" class="alert" hidden></p>
+      <div class="row">
+        <button id="resend" class="btn btn-ghost" type="button">Send the email again</button>
+        <a class="btn btn-ghost" href="login.html">Go to log in</a>
+      </div>
+      <p class="hint" style="margin-top:16px">Can’t find it? Check your spam folder. Wrong address? <a href="signup.html">Start over</a>.</p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

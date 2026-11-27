@@ -18,6 +18,9 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
   required `regression 10.10.1` job; `database` CI job attacking a copy of production (RLS, privileges, owner and VIP
   permissions); `lockfile` CI job; branch-protection rulesets ready for the owner. Report:
   [`docs/security/HARDENING-2026-11-27.md`](docs/security/HARDENING-2026-11-27.md). No game code changed.
+- Imported the finished builds 10.2 → 10.10.1, the 4.1 / Owner's Edition / VELOCITY prototypes and the 10.9 developer report into `builds/` and `docs/reports/` (2026-11-27).
+- Security triple-check (pattern + JWT-role scan, detect-secrets, GitHub/Supabase/code audit): no credentials found.
+  CI actions pinned to commit SHAs; Dependabot config added (2026-11-27).
 - Reorganized the repository: `main` and `develop` branches, centralized changelog, contributor guide, branch
   inventory, CI syntax checks, secret scanning and regression workflow (2026-11-27). No game code changed.
 
@@ -30,6 +33,15 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 - **Review squad**: five permanent review agents (developer, debugger, designer, security, tester) and their reports on
   8.6. Branch `chore/review-squad`. Several of its findings were applied in 10.6 ("squad fixes"); the agents
   and reports themselves were never merged.
+
+## [10.10.1] — bug-fix build
+- **Accounts**: when a sign-in runs out (the account server refuses to renew it), the account's parks are now put
+  away too, not just the sign-in; the next player on the device starts in the guest profile.
+- **Accounts**: if the game opens with nobody signed in but an account's parks still on the device, those parks are
+  locked from saving until that account signs in again.
+- **Memory**: scenery records of worlds that were disposed by a ride switch are forgotten, so old worlds no longer stay
+  in memory.
+- Built on `coaster_lab_v10_10_0.html` (the `_2` file), which supports treating that file as the canonical 10.10.0.
 
 ## [10.10.0] — merged build
 - **Riders**: two rider styles; the sculpted 10.5 riders (hair, faces, beards, glasses) are the default, Codex's lofted
@@ -119,7 +131,29 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 ## [8.5] — untouched baseline
 - The version every later build is compared against.
 
-## Before 8.5 (not in this repository)
-- **4.1** "Coaster Lab 4.1" (four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain) and the
-  **Owner's Edition** (4.x + owner panel, telemetry, weather, JSON track workshop) are preserved in `builds/legacy/`.
-- **VELOCITY v1.1**, a separate 2D-canvas prototype, is preserved in `builds/legacy/`.
+## Before 8.5 — builds in `builds/legacy/`
+Reconstructed from the version markers inside each file. Versions without a file are noted.
+
+- **[8.4] "Living Worlds"** — 8.0 Living Worlds; 8.1 recovery screen, start-up watchdog, untouched backup of
+  older saves, failed-save warnings, fault containment; 8.2 Park HQ (one screen for running the park); 8.3
+  extreme Track Builder and moderator panel. *(No separate files for 8.0–8.3.)*
+- **[7.2]** — ships inside the 2026-11-07 website build (`builds/website-2026-11-07/simulator.html`).
+- **[7.1] Fun update** — coins, hands-up thrill score, ride photos, secrets and four secret rides.
+- **[7.0]** — Owner Control Center, Builder 3.0, graphics quality levels, particles, weather, themes, tunnels,
+  train styles, new rides.
+- **[6.3]** — rounded fibreglass cars with accent stripes, bucket seats and lap bars.
+- **[6.2]** — seated riders with legs, hair, eyes and two-part arms; Track Builder templates; three new park rides.
+- **[6.1] Track Builder 2.0** — redesigned dark construction workspace (engine, workspace, panels).
+- **[6.0] Research Lab** — overview stats, charts, auto-detected elements, ride comparison, physics experiments
+  (Moon/Mars/Jupiter gravity), Learn tab; live telemetry panel; track heatmaps; day/sunset/night; seat choice;
+  CSV/JSON export; brake fins and night rail lights.
+- **[5.2] release candidate** — first Track Builder: points, hills, drops, turns, undo/redo, validation, saved
+  designs, import/export.
+- **[5.1] release candidate** — 5.0 art direction (glass panels, per-ride accent colours), Cinema mode, optional
+  synthesized sound, shaped terrain, station signs.
+- **[4.1]** — four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain; ride menu with stats.
+  **Owner's Edition** is a 4.x side branch with an owner panel, telemetry, weather and a JSON track workshop.
+- **[4.0]** — first four-ride version with the ride menu; physics stepped once per frame.
+- **[2] "version 2"** — one track (Looping Adventure), five cameras including the ride camera, physics-based speed, lights. Two files: an early one and the final one.
+- **[prototype 01]** — the first file on record: one looping track, four cameras, speed estimated from height.
+- **VELOCITY 1.1** — a separate 2D-canvas prototype, not part of the main line.

@@ -36,7 +36,7 @@ Format: **`<type>/<short-description>`**, lowercase, words joined with `-`, no s
 | `chore/` | Repository, tooling, CI | `develop` → `develop` | `chore/repo-organization` |
 | `test/` | Tests only | `develop` → `develop` | `test/save-recovery-fuzz` |
 | `experiment/` | Throw-away prototypes (may never merge) | anywhere | `experiment/webgpu-renderer` |
-| `project/` | Unrelated projects waiting to move to their own repo | — | `project/neon-arcade` |
+| `project/`, `backup/` (snapshots only, never commit to them) | Unrelated projects waiting to move to their own repo | — | `project/neon-arcade` |
 
 **AI session branches.** Tools such as Claude Code create names like `claude/festive-newton-8ueu8m`. That is fine for
 a session, but before opening a pull request, rename the branch to the format above (or create a well-named branch
