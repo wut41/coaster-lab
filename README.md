@@ -1,7 +1,7 @@
 # 🎢 Coaster Lab
 
 [![CI](https://github.com/wut41/coaster-lab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wut41/coaster-lab/actions/workflows/ci.yml)
-![Latest build](https://img.shields.io/badge/latest%20build-10.10.0-36a7ff)
+![Latest build](https://img.shields.io/badge/latest%20build-10.10.1-36a7ff)
 ![Engine](https://img.shields.io/badge/three.js-0.160-000000)
 ![Platform](https://img.shields.io/badge/made%20for-iPhone%20%2B%20desktop-2fd18b)
 ![Soft launch](https://img.shields.io/badge/soft%20launch-Dec%201%2C%202026-ff8a3d)
@@ -12,7 +12,7 @@ Built with [three.js](https://threejs.org/) 0.160 (loaded from a CDN). No instal
 
 | | |
 |---|---|
-| **Latest build** | 10.10.0 → `builds/coaster_lab_v10_10_0.html` *(added by the build-import PR, placement pending confirmation)* |
+| **Latest build** | 10.10.1 → `builds/coaster_lab_v10_10_1.html` |
 | **Latest build made from this repo's sources** | 10.1 → `coaster_lab_v10_1.html` (generated from `src/v10/` by `build.mjs`) |
 | **Live site** | [coaster-playground.foundable.app](https://coaster-playground.foundable.app) (published through Foundable; nothing in this repository deploys to it) |
 | **Soft launch target** | December 1, 2026 |
@@ -37,7 +37,7 @@ Online features (park sharing, accounts, cloud saves) need the page to be served
 ├── coaster_lab_v8_6.html   │ (reads 9.0) and the tests (compare against 8.5, 8.6, 10.0)
 ├── coaster_lab_v8_5.html   ┘ open them by these exact paths. Never edited.
 ├── backup/                 ← the preview build uploaded for the 10.1 upgrade, untouched
-├── builds/                 ← release archive: one file per shipped version (10.2 → 10.10.0)
+├── builds/                 ← release archive: one file per shipped version (10.2 → 10.10.1)
 │
 ├── src/v10/                ← sources for everything 10.0 and 10.1 add (css, html, js, art)
 ├── build.mjs               ← stitches src/v10 into the 9.0 page → coaster_lab_v10_1.html

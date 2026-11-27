@@ -10,7 +10,7 @@ No history was rewritten and no unmerged work was deleted during the reorganizat
 | Default branch | `claude/festive-newton-8ueu8m` (8.6) | `main` — **one click by the owner** (see [Owner checklist](#owner-checklist)) |
 | `main` / `develop` | did not exist | `main` = released line · `develop` = integration |
 | Branch names | 20 × `claude/<random-words>` | `main`, `develop`, `feature/*`, `chore/*`, `docs/*`, `project/*` (see below) |
-| Newest version in git | 10.1 | 10.1 in source form; every build from prototype 01 to 10.10.0 archived by PR #8 |
+| Newest version in git | 10.1 | 10.1 in source form; every build from prototype 01 to 10.10.1 archived by PR #8 |
 | Docs at top level | 10 loose Markdown files | `README` · `CHANGELOG` · `CONTRIBUTING` · `SECURITY`; everything else in `docs/` |
 | Automation | no GitHub Actions runs | CI (syntax + secrets) on every push and PR; regression workflow on demand |
 | Security | never scanned | full-history scan: no secrets ([report](security/SECRET-SCAN-2026-11-27.md)) |
@@ -28,7 +28,7 @@ No history was rewritten and no unmerged work was deleted during the reorganizat
 
 | Branch | Was | What it holds | Next step |
 |---|---|---|---|
-| `feature/ride-challenges` | `claude/ride-challenges-10b` | 12 bronze/silver/gold ride feats, XP, badges, titles, Champion skin (on 10.0 + PR #6) | Port onto 10.10.0 — in no build yet |
+| `feature/ride-challenges` | `claude/ride-challenges-10b` | 12 bronze/silver/gold ride feats, XP, badges, titles, Champion skin (on 10.0 + PR #6) | Port onto 10.10.1 — in no build yet |
 | `feature/ride-challenges-first-draft` | `claude/ride-challenges-10` | First version of the same feature on plain 10.0 | Keep as history |
 | `feature/vip-pack-8.7` | `claude/upbeat-meitner-pw7oe6` | 8.7 VIP pack ($2, golden coasters), Supabase VIP functions, Remotion trailer project | Decide: port to 10.x after the P0 payment checks, or retire |
 | `chore/review-squad` | `claude/great-fermat-rrwnat` | Five review agents (`.claude/agents/`), debug / design / security / tester reports, corrupted-save tests | Merge into `develop` (tooling + docs only) |
@@ -53,7 +53,7 @@ cd neon-arcade && git remote set-url origin https://github.com/wut41/neon-arcade
 
 | PR | Branch | Status |
 |---|---|---|
-| #8 | `chore/import-builds-10.2-to-10.10.0` | Every build from prototype 01 to 10.10.0. **Waiting for Duet** to confirm the canonical 10.10.0 file |
+| #8 | `chore/import-builds-10.2-to-10.10.0` | Every build from prototype 01 to 10.10.1. **Waiting for Duet** to confirm the canonical 10.10.0 file |
 | #1 | `claude/beautiful-pasteur-82f2g4` | Old 9.0 PR into the old default branch. Its content reached `main` through later merges. Kept open by owner's choice |
 
 ### Old names still to remove (owner action)
@@ -96,7 +96,7 @@ No file exists yet for 3, 5.0, 8.0–8.3, 10.5, 10.6 and 10.9.2 (their code is i
 
 ## Open questions for Duet
 
-1. **Which 10.10.0 file is the merged one?** PR #8 treats `coaster_lab_v10_10_0_2` as canonical (it skips arm pivots
+1. **Which 10.10.0 file is the merged one?** *New evidence: 10.10.1 contains the `_2` arm-pivot fix, so it was built on `_2`.* PR #8 treats `coaster_lab_v10_10_0_2` as canonical (it skips arm pivots
    when placing holiday hats) and keeps the other as `-pre`.
 2. **Where are the 10.2+ sources?** `src/v10/` stops at 10.1, so `build.mjs` cannot rebuild 10.10.0.
 3. **Which version is live** on coaster-playground.foundable.app?

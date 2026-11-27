@@ -11,7 +11,8 @@ inside it, not from its upload name. Exact duplicates were stored once (noted be
 
 | File | Version | Size | SHA-256 | Uploaded as | Notes |
 |---|---|---|---|---|---|
-| `coaster_lab_v10_10_0.html` | 10.10.0 | 3,362,552 | `99db2253dac06c7f48840ca9c4e4e3a3194ad206c3b3790e6f5a15074644200e` | `coaster_lab_v10_10_0_2.bin` | **Latest — proposed canonical 10.10.0** (pending confirmation). Adds one fix over `-pre`: arm pivots are skipped when holiday hats are placed |
+| `coaster_lab_v10_10_1.html` | 10.10.1 | 3,365,950 | `33587874273c2516c9d7798a732078dea8dc22bf60663f3a05ac857715f6f856` | `coaster_lab_v10_10_1.bin` | **Latest.** Bug-fix build on top of `coaster_lab_v10_10_0.html` (it already contains that file's arm-pivot fix) |
+| `coaster_lab_v10_10_0.html` | 10.10.0 | 3,362,552 | `99db2253dac06c7f48840ca9c4e4e3a3194ad206c3b3790e6f5a15074644200e` | `coaster_lab_v10_10_0_2.bin` | **Proposed canonical 10.10.0** (pending confirmation; 10.10.1 was built on this file). Adds one fix over `-pre`: arm pivots are skipped when holiday hats are placed |
 | `coaster_lab_v10_10_0-pre.html` | 10.10.0 | 3,362,424 | `138e879195c1e5c4aadfb351a364a03740c8a2386151b0b477770c20fb754c41` | `coaster_lab_v10_10_0.bin` | Earlier file with the same version string |
 | `coaster_lab_v10_9_1.html` | 10.9.1 | 3,109,034 | `f9f398e55edd4f103bee71c3445a4dcb1b7441c531e9ac4d1b3c40953f8f0549` | `coaster_lab_v10_9_1.bin` (uploaded twice, identical) | |
 | `coaster_lab_v10_9.html` | 10.9 | 3,089,950 | `091de825114e9ee78899dc19e9799dc28909f0e4d8f24e554e50febb7108b766` | `coaster_lab_v10_9.bin` | Fixes from the 10.9 developer report |
@@ -64,5 +65,5 @@ already in git and were not added again.
 ## Verify a file
 
 ```bash
-sha256sum builds/coaster_lab_v10_10_0.html
+sha256sum builds/coaster_lab_v10_10_1.html
 ```

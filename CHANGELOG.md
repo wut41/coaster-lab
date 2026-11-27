@@ -14,7 +14,9 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 ## [Unreleased]
 
 ### Repository
-- Imported the finished builds 10.2 → 10.10.0, the 4.1 / Owner's Edition / VELOCITY prototypes and the 10.9 developer report into `builds/` and `docs/reports/` (2026-11-27).
+- Imported the finished builds 10.2 → 10.10.1, the 4.1 / Owner's Edition / VELOCITY prototypes and the 10.9 developer report into `builds/` and `docs/reports/` (2026-11-27).
+- Security triple-check (pattern + JWT-role scan, detect-secrets, GitHub/Supabase/code audit): no credentials found.
+  CI actions pinned to commit SHAs; Dependabot config added (2026-11-27).
 - Reorganized the repository: `main` and `develop` branches, centralized changelog, contributor guide, branch
   inventory, CI syntax checks, secret scanning and regression workflow (2026-11-27). No game code changed.
 
@@ -27,6 +29,15 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 - **Review squad**: five permanent review agents (developer, debugger, designer, security, tester) and their reports on
   8.6. Branch `chore/review-squad`. Several of its findings were applied in 10.6 ("squad fixes"); the agents
   and reports themselves were never merged.
+
+## [10.10.1] — bug-fix build
+- **Accounts**: when a sign-in runs out (the account server refuses to renew it), the account's parks are now put
+  away too, not just the sign-in; the next player on the device starts in the guest profile.
+- **Accounts**: if the game opens with nobody signed in but an account's parks still on the device, those parks are
+  locked from saving until that account signs in again.
+- **Memory**: scenery records of worlds that were disposed by a ride switch are forgotten, so old worlds no longer stay
+  in memory.
+- Built on `coaster_lab_v10_10_0.html` (the `_2` file), which supports treating that file as the canonical 10.10.0.
 
 ## [10.10.0] — merged build
 - **Riders**: two rider styles; the sculpted 10.5 riders (hair, faces, beards, glasses) are the default, Codex's lofted
