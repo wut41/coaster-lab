@@ -36,28 +36,31 @@ the build import. Intermediate versions (10.2 → 10.9.2) exist only as files in
 8. Merge `main` back into `develop`.
 9. **Production deployment (Foundable) is a separate, owner-approved step.** Nothing in this repository deploys.
 
-## Branch protection (recommended settings)
+## Branch protection
 
-Set in GitHub → *Settings* → *Branches* → *Add branch ruleset*. Not applied yet: needs the owner.
+**Prepared as code, applied by the owner.** The rules live in [`.github/rulesets/`](../.github/rulesets/) and are
+applied with one command (a Claude session cannot change repository settings):
 
-### `main`
-* Require a pull request before merging, **1 approval**; dismiss stale approvals when new commits are pushed.
-* Require status checks to pass: **`CI / syntax`**, **`CI / secrets`**.
-* Require conversation resolution before merging.
-* Block force pushes. Block deletions.
-* Require linear history: **off** (merge commits keep each branch's history visible).
-* Restrict who can push: owner only. Allow the owner to bypass in an emergency.
+```bash
+bash tools/repo/apply-branch-protection.sh          # dry run: lists what it would create or update
+bash tools/repo/apply-branch-protection.sh --yes    # applies the rulesets and turns on Dependabot alerts
+```
 
-### `develop`
-* Require a pull request before merging (approval optional while the team is small).
-* Require status checks: **`CI / syntax`**, **`CI / secrets`**.
-* Block force pushes. Block deletions.
+| Ruleset | Branches / tags | Rules |
+|---|---|---|
+| `main.json` | `main` | Pull request required, merge commits only, conversations resolved, no force-push, no deletion. Required checks: `syntax`, `secrets`, `database`, `lockfile`, **`regression 10.10.1`** (branch must be up to date) |
+| `develop.json` | `develop` | Pull request required, merge commits only, no force-push, no deletion. Required checks: `syntax`, `secrets`, `database`, `lockfile` |
+| `backups.json` | `backup/**` | Never updated, moved or deleted |
+| `release-tags.json` | tags `v*`, `archive/**` | Never moved or deleted |
 
-### Everything else
-* `archive/*` tags: block deletion and updates (tag ruleset).
+**Approvals: 0.** The team has one human with admin rights, so a required approval would block every merge. The
+required checks do the gatekeeping. When a second reviewer joins, set `required_approving_review_count` to 1 in
+`main.json` and run the script again. **No bypass list:** nobody, the owner included, can push straight to `main`.
+In an emergency, set the ruleset to *Disabled* in Settings → Rules, then turn it back on.
 
 ### Repository settings
 * **Default branch → `main`.**
 * *Automatically delete head branches*: **off** for now (turn on once the old `claude/*` branches are sorted out).
 * Enable **secret scanning** and **push protection** (Settings → Code security; free for public repositories).
-* Enable **Dependabot alerts** for `tests/package.json` and `trailer/package.json`.
+* **Dependabot alerts**: turned on by the script above. `.github/dependabot.yml` opens monthly update PRs for the pinned
+  GitHub Actions and the locked test dependencies.

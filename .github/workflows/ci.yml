@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
       - name: Rebuild 10.1 from src/v10 and syntax-check it
@@ -50,10 +50,34 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       - name: Scan tracked files
         run: python3 tools/ci/secret-scan.py
       - name: Scan full history (all fetched branches)
         run: python3 tools/ci/secret-scan.py --history
+
+  database:
+    name: database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Row level security and permission tests on a throw-away PostgreSQL (nothing reaches Supabase)
+        run: bash supabase/tests/run.sh payments
+
+  lockfile:
+    name: lockfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: package-lock.json matches package.json and every package has an integrity hash
+        working-directory: tests
+        run: |
+          npm ci --ignore-scripts
+          node -e "const l=require('./package-lock.json');const bad=Object.entries(l.packages).filter(([k,v])=>k&&!v.integrity);if(bad.length){console.error('no integrity:',bad.map(b=>b[0]));process.exit(1)}console.log(Object.keys(l.packages).length-1,'packages locked')"
