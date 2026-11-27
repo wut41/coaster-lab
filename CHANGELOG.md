@@ -14,6 +14,10 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 ## [Unreleased]
 
 ### Repository
+- Security hardening (2026-11-27, in `main`): test dependencies locked (`tests/package-lock.json`, exact pins, `npm ci`);
+  required `regression 10.10.1` job; `database` CI job attacking a copy of production (RLS, privileges, owner and VIP
+  permissions); `lockfile` CI job; branch-protection rulesets ready for the owner. Report:
+  [`docs/security/HARDENING-2026-11-27.md`](docs/security/HARDENING-2026-11-27.md). No game code changed.
 - Reorganized the repository: `main` and `develop` branches, centralized changelog, contributor guide, branch
   inventory, CI syntax checks, secret scanning and regression workflow (2026-11-27). No game code changed.
 

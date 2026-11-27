@@ -69,7 +69,7 @@ python3 tools/ci/secret-scan.py                         # make sure no secret is
 cd tests && npm install && npx playwright install chromium && npm test   # full regression run (long)
 ```
 
-Details: [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) · tests: [`tests/README.md`](tests/README.md)
+Details: [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) · testing: [`docs/TESTING.md`](docs/TESTING.md) · security: [`docs/security/HARDENING-2026-11-27.md`](docs/security/HARDENING-2026-11-27.md)
 
 ## Branches
 
