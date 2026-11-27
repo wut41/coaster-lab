@@ -126,8 +126,8 @@ Reconstructed from the version markers inside each file. Versions without a file
 - **[7.1] Fun update** — coins, hands-up thrill score, ride photos, secrets and four secret rides.
 - **[7.0]** — Owner Control Center, Builder 3.0, graphics quality levels, particles, weather, themes, tunnels,
   train styles, new rides.
-- **[6.3]** — rounded fibreglass cars with accent stripes, bucket seats and lap bars; includes **6.2** seated
-  riders with legs, hair and eyes.
+- **[6.3]** — rounded fibreglass cars with accent stripes, bucket seats and lap bars.
+- **[6.2]** — seated riders with legs, hair, eyes and two-part arms; Track Builder templates; three new park rides.
 - **[6.1] Track Builder 2.0** — redesigned dark construction workspace (engine, workspace, panels).
 - **[6.0] Research Lab** — overview stats, charts, auto-detected elements, ride comparison, physics experiments
   (Moon/Mars/Jupiter gravity), Learn tab; live telemetry panel; track heatmaps; day/sunset/night; seat choice;
@@ -138,5 +138,7 @@ Reconstructed from the version markers inside each file. Versions without a file
   synthesized sound, shaped terrain, station signs.
 - **[4.1]** — four rides: Looping Adventure, Canyon Rush, Sky Serpent, Mine Mountain; ride menu with stats.
   **Owner's Edition** is a 4.x side branch with an owner panel, telemetry, weather and a JSON track workshop.
-- **[2] "version 2"** — one track (Looping Adventure), five cameras, lights. The oldest build on record.
+- **[4.0]** — first four-ride version with the ride menu; physics stepped once per frame.
+- **[2] "version 2"** — one track (Looping Adventure), five cameras including the ride camera, physics-based speed, lights. Two files: an early one and the final one.
+- **[prototype 01]** — the first file on record: one looping track, four cameras, speed estimated from height.
 - **VELOCITY 1.1** — a separate 2D-canvas prototype, not part of the main line.

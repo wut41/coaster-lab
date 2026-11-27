@@ -92,7 +92,7 @@ Until then, the branches themselves are the preservation, and the tip SHAs above
 
 | Version | Location | Source form? |
 |---|---|---|
-| 2, 4.1, 5.1, 5.2, 6.0, 6.1, 6.3, 7.0, 7.1, 8.4, Owner's Edition, VELOCITY 1.1 | `builds/legacy/` | single file only |
+| prototype 01, 2, 4.0, 4.1, 5.1, 5.2, 6.0, 6.1, 6.2, 6.3, 7.0, 7.1, 8.4, Owner's Edition, VELOCITY 1.1 | `builds/legacy/` | single file only |
 | 7.2 (inside the account website) | `builds/website-2026-11-07/` | built site only, no source |
 | 8.5, 8.6 | top level | single file (8.6 built in place) |
 | 8.7 (VIP) | branch `claude/upbeat-meitner-pw7oe6` | single file, unmerged |

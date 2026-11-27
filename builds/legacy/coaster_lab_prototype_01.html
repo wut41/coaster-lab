@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Coaster Lab — 3D Roller Coaster Simulator</title>
+<style>
+:root{--glass:rgba(9,20,39,.78);--line:rgba(255,255,255,.18);--blue:#36a7ff;--white:#f6f9ff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#87c9ff;color:var(--white);font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#scene{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:none}
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:17px;backdrop-filter:blur(13px);box-shadow:0 8px 30px #07172c25}
+.top{position:fixed;left:12px;right:12px;top:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;pointer-events:none}.brand{padding:11px 14px;pointer-events:auto}.brand b{display:block;font-size:17px;letter-spacing:.2px}.brand small{color:#b9d7ff}.stats{display:flex;gap:14px;padding:10px 13px;font-size:11px}.stats strong{display:block;font-size:16px;margin-top:2px}
+.controls{position:fixed;left:12px;right:12px;bottom:12px;display:flex;align-items:end;justify-content:space-between;gap:10px;pointer-events:none}.controls>*{pointer-events:auto}.actions{display:flex;gap:8px;padding:9px}.btn{border:1px solid #ffffff38;background:#ffffff12;color:white;border-radius:13px;padding:10px 13px;font-size:14px;font-weight:650;cursor:pointer;touch-action:manipulation}.btn:active{transform:scale(.97)}.btn.primary{background:linear-gradient(135deg,#168cff,#0870dd);border-color:#6cc2ff}.btn.icon{width:48px;height:46px;font-size:19px;padding:0}.side{position:fixed;right:12px;top:92px;width:152px;padding:12px;display:grid;gap:8px}.side label{font-size:12px;color:#c8ddf7}.side input{width:100%;accent-color:var(--blue)}.camera{position:fixed;left:12px;top:92px;padding:10px;display:grid;gap:7px;width:122px}.camera .btn{font-size:12px;padding:9px 7px}.camera .btn.active{background:#1387ef}.hint{position:fixed;left:50%;top:74px;transform:translateX(-50%);background:#07172c80;border:1px solid #ffffff2a;padding:7px 10px;border-radius:99px;font-size:11px;color:#e2efff;white-space:nowrap;pointer-events:none}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);font-size:12px;background:#07172ce8;border:1px solid #ffffff30;border-radius:10px;padding:8px 12px;opacity:0;transition:opacity .25s;pointer-events:none}
+@media(max-width:650px){.top{top:8px;left:8px;right:8px}.brand{padding:9px 11px}.brand b{font-size:15px}.brand small{font-size:10px}.stats{gap:9px;padding:9px;font-size:9px}.stats strong{font-size:13px}.camera{left:8px;top:82px;width:96px;padding:7px;gap:5px}.camera .btn{font-size:10px;padding:8px 4px}.side{right:8px;top:82px;width:112px;padding:9px;gap:6px}.side .btn{font-size:11px;padding:7px 6px}.side label{font-size:10px}.controls{left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));gap:5px}.actions{gap:5px;padding:6px}.btn.icon{width:42px;height:42px}.btn{padding:9px 10px;font-size:12px}.layout{display:none}.hint{top:auto;bottom:76px;font-size:10px;max-width:90%;overflow:hidden}.stats .hide-mobile{display:none}}
+@media(max-height:520px){.camera,.side{top:65px}.hint{display:none}.controls{bottom:5px}}
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div class="top">
+ <div class="panel brand"><b>🎢 Coaster Lab</b><small>3D ride simulator · prototype 01</small></div>
+ <div class="panel stats"><div>Speed<strong id="speedRead">32 mph</strong></div><div>Height<strong id="heightRead">18 m</strong></div><div class="hide-mobile">Ride<strong id="rideRead">Ready</strong></div></div>
+</div>
+<div class="panel camera">
+ <button class="btn active" data-cam="chase">🚄 Chase</button>
+ <button class="btn" data-cam="side">↔ Side</button>
+ <button class="btn" data-cam="front">◉ Front</button>
+ <button class="btn" data-cam="orbit">◎ Orbit</button>
+</div>
+<div class="panel side">
+ <label for="speed">TRAIN SPEED <b id="speedLabel">1.0×</b></label>
+ <input id="speed" type="range" min=".25" max="2.5" value="1" step=".25">
+ <button class="btn primary" id="play">Ⅱ Pause ride</button>
+ <button class="btn" id="reset">↻ Reset ride</button>
+ <button class="btn" id="lights">✦ Toggle lights</button>
+</div>
+<div class="hint">Drag to rotate · pinch to zoom · works on iPhone</div>
+<div class="controls">
+ <button class="btn layout" id="layout">Track: Looping Adventure ▾</button>
+ <div class="panel actions">
+  <button class="btn icon primary" id="playBottom" aria-label="Play or pause">Ⅱ</button>
+  <button class="btn icon" id="resetBottom" aria-label="Reset">↻</button>
+ </div>
+ <button class="btn" id="viewReset">◎ Reset view</button>
+</div>
+<div id="toast"></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const host=document.querySelector('#scene');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x87caff);scene.fog=new THREE.Fog(0x87caff,55,150);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,400);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xdff2ff,0x37513e,2));
+const sun=new THREE.DirectionalLight(0xfff0d1,3.1);sun.position.set(-20,35,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const mat=(color,roughness=.65,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+const grass=mat(0x3d9a62), dark=mat(0x26374b,.48,.45), railmat=mat(0xe83b35,.27,.58), crossmat=mat(0xffc45b,.4,.4), watermat=new THREE.MeshStandardMaterial({color:0x29b8d3,roughness:.23,metalness:.22});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),grass);ground.rotation.x=-Math.PI/2;ground.position.y=-.7;ground.receiveShadow=true;scene.add(ground);
+const water=new THREE.Mesh(new THREE.PlaneGeometry(150,110),watermat);water.rotation.x=-Math.PI/2;water.position.set(0,-.48,-47);scene.add(water);
+// Distant island hills and simple low-poly trees
+for(let i=0;i<28;i++){let x=(Math.random()-.5)*100,z=-22-Math.random()*55,r=2+Math.random()*5;let hill=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),mat([0x559a69,0x4c8c60,0x6ba76d][i%3]));hill.position.set(x,r*.35,z);hill.scale.y=.55;scene.add(hill)}
+function tree(x,z,s=1){const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14*s,.22*s,1.8*s,6),mat(0x785137));trunk.position.set(x,.2*s,z);scene.add(trunk);for(let j=0;j<4;j++){let crown=new THREE.Mesh(new THREE.ConeGeometry((.85-j*.12)*s,1.25*s,7),mat(j%2?0x218858:0x2caa67));crown.position.set(x,(.95+j*.48)*s,z);crown.castShadow=true;scene.add(crown)}}
+for(let i=0;i<65;i++)tree((Math.random()-.5)*65,(Math.random()-.5)*45,0.55+Math.random()*.8);
+// A smooth custom coaster path with a large vertical loop
+const pts=[];
+const add=(x,y,z)=>pts.push(new THREE.Vector3(x,y,z));
+add(-15,1,-8);add(-11,1.1,-8);add(-7,2,-8);add(-3,5,-8);add(0,13,-8);add(3,20,-8);add(6,11,-8);add(8,3,-8);
+const loopCenter=new THREE.Vector3(12,5,-8),loopR=4.8;
+for(let i=0;i<=32;i++){let a=-Math.PI/2+i/32*Math.PI*2;add(loopCenter.x+loopR*Math.cos(a),loopCenter.y+loopR*Math.sin(a),-8)}
+add(18,2,-8);add(21,1.4,-5);add(20,1.2,0);add(15,1.1,3);add(8,1.2,4);add(2,2.3,4);add(-3,1.2,2);add(-8,1.1,-1);add(-12,1,-4);add(-15,1,-8);
+const curve=new THREE.CatmullRomCurve3(pts,true,'catmullrom',.35);
+const trackPts=curve.getPoints(600);
+const railGeo=new THREE.TubeGeometry(curve,600,.105,8,true);
+const rail1=railGeo.clone(),rail2=railGeo.clone();
+const positions1=rail1.attributes.position,positions2=rail2.attributes.position;
+for(let i=0;i<positions1.count;i++){positions1.setZ(i,positions1.getZ(i)-.28);positions2.setZ(i,positions2.getZ(i)+.28)}
+rail1.computeVertexNormals();rail2.computeVertexNormals();
+scene.add(new THREE.Mesh(rail1,railmat),new THREE.Mesh(rail2,railmat));
+// cross ties, positioned using curve tangent and a horizontal-ish perpendicular
+for(let i=0;i<180;i++){let t=i/180,p=curve.getPointAt(t),tan=curve.getTangentAt(t);let side=new THREE.Vector3(-tan.z,0,tan.x).normalize();if(side.length()<.1)side.set(0,0,1);const tie=new THREE.Mesh(new THREE.BoxGeometry(.66,.12,.16),crossmat);tie.position.copy(p);tie.position.y-=.18;tie.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),side);tie.castShadow=true;scene.add(tie)}
+// support columns dropped from track to ground
+for(let i=0;i<46;i++){let p=curve.getPointAt(i/46);if(p.y>1.25){let h=p.y+.2;let s=new THREE.Mesh(new THREE.CylinderGeometry(.11,.16,h,8),dark);s.position.set(p.x,h/2-.55,p.z);s.castShadow=true;scene.add(s)}}
+// Train made of a locomotive and two cars
+const train=new THREE.Group();scene.add(train);
+const bodymat=mat(0x172941,.32,.35),red=mat(0xff453d,.28,.5),seatmat=mat(0x101a2c,.38,.1),wheelmat=mat(0x171b23,.3,.25);
+function box(parent,w,h,d,m,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+for(let c=0;c<3;c++){const car=new THREE.Group();car.position.z=c*.95;box(car,.95,.28,1.02,bodymat,0,0,0);box(car,1,.13,1.05,red,0,.17,0);box(car,.72,.22,.78,seatmat,0,.36,-.02);for(let s of [-.31,.31]){box(car,.12,.23,.74,seatmat,s,.48,0);for(let w of [-.34,.34]){let wheel=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.13,12),wheelmat);wheel.rotation.z=Math.PI/2;wheel.position.set(s*.9,-.16,w);car.add(wheel)}}for(let s of [-.25,.25])box(car,.12,.08,.14,mat(0xffffff,.25),s,.26,-.48);train.add(car)}
+const coasterLamp=new THREE.PointLight(0xff6b40,1.5,8);coasterLamp.position.set(0,.5,-.5);train.add(coasterLamp);
+let progress=.0,playing=true,speed=1,camMode='chase',lightsOn=true,orbitYaw=0,orbitPitch=.24,zoom=1,dragging=false,lastX=0,lastY=0;
+const lookTarget=new THREE.Vector3();
+function updateTrain(dt){if(playing){let p=curve.getPointAt(progress),v=curve.getTangentAt(progress);let mph=18+Math.max(0,p.y)*2.0;progress=(progress+dt*speed*(.022+mph*.0006))%1;let ahead=curve.getPointAt(progress),tan=curve.getTangentAt(progress);train.position.copy(ahead);train.position.y+=.28;const look= ahead.clone().add(tan);train.lookAt(look);document.querySelector('#speedRead').textContent=Math.round(mph*speed)+' mph';document.querySelector('#heightRead').textContent=Math.max(0,Math.round(ahead.y*3.28))+' ft';document.querySelector('#rideRead').textContent=progress<.015?'Dispatch':progress>.98?'Station':'Running'}}
+function updateCamera(dt){const p=train.position.clone(),t=curve.getTangentAt(progress).normalize();let desired=new THREE.Vector3();
+if(camMode==='chase'){desired.copy(p).addScaledVector(t,-8*zoom).add(new THREE.Vector3(0,3.5*zoom,0));lookTarget.copy(p).addScaledVector(t,4).add(new THREE.Vector3(0,1,0))}
+else if(camMode==='front'){desired.copy(p).addScaledVector(t,7*zoom).add(new THREE.Vector3(0,1.8*zoom,0));lookTarget.copy(p).addScaledVector(t,-3)}
+else if(camMode==='side'){desired.copy(p).add(new THREE.Vector3(12*zoom,4*zoom,1));lookTarget.copy(p)}
+else{let r=22*zoom;desired.set(Math.cos(orbitYaw)*r,8+Math.sin(orbitPitch)*r,Math.sin(orbitYaw)*r);lookTarget.set(0,5,0)}
+camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(lookTarget)}
+const toast=document.querySelector('#toast');let toastTimer;function say(s){toast.textContent=s;toast.style.opacity=1;clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.style.opacity=0,1800)}
+function togglePlay(){playing=!playing;document.querySelector('#play').textContent=playing?'Ⅱ Pause ride':'▶ Resume ride';document.querySelector('#playBottom').textContent=playing?'Ⅱ':'▶';say(playing?'Ride resumed':'Ride paused')}
+function reset(){progress=0;playing=true;document.querySelector('#play').textContent='Ⅱ Pause ride';document.querySelector('#playBottom').textContent='Ⅱ';say('Train returned to station')}
+document.querySelector('#play').onclick=togglePlay;document.querySelector('#playBottom').onclick=togglePlay;document.querySelector('#reset').onclick=reset;document.querySelector('#resetBottom').onclick=reset;
+document.querySelector('#speed').addEventListener('input',e=>{speed=+e.target.value;document.querySelector('#speedLabel').textContent=speed.toFixed(2)+'×'});
+document.querySelectorAll('[data-cam]').forEach(b=>b.onclick=()=>{camMode=b.dataset.cam;document.querySelectorAll('[data-cam]').forEach(x=>x.classList.toggle('active',x===b));say('Camera: '+b.textContent.trim())});
+document.querySelector('#viewReset').onclick=()=>{orbitYaw=0;orbitPitch=.24;zoom=1;camMode='chase';document.querySelectorAll('[data-cam]').forEach(x=>x.classList.toggle('active',x.dataset.cam==='chase'));say('Camera view reset')};
+document.querySelector('#lights').onclick=()=>{lightsOn=!lightsOn;coasterLamp.intensity=lightsOn?1.5:0;say(lightsOn?'Train lights on':'Train lights off')};
+document.querySelector('#layout').onclick=()=>say('Looping Adventure is the first track. Track editor coming next!');
+const el=renderer.domElement;el.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;el.setPointerCapture(e.pointerId)});el.addEventListener('pointermove',e=>{if(!dragging)return;let dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;if(camMode!=='orbit'){camMode='orbit';document.querySelectorAll('[data-cam]').forEach(x=>x.classList.toggle('active',x.dataset.cam==='orbit'))}orbitYaw-=dx*.008;orbitPitch=Math.max(-.15,Math.min(1.05,orbitPitch-dy*.006))});el.addEventListener('pointerup',()=>dragging=false);el.addEventListener('pointercancel',()=>dragging=false);el.addEventListener('wheel',e=>{zoom=Math.max(.55,Math.min(1.8,zoom+e.deltaY*.001));},{passive:true});
+let pinchDist=0;el.addEventListener('touchstart',e=>{if(e.touches.length===2)pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)},{passive:true});el.addEventListener('touchmove',e=>{if(e.touches.length===2){let d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);zoom=Math.max(.55,Math.min(1.8,zoom+(pinchDist-d)*.004));pinchDist=d}},{passive:true});
+function resize(){camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<650?68:58;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.65))}addEventListener('resize',resize);
+let prev=performance.now();function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-prev)/1000,.04);prev=now;updateTrain(dt);updateCamera(dt);renderer.render(scene,camera)}requestAnimationFrame(animate);
+</script>
+</body></html>
