@@ -12,7 +12,7 @@ No history was rewritten and no unmerged work was deleted during the reorganizat
 | Branch names | 20 × `claude/<random-words>` | `main`, `develop`, `feature/*`, `chore/*`, `docs/*`, `project/*` (see below) |
 | Newest version in git | 10.1 | 10.1 in source form; every build from prototype 01 to 10.10.1 archived by PR #8 |
 | Docs at top level | 10 loose Markdown files | `README` · `CHANGELOG` · `CONTRIBUTING` · `SECURITY`; everything else in `docs/` |
-| Automation | no GitHub Actions runs | CI (syntax + secrets) on every push and PR; regression workflow on demand |
+| Automation | no GitHub Actions runs | CI (syntax, secrets, database, lockfile) on every push and PR; 10.10.1 regression on every PR into `main` |
 | Security | never scanned | full-history scan: no secrets ([report](security/SECRET-SCAN-2026-11-27.md)) |
 
 ## Branch map
@@ -91,7 +91,7 @@ No file exists yet for 3, 5.0, 8.0–8.3, 10.5, 10.6 and 10.9.2 (their code is i
    `bash tools/repo/cleanup-old-branches.sh --yes`.
 3. **Push the archive tags** (optional extra safety) — add `--tags` to tag every old branch tip as `archive/<name>`
    before it is removed.
-4. **Protect `main` and `develop`** — settings in [`RELEASES.md`](RELEASES.md#branch-protection-recommended-settings).
+4. **Protect `main` and `develop`** — `bash tools/repo/apply-branch-protection.sh --yes` (details in [`RELEASES.md`](RELEASES.md#branch-protection)).
 5. **Turn on secret scanning + push protection** and *Keep my email addresses private* ([security report](security/SECRET-SCAN-2026-11-27.md)).
 6. **Ask Duet** the open questions below, then merge PR #8.
 

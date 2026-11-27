@@ -14,6 +14,10 @@ file (`builds/`) and from the 10.9 developer report. They are accurate summaries
 ## [Unreleased]
 
 ### Repository
+- Security hardening (2026-11-27, in `main`): test dependencies locked (`tests/package-lock.json`, exact pins, `npm ci`);
+  required `regression 10.10.1` job; `database` CI job attacking a copy of production (RLS, privileges, owner and VIP
+  permissions); `lockfile` CI job; branch-protection rulesets ready for the owner. Report:
+  [`docs/security/HARDENING-2026-11-27.md`](docs/security/HARDENING-2026-11-27.md). No game code changed.
 - Imported the finished builds 10.2 → 10.10.1, the 4.1 / Owner's Edition / VELOCITY prototypes and the 10.9 developer report into `builds/` and `docs/reports/` (2026-11-27).
 - Security triple-check (pattern + JWT-role scan, detect-secrets, GitHub/Supabase/code audit): no credentials found.
   CI actions pinned to commit SHAs; Dependabot config added (2026-11-27).
