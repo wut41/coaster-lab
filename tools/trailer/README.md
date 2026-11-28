@@ -6,3 +6,7 @@ The 42-second trailer that plays the first time someone opens Coaster Lab (and f
 - **Footage:** `capture.js` records real gameplay frame by frame on a virtual clock, so every frame is smooth even on a slow machine: `node tools/trailer/capture.js [shot ...]` (env `W`, `H`, `FPS`, `OUT`). Shots: loop, hyper, wing, manta, spin, lift, crash (a real Disaster Mode derail).
 - **Everything else** (narrator lines, the Kevin and hot dog shots, the epic sunset shot) was made with Higgsfield, and the music and sound effects were synthesized from scratch, then cut together with ffmpeg.
 - **Tests:** `tests/t17_trailer.js` (uses `tests/fixtures/trailer_test.webm` in place of the real video).
+
+## Vertical launch Short
+
+`short/` builds the 15-second 9:16 YouTube Short for the Dec 1 launch (portrait capture, music, captions). See [`short/README.md`](short/README.md).

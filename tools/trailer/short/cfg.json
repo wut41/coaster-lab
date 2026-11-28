@@ -1,0 +1,216 @@
+{
+ "music": "music.wav",
+ "cap_y": 470,
+ "hits": [
+  0.9375,
+  5.895
+ ],
+ "flashes": [
+  5.895
+ ],
+ "segments": [
+  {
+   "shot": "hyper",
+   "b0": 0,
+   "b1": 7,
+   "nopop": true,
+   "bumps": [
+    0.9375
+   ],
+   "capsz": 92,
+   "map": [
+    [
+     0,
+     0
+    ],
+    [
+     0.3,
+     0
+    ],
+    [
+     0.9375,
+     17
+    ],
+    [
+     3.28,
+     101
+    ]
+   ],
+   "cap": [
+    [
+     [
+      "I made my own",
+      "#FFFFFF"
+     ]
+    ],
+    [
+     [
+      "roller coaster game ",
+      "#FFD23F"
+     ],
+     [
+      "🎢",
+      ""
+     ]
+    ]
+   ]
+  },
+  {
+   "shot": "loop",
+   "b0": 7,
+   "b1": 12,
+   "capsz": 92,
+   "cap": [
+    [
+     [
+      "build ",
+      "#FFFFFF"
+     ],
+     [
+      "ANY",
+      "#FFD23F"
+     ],
+     [
+      " ride",
+      "#FFFFFF"
+     ]
+    ],
+    [
+     [
+      "you want 🛠️",
+      "#FFFFFF"
+     ]
+    ]
+   ],
+   "map": [
+    [
+     0,
+     0
+    ],
+    [
+     2.34,
+     46
+    ]
+   ]
+  },
+  {
+   "shot": "crash",
+   "b0": 12,
+   "b1": 18,
+   "capsz": 92,
+   "map": [
+    [
+     0,
+     4
+    ],
+    [
+     0.27,
+     12
+    ],
+    [
+     1.55,
+     50
+    ],
+    [
+     2.81,
+     70
+    ]
+   ],
+   "cap": [
+    [
+     [
+      "or ",
+      "#FFFFFF"
+     ],
+     [
+      "CRASH",
+      "#FF4D4D"
+     ],
+     [
+      " them 💀",
+      "#FFFFFF"
+     ]
+    ]
+   ],
+   "cap2": {
+    "at": 1.6,
+    "y": 620,
+    "sz": 66,
+    "lines": [
+     [
+      [
+       "(they're fine 🪂)",
+       "#FFFFFF"
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "b0": 18,
+   "b1": 22.5,
+   "subb": 1.5,
+   "capsz": 92,
+   "sub": [
+    [
+     "wing",
+     0,
+     0.45
+    ],
+    [
+     "manta",
+     23
+    ],
+    [
+     "spin",
+     8
+    ]
+   ],
+   "cap": [
+    [
+     [
+      "12 insane rides 🔥",
+      "#FFFFFF"
+     ]
+    ]
+   ]
+  },
+  {
+   "shot": "snow2",
+   "b0": 22.5,
+   "b1": 27,
+   "start": 2,
+   "capsz": 92,
+   "cap": [
+    [
+     [
+      "and it ",
+      "#FFFFFF"
+     ],
+     [
+      "SNOWS",
+      "#3FD8FF"
+     ]
+    ],
+    [
+     [
+      "for launch ❄️🎅",
+      "#FFFFFF"
+     ]
+    ]
+   ]
+  },
+  {
+   "end": true,
+   "b0": 27,
+   "b1": 32,
+   "bgshot": "snow2",
+   "bgframe": 80
+  }
+ ],
+ "end": {
+  "date": "DROPS DEC 1",
+  "line1": "play it on iPhone + PC 📱💻",
+  "line2": "sub so you don't miss it 🔔"
+ }
+}
